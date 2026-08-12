@@ -1,0 +1,184 @@
+{
+  "name": "Caso 01 · Los pedidos que se pierden (Valentina)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Caso 01 — Los pedidos que se pierden\n\nEl negocio de Valentina: vende por Instagram, MercadoLibre y WhatsApp, y carga cada venta a mano en una planilla.\n\n**Tres problemas:** el cliente no recibe confirmacion, nadie le avisa a Valentina de los pedidos grandes, y Tomas no se entera de los nuevos.\n\n**El algoritmo, antes de los nodos:**\n```\nCUANDO se carga un pedido:\n    confirmar al cliente\n    avisar a Tomas\n    SI monto > 50000:\n        alertar a Valentina\n```\n\nLa columna Monto va sin el signo $: 18000, no $18.000.\n\n**Cuenta:** pedido normal y pedido alto cuestan lo mismo, **1 ejecucion**. En n8n se cobra la corrida, no el nodo.",
+        "height": 520,
+        "width": 460,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -620
+      ],
+      "id": "16f225c3-4c66-4bff-8d1c-ec91d21501c5",
+      "name": "Consigna"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Seleccioná tu planilla"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Pedidos"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        0
+      ],
+      "id": "4e678afd-2d05-479b-8ae4-d7f43f59f415",
+      "name": "Nuevo pedido"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Email'] }}",
+        "subject": "=Recibimos tu pedido, {{ $json['Cliente'] }}",
+        "emailType": "text",
+        "message": "=Hola {{ $json['Cliente'] }}:\n\nRegistramos tu pedido de {{ $json['Cantidad'] }} x {{ $json['Producto'] }} por ${{ $json['Monto'] }}.\nTe avisamos cuando salga el envio.\n\nGracias por tu compra.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        20,
+        0
+      ],
+      "id": "9bcdb285-fcfe-4e55-8a56-f1e0915afe7e",
+      "name": "Confirmar al cliente"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "93374293-5f95-410a-93f6-5c6a736c786a",
+              "leftValue": "={{ Number($('Nuevo pedido').item.json['Monto']) }}",
+              "rightValue": 50000,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        -140
+      ],
+      "id": "909d2e37-b06f-452c-8f4a-bd0cd4a838ba",
+      "name": "Monto mayor a 50000"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DEL_GRUPO",
+        "text": "=Pedido nuevo para despachar\n\nCliente: {{ $('Nuevo pedido').item.json['Cliente'] }}\nProducto: {{ $('Nuevo pedido').item.json['Cantidad'] }} x {{ $('Nuevo pedido').item.json['Producto'] }}\nCanal: {{ $('Nuevo pedido').item.json['Canal'] }}\nFecha: {{ $('Nuevo pedido').item.json['Fecha'] }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        140
+      ],
+      "id": "c2ac20c4-3d78-42e8-baab-0878bece242a",
+      "name": "Avisar a Tomas"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DE_VALENTINA",
+        "text": "=PEDIDO ALTO — necesita tu aprobacion\n\nCliente: {{ $('Nuevo pedido').item.json['Cliente'] }}\nMonto: ${{ $('Nuevo pedido').item.json['Monto'] }}\nProducto: {{ $('Nuevo pedido').item.json['Producto'] }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        -200
+      ],
+      "id": "8f653cf6-7282-446e-b1df-b40c408848e3",
+      "name": "Alertar a Valentina"
+    }
+  ],
+  "connections": {
+    "Nuevo pedido": {
+      "main": [
+        [
+          {
+            "node": "Confirmar al cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirmar al cliente": {
+      "main": [
+        [
+          {
+            "node": "Monto mayor a 50000",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Avisar a Tomas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monto mayor a 50000": {
+      "main": [
+        [
+          {
+            "node": "Alertar a Valentina",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

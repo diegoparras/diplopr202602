@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Todavía no publicada · Diplomatura en Procesos · FCE-UBA</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="/tema.js"></script>
+<link rel="stylesheet" href="/estilo.css">
+<style>
+  .espera {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 70px 26px;
+  }
+  .espera h1 { margin: 20px 0 22px; }
+  .espera p { font-size: 1.05rem; max-width: 50ch; }
+  .ficha {
+    margin-top: 34px;
+    padding: 24px 26px;
+    background: var(--sup);
+    border: 1px solid var(--linea);
+    border-left: 2px solid var(--naranja);
+    border-radius: 14px;
+  }
+  .ficha .clase-num {
+    font-family: var(--dato);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--naranja);
+  }
+  .ficha h2 {
+    font-size: 1.35rem;
+    margin: 8px 0 8px;
+  }
+  .ficha p { font-size: 0.92rem; }
+  .ficha .cuando {
+    margin-top: 14px;
+    font-family: var(--dato);
+    font-size: 0.78rem;
+    color: var(--tenue);
+  }
+  .acciones { display: flex; gap: 12px; margin-top: 34px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<button class="tema suelto" type="button" title="Cambiar tema">
+        <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>
+      </button>
+
+<main class="espera">
+  <span class="rotulo">Material de cursada</span>
+  <h1 id="titular">Esta clase va a estar disponible próximamente</h1>
+  <p id="explica">Cada encuentro se publica acá después de dictarse, con las demostraciones en vivo y los datos del día.</p>
+
+  <div class="ficha" id="ficha" hidden>
+    <span class="clase-num" id="fichaNum"></span>
+    <h2 id="fichaTitulo"></h2>
+    <p id="fichaBajada"></p>
+    <div class="cuando" id="fichaCuando"></div>
+  </div>
+
+  <div class="acciones">
+    <a class="boton" href="/cronograma.html">Ver el cronograma</a>
+    <a class="boton hueco" href="/01.html">Ir a la Clase 1</a>
+  </div>
+</main>
+
+<script src="/clases.js"></script>
+<script>
+  // Si la URL apunta a un número de clase del cronograma, mostramos cuál es y cuándo toca.
+  const m = location.pathname.match(/(\d{1,2})(?:\.html)?$/);
+  if (m) {
+    const c = CLASES.find(x => x.n === Number(m[1]));
+    if (c) {
+      document.getElementById('titular').textContent =
+        'La clase ' + c.n + ' va a estar disponible próximamente';
+      document.getElementById('fichaNum').textContent = 'Clase ' + String(c.n).padStart(2, '0');
+      document.getElementById('fichaTitulo').textContent = c.titulo;
+      document.getElementById('fichaBajada').textContent = c.bajada;
+      const hoy = new Date().toISOString().slice(0, 10);
+      document.getElementById('fichaCuando').textContent =
+        c.fecha > hoy
+          ? `Se dicta el ${c.dia.toLowerCase()} ${fechaLarga(c.fecha)} a las 18 h. El material se publica después del encuentro.`
+          : `Se dictó el ${c.dia.toLowerCase()} ${fechaLarga(c.fecha)}. El material está en preparación.`;
+      document.getElementById('ficha').hidden = false;
+      document.getElementById('explica').textContent =
+        'El material de cada encuentro se publica una vez dictada la clase.';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 1 · El ecosistema no-code en 2026 y por qué n8n · FCE-UBA</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  section.bloque { padding: 96px 0; border-top: 1px solid var(--linea); }
+  section.bloque:first-of-type { border-top: 0; }
+  .bloque h2 { max-width: 18ch; margin: 18px 0 22px; }
+  .bloque .intro { max-width: 60ch; font-size: 1.05rem; }
+
+  .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 54px; align-items: start; }
+  .tres-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+  @media (max-width: 900px) {
+    .dos-col, .tres-col { grid-template-columns: 1fr; gap: 26px; }
+    section.bloque { padding: 68px 0; }
+  }
+
+  .portada { padding: 54px 0 20px; }
+  .portada h1 { max-width: 16ch; margin: 20px 0 24px; }
+  .portada .meta {
+    display: flex; gap: 28px; flex-wrap: wrap;
+    font-family: var(--dato); font-size: 0.75rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue);
+    margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--linea);
+  }
+
+  .ficha { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 24px 22px; box-shadow: var(--sombra); }
+  .ficha h3 { font-size: 1.12rem; margin-bottom: 8px; }
+  .ficha p { font-size: 0.9rem; }
+  .ficha .marca-capa {
+    font-family: var(--dato); font-size: 0.66rem;
+    letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja);
+    display: block; margin-bottom: 8px;
+  }
+  .ficha ul { margin: 12px 0 0 18px; }
+  .ficha li { font-size: 0.88rem; color: var(--tenue); margin-bottom: 6px; }
+
+  .contraste { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--linea); border-radius: 18px; overflow: hidden; }
+  .contraste > div { padding: 30px 28px; }
+  .contraste > div:first-child { border-right: 1px solid var(--linea); background: var(--sup2); }
+  .contraste h4 {
+    font-family: var(--dato); font-size: 0.7rem; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 14px;
+  }
+  @media (max-width: 760px) {
+    .contraste { grid-template-columns: 1fr; }
+    .contraste > div:first-child { border-right: 0; border-bottom: 1px solid var(--linea); }
+  }
+
+  .cita {
+    border-left: 2px solid var(--naranja);
+    padding: 8px 0 8px 24px; margin-top: 30px;
+    font-family: var(--display); font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+    font-weight: 600; letter-spacing: -0.02em; line-height: 1.35; color: var(--texto);
+    max-width: 46ch;
+  }
+
+  .escalera { display: grid; gap: 0; margin-top: 34px; }
+  .escalon {
+    display: grid; grid-template-columns: 150px 1fr;
+    gap: 24px; padding: 22px 0;
+    border-top: 1px solid var(--linea); align-items: baseline;
+  }
+  .escalon:last-child { border-bottom: 1px solid var(--linea); }
+  .escalon .epoca {
+    font-family: var(--display); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em;
+  }
+  .escalon .epoca small {
+    display: block; font-family: var(--dato); font-weight: 400;
+    font-size: 0.7rem; letter-spacing: 0.1em; color: var(--tenue);
+  }
+  .escalon.ahora .epoca { color: var(--naranja); }
+  @media (max-width: 640px) { .escalon { grid-template-columns: 1fr; gap: 6px; } }
+
+  /* ── Lienzo del workflow en 3D ── */
+  .flujo3d {
+    position: relative; height: 480px; margin-top: 34px;
+    border-radius: 20px; border: 1px solid var(--linea);
+    background: radial-gradient(ellipse at 50% 120%, rgba(249,115,22,0.09), transparent 62%), var(--sup);
+    overflow: hidden; box-shadow: var(--sombra);
+  }
+  .flujo3d canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+  .flujo3d canvas:active { cursor: grabbing; }
+  .flujo-panel {
+    position: absolute; top: 20px; left: 20px; max-width: 320px;
+    padding: 16px 18px; background: var(--velo); backdrop-filter: blur(10px);
+    border: 1px solid var(--linea); border-radius: 14px;
+  }
+  .flujo-panel .n {
+    font-family: var(--dato); font-size: 0.65rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--naranja);
+  }
+  .flujo-panel h4 { font-family: var(--display); font-size: 1.15rem; margin: 5px 0 7px; letter-spacing: -0.02em; }
+  .flujo-panel p { font-size: 0.86rem; }
+  .flujo-mandos {
+    position: absolute; bottom: 18px; left: 20px; right: 20px;
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .mando {
+    padding: 9px 15px; background: var(--velo); backdrop-filter: blur(8px);
+    border: 1px solid var(--linea); border-radius: 999px;
+    font-family: var(--dato); font-size: 0.72rem; color: var(--tenue);
+    cursor: pointer; transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .mando:hover, .mando.viva { color: var(--texto); border-color: var(--naranja); }
+  .flujo-pista {
+    margin-left: auto; font-family: var(--dato); font-size: 0.68rem; color: var(--tenue);
+  }
+
+  /* ── Calculadora de ejecuciones ── */
+  .calc {
+    margin-top: 32px; padding: 30px; background: var(--sup);
+    border: 1px solid var(--linea); border-radius: 20px; box-shadow: var(--sombra);
+  }
+  .calc-mando { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 26px; }
+  .calc-mando label { font-family: var(--dato); font-size: 0.75rem; color: var(--tenue); }
+  .calc-mando input[type=range] { flex: 1; min-width: 220px; accent-color: var(--naranja); }
+  .calc-mando output {
+    font-family: var(--display); font-weight: 800; font-size: 1.6rem;
+    letter-spacing: -0.03em; color: var(--naranja); min-width: 3.5ch;
+  }
+  .barra-fila { margin-bottom: 20px; }
+  .barra-tope {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 0.88rem; margin-bottom: 7px;
+  }
+  .barra-tope b { font-family: var(--dato); font-weight: 500; color: var(--texto); }
+  .barra-riel { height: 26px; background: var(--sup2); border-radius: 7px; overflow: hidden; position: relative; }
+  .barra-lleno { height: 100%; border-radius: 7px; transition: width 0.3s ease; }
+  .barra-limite {
+    position: absolute; top: -4px; bottom: -4px; width: 2px;
+    background: var(--texto); opacity: 0.55;
+  }
+  .calc-veredicto {
+    margin-top: 22px; padding: 16px 20px; border-radius: 13px;
+    background: var(--brasa); font-size: 0.93rem; color: var(--texto);
+  }
+
+  /* ── Clasificador ── */
+  .clasificador { margin-top: 30px; display: grid; gap: 10px; }
+  .tarea {
+    display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;
+    padding: 15px 18px; background: var(--sup); border: 1px solid var(--linea);
+    border-radius: 13px; box-shadow: var(--sombra);
+  }
+  .tarea span { font-size: 0.93rem; }
+  .tarea button {
+    padding: 7px 15px; border-radius: 999px; border: 1px solid var(--linea);
+    background: transparent; color: var(--tenue); cursor: pointer;
+    font-family: var(--dato); font-size: 0.72rem; transition: all 0.15s ease;
+  }
+  .tarea button:hover { color: var(--texto); border-color: var(--naranja); }
+  .tarea.ok button.elegida { background: #16A34A; border-color: #16A34A; color: #fff; }
+  .tarea.mal button.elegida { background: #DC2626; border-color: #DC2626; color: #fff; }
+  .tarea .razon {
+    grid-column: 1 / -1; font-size: 0.85rem; color: var(--tenue);
+    padding-top: 4px; display: none;
+  }
+  .tarea.resuelta .razon { display: block; }
+  .marcador { font-family: var(--dato); font-size: 0.78rem; color: var(--tenue); margin-top: 16px; }
+
+  /* ── Panel de datos vivos ── */
+  .panel-vivo {
+    background: var(--sup); border: 1px solid var(--linea);
+    border-radius: 20px; padding: 26px; margin-top: 32px; box-shadow: var(--sombra);
+  }
+  .panel-cabeza {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 18px;
+  }
+  .panel-cabeza h3 { font-size: 1.15rem; }
+  .panel-cabeza .sello-datos { font-family: var(--dato); font-size: 0.7rem; color: var(--tenue); }
+  #grafico { width: 100%; height: auto; }
+  .creadores { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 16px; }
+  .creador {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 12px; border: 1px solid var(--linea); border-radius: 999px;
+    font-family: var(--dato); font-size: 0.7rem; color: var(--tenue);
+    cursor: pointer; transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .creador i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .creador.viva { color: var(--texto); border-color: currentColor; }
+  .creador.apagada { opacity: 0.35; }
+  .cargando { padding: 60px 0; text-align: center; font-family: var(--dato); font-size: 0.82rem; color: var(--tenue); }
+  .globo {
+    position: absolute; pointer-events: none; z-index: 5;
+    background: var(--velo); border: 1px solid var(--linea);
+    border-radius: 11px; padding: 10px 13px; font-size: 0.8rem;
+    opacity: 0; transition: opacity 0.12s ease; white-space: nowrap;
+  }
+  .globo b { font-family: var(--display); font-weight: 600; display: block; }
+  .globo span { font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); }
+
+  /* ── Casos prácticos ── */
+  .caso {
+    background: var(--sup); border: 1px solid var(--linea); border-left: 2px solid var(--naranja);
+    border-radius: 16px; padding: 26px; margin-top: 18px; box-shadow: var(--sombra);
+  }
+  .caso .n {
+    font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--naranja);
+  }
+  .caso h3 { margin: 6px 0 10px; }
+  .caso pre {
+    margin: 16px 0; padding: 16px 18px; background: var(--fondo);
+    border: 1px solid var(--linea); border-radius: 11px;
+    font-family: var(--dato); font-size: 0.8rem; line-height: 1.65;
+    color: var(--texto); overflow-x: auto;
+  }
+  .caso .acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+  .actividad { background: var(--sup); border-radius: 20px; padding: 34px; border: 1px solid var(--linea); box-shadow: var(--sombra); }
+  .pregunta { margin-top: 24px; }
+  .pregunta label { display: block; margin-bottom: 8px; }
+  .pregunta label b {
+    font-family: var(--display); font-size: 1.08rem; font-weight: 600;
+    color: var(--naranja); display: block;
+  }
+  .pregunta label span { font-size: 0.88rem; color: var(--tenue); }
+  .pregunta textarea {
+    width: 100%; min-height: 76px; resize: vertical;
+    padding: 13px 15px; background: var(--fondo);
+    border: 1px solid var(--linea); border-radius: 12px;
+    color: var(--texto); font-family: var(--cuerpo); font-size: 0.95rem; line-height: 1.55;
+  }
+  .pregunta textarea:focus { outline: none; border-color: var(--naranja); box-shadow: 0 0 0 3px var(--brasa); }
+  .guardado { font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); margin-top: 16px; min-height: 1.2em; }
+
+  .nota-pie { margin-top: 14px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); line-height: 1.7; }
+
+  .cierre { text-align: center; padding: 90px 0 40px; }
+  .cierre h2 { margin: 0 auto 22px; }
+  .cierre .acciones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+
+  .revelar { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .revelar.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-int">
+    <a class="marca" href="cronograma.html"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 32 H30 M38 22 H30 M38 42 H30 M30 22 V42" fill="none" stroke="#FB923C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="32" r="5.5" fill="#F97316"/><circle cx="44" cy="21" r="5" fill="#FDBA74"/><circle cx="44" cy="43" r="5" fill="#FDBA74"/></svg>Diplomatura <span>Procesos</span> · FCE-UBA</a>
+    <nav>
+      <a href="cronograma.html">Cronograma</a>
+      <a href="01.html" class="actual">Clase 1</a>
+      <a href="#" id="salir">Salir</a>
+      <button class="tema" type="button" title="Cambiar tema">
+        <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<div class="envoltura portada">
+  <span class="rotulo">Clase 01 · Módulo 1 · Entender el terreno</span>
+  <h1>El ecosistema no-code en 2026 y por qué n8n</h1>
+  <p class="intro">Qué es automatizar un proceso de negocio, de dónde viene la disciplina, qué plataformas hay hoy y con qué criterio se elige una. Al final de la clase vas a tener dos flujos andando.</p>
+  <div class="meta">
+    <span>12 de agosto de 2026</span>
+    <span>Miércoles · 18 a 21:30 h</span>
+    <span>FCE — UBA</span>
+  </div>
+</div>
+
+<!-- ─────────── Por qué ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Por dónde empieza todo</span>
+    <h2>Un proceso es una receta</h2>
+
+    <div class="dos-col" style="margin-top:26px">
+      <div>
+        <p class="intro">Imaginate tu habitación completamente desordenada: tardás veinte minutos en encontrar el celular. Si la ordenás, salir de casa te lleva cinco. En una organización pasa lo mismo, multiplicado por la cantidad de gente que participa del desorden.</p>
+        <p style="margin-top:16px">Un proceso de negocio es una serie de actividades que transforman una entrada en un resultado de valor. Harina y huevos entran, pan sale. Cuando ese recorrido está escrito, cualquiera lo puede ejecutar igual. Cuando no lo está, cada persona lo hace a su manera y el resultado depende de quién esté ese día.</p>
+        <div class="cita">Si no podés explicarle el proceso a otra persona en pasos numerados sin que te pregunte "¿y si pasa esto?", todavía no lo entendés lo suficiente para automatizarlo.</div>
+      </div>
+      <div>
+        <div class="ficha" style="margin-bottom:12px"><span class="marca-capa">Nivel 1</span><h3>Caos</h3><p>Cada uno lo hace como puede. Se pierden cosas, nadie sabe quién aprueba qué y el conocimiento vive en la cabeza de tres personas.</p></div>
+        <div class="ficha" style="margin-bottom:12px"><span class="marca-capa">Nivel 2</span><h3>Orden</h3><p>El proceso está escrito y medido. Todos saben qué hacer y cuándo, se puede entrenar a alguien nuevo. Pero cada paso lo sigue ejecutando una persona.</p></div>
+        <div class="ficha"><span class="marca-capa">Nivel 3</span><h3>Automatización</h3><p>El proceso escrito lo ejecuta un sistema. Corre de noche, no se olvida, no se cansa y deja registro de todo lo que hizo.</p></div>
+      </div>
+    </div>
+
+    <div class="cita" style="margin-top:40px">Nunca automatices un mal proceso. Si automatizás el caos, lo único que conseguís es caos más rápido.</div>
+  </div>
+</section>
+
+<!-- ─────────── Qué conviene automatizar ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Criterio</span>
+    <h2>Qué conviene automatizar y qué no</h2>
+    <p class="intro">La pregunta no es si la tecnología puede. Es si la tarea tiene la forma correcta. Tocá el botón que te parezca en cada caso y fijate qué pasa.</p>
+
+    <div class="clasificador" id="clasificador"></div>
+    <div class="marcador" id="marcador"></div>
+
+    <div class="dos-col" style="margin-top:40px">
+      <div class="ficha">
+        <h3>Se automatiza bien</h3>
+        <ul>
+          <li>Repetitiva: se hace muchas veces</li>
+          <li>Basada en reglas: si pasa X, hacé Y</li>
+          <li>Volumen alto y previsible</li>
+          <li>Datos que ya están en una computadora</li>
+        </ul>
+      </div>
+      <div class="ficha">
+        <h3>Necesita una persona</h3>
+        <ul>
+          <li>Decisiones complejas o creativas</li>
+          <li>Leer el estado emocional de alguien</li>
+          <li>Negociar o persuadir</li>
+          <li>Excepciones que nadie previó</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── El workflow en 3D ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Cómo se ve por dentro</span>
+    <h2>Un workflow es un grafo por donde viajan datos</h2>
+    <p class="intro">Este es el caso que vamos a construir hoy. Valentina vende ropa por tres canales y carga cada venta a mano en una planilla. Tocá cada nodo para ver qué hace, y mirá cómo el dato del pedido viaja de uno al siguiente.</p>
+
+    <div class="flujo3d" id="flujo3d">
+      <canvas id="lienzoFlujo"></canvas>
+      <div class="flujo-panel" id="flujoPanel">
+        <span class="n" id="flujoN">El flujo completo</span>
+        <h4 id="flujoTitulo">Cinco nodos, una ejecución</h4>
+        <p id="flujoTexto">Arrastrá para girar. Tocá un nodo para ver qué hace y cuándo se ejecuta.</p>
+      </div>
+      <div class="flujo-mandos" id="flujoMandos">
+        <button class="mando" data-caso="normal">Pedido de $18.000</button>
+        <button class="mando" data-caso="alto">Pedido de $67.000</button>
+        <span class="flujo-pista">arrastrá para girar</span>
+      </div>
+    </div>
+
+    <p class="nota-pie">Los dos recorridos cuestan lo mismo. En n8n una ejecución es una corrida completa del workflow, sin importar cuántos nodos tenga ni por cuántas ramas pase. Eso es lo que vamos a mirar en el próximo bloque.</p>
+  </div>
+</section>
+
+<!-- ─────────── Ejecuciones ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">El modelo de costos</span>
+    <h2>Ejecuciones, no operaciones</h2>
+    <p class="intro">Acá se separan las plataformas. Unas cobran cada paso que se ejecuta; n8n cobra la corrida entera. En un flujo de cinco nodos la diferencia es de cinco a uno, y crece con la complejidad.</p>
+
+    <div class="contraste" style="margin-top:30px">
+      <div>
+        <h4 style="color:var(--tenue)">Cobro por operación</h4>
+        <p>Cada módulo que se ejecuta cuenta. Un flujo de cinco pasos que corre cien veces consume quinientas unidades. Diseñar barato significa usar menos nodos, aunque el flujo quede menos claro.</p>
+      </div>
+      <div>
+        <h4 style="color:var(--naranja)">Cobro por ejecución</h4>
+        <p>La corrida completa cuenta una vez, tenga cinco nodos o cincuenta. Ese mismo flujo corriendo cien veces consume cien. Podés partir la lógica en pasos legibles sin pagar por la claridad.</p>
+      </div>
+    </div>
+
+    <div class="calc">
+      <div class="calc-mando">
+        <label for="pedidos">Pedidos por día</label>
+        <input type="range" id="pedidos" min="1" max="120" value="30">
+        <output id="pedidosVal">30</output>
+      </div>
+      <div id="barras"></div>
+      <div class="calc-veredicto" id="veredicto"></div>
+    </div>
+
+    <p class="nota-pie">El flujo de Valentina tiene cinco nodos y dos ramas posibles. La cuenta usa un mes de 30 días. El límite marcado es el del plan gratuito de n8n Cloud vigente al 12 de agosto de 2026: 50 ejecuciones de producción por mes, con ejecuciones de prueba sin límite.</p>
+  </div>
+</section>
+
+<!-- ─────────── El panorama ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Panorama 2026</span>
+    <h2>Las plataformas que hay hoy</h2>
+    <p class="intro">Ninguna es mejor en abstracto. La elección depende de si tenés infraestructura, cuánto volumen manejás y qué tan sensibles son los datos que van a pasar por ahí.</p>
+
+    <div class="tres-col" style="margin-top:30px">
+      <div class="ficha"><span class="marca-capa">Nube</span><h3>Zapier</h3><p>El más simple de arrancar y el más caro de escalar. Cobra por tarea, o sea por paso ejecutado. Buena vidriera de integraciones, poca profundidad de lógica.</p></div>
+      <div class="ficha"><span class="marca-capa">Nube</span><h3>Make</h3><p>Interfaz visual muy lograda y modelo por operación. Más potente que Zapier para lógica, sin opción de alojarlo vos.</p></div>
+      <div class="ficha" style="border-left:2px solid var(--naranja)"><span class="marca-capa">Nube o instancia propia</span><h3>n8n</h3><p>Código abierto, se puede alojar en tu propio servidor, cobra por ejecución y permite bajar a código cuando hace falta. Es la que vamos a usar.</p></div>
+    </div>
+
+    <div class="tres-col" style="margin-top:16px">
+      <div class="ficha"><h3>Dify</h3><p>Orientada a construir chatbots y agentes con interfaz visual, con recuperación de documentos integrada.</p></div>
+      <div class="ficha"><h3>KNIME</h3><p>Análisis de datos visual: preparación, transformación y modelos, más cerca del mundo estadístico que del de la integración.</p></div>
+      <div class="ficha"><h3>Los orquestadores</h3><p>Claude Code, Codex y OpenCode. Agentes que trabajan sobre tu máquina y tus repositorios. Aparecen en la clase 12 y se quedan hasta el final.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Por qué n8n ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">La elección</span>
+    <h2>Por qué n8n para esta diplomatura</h2>
+
+    <div class="dos-col" style="margin-top:26px">
+      <div>
+        <p class="intro">Tres razones prácticas y una de contexto.</p>
+        <p style="margin-top:16px">La primera es que se puede alojar en tu propio servidor, lo que significa que los datos de la organización nunca salen de ahí. Para un estudio contable, un banco o un área de recursos humanos, esa diferencia decide si el proyecto existe o no.</p>
+        <p style="margin-top:14px">La segunda es el modelo de costos que acabás de ver: podés partir un proceso en los pasos que necesite sin que el precio te empuje a esconder la lógica.</p>
+        <p style="margin-top:14px">La tercera es que tiene puerta de salida hacia el código. Cuando el nodo que necesitás no existe, escribís uno. Empezás sin programar y no te quedás sin techo.</p>
+      </div>
+      <div>
+        <div class="escalera" style="margin-top:0">
+          <div class="escalon"><div class="epoca">US$ 5.200 M<small>mayo 2026</small></div><p>Valuación tras la inversión de SAP, más del doble que los 2.500 millones de octubre de 2025. SAP embebe n8n dentro de Joule Studio, su entorno de construcción de agentes.</p></div>
+          <div class="escalon"><div class="epoca">1,7 M<small>constructores</small></div><p>Personas que usan la plataforma cada mes, según la propia empresa.</p></div>
+          <div class="escalon"><div class="epoca">1.400<small>clientes corporativos</small></div><p>Incluye equipos de compañías del Fortune 500 con procesos críticos corriendo encima.</p></div>
+          <div class="escalon ahora"><div class="epoca">Mercedes-Benz<small>mayo 2026</small></div><p>Adoptó n8n como plataforma global de automatización con IA. El motivo declarado fue la soberanía de datos: al poder alojarlo por su cuenta, mantiene el control de procesos críticos.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="nota-pie">Datos al 12 de agosto de 2026. La valuación y la inversión de SAP fueron anunciadas el 12 de mayo de 2026 por ambas empresas. Las cifras de comunidad y clientes corporativos son las que publica n8n.</p>
+  </div>
+</section>
+
+<!-- ─────────── n8n hoy ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Estado de la herramienta</span>
+    <h2>Qué trae n8n en 2026</h2>
+    <p class="intro">La plataforma va por la rama 2.x y publica versión nueva casi todas las semanas. Esto es lo que cambió y que vamos a usar durante la cursada.</p>
+
+    <div class="tres-col" style="margin-top:30px">
+      <div class="ficha"><h3>Lienzo espacial</h3><p>Los nodos se acomodan libremente, se agrupan en bloques con nombre y se colorean por función. Las notas admiten formato y quedan visibles en el historial de ejecución.</p></div>
+      <div class="ficha"><h3>Nodo de agente</h3><p>Un modelo que razona, decide y usa herramientas, con llamada a funciones contra Claude, GPT, Gemini y compatibles. Cuatro tipos de memoria disponibles.</p></div>
+      <div class="ficha"><h3>MCP en las dos puntas</h3><p>La instancia se puede exponer como servidor para que una IA la maneje, y también consumir servidores externos como herramientas.</p></div>
+      <div class="ficha"><h3>Data Tables</h3><p>Tablas adentro de n8n para guardar estado entre ejecuciones sin montar una base aparte.</p></div>
+      <div class="ficha"><h3>Insights</h3><p>Éxitos, fallos, tiempo de corrida y tiempo ahorrado, con endpoint propio. Es lo que vamos a usar en la clase 18 para evaluar.</p></div>
+      <div class="ficha"><h3>Reintentos y aislamiento</h3><p>Reintentos por nodo con espera creciente, y ejecutores de tareas separados para correr código aislado del proceso principal.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Dónde correrlo ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Antes de la clase 3</span>
+    <h2>Dónde va a correr tu n8n</h2>
+    <p class="intro">Arrancamos en la nube porque no tiene fricción de instalación, y en la clase 14 nos mudamos a una instancia propia. Las dos cosas hay que saberlas.</p>
+
+    <div class="dos-col" style="margin-top:30px">
+      <div class="ficha" style="border-left:2px solid var(--naranja)">
+        <span class="marca-capa">Lo que usamos ahora</span>
+        <h3>n8n Cloud, plan gratuito</h3>
+        <ul>
+          <li>50 ejecuciones de producción por mes</li>
+          <li>Ejecuciones de prueba sin límite</li>
+          <li>Se pausa sola tras 7 días sin que entres</li>
+          <li>Alrededor de seis meses de vigencia</li>
+        </ul>
+        <p style="margin-top:14px">Alcanza de sobra para la cursada, siempre que construyas y pruebes en el editor y actives un flujo solo cuando lo quieras dejar corriendo.</p>
+      </div>
+      <div class="ficha">
+        <span class="marca-capa">Lo que viene después</span>
+        <h3>Instancia propia</h3>
+        <ul>
+          <li>Sin límite de ejecuciones</li>
+          <li>Los datos no salen de tu servidor</li>
+          <li>Requiere Docker y un servidor</li>
+          <li>El mantenimiento corre por tu cuenta</li>
+        </ul>
+        <p style="margin-top:14px">Se puede probar en tu propia máquina sin servidor ni tarjeta. Lo vemos en la clase 14.</p>
+      </div>
+    </div>
+
+    <div class="cita">La auto-pausa a los siete días y las clases semanales son un choque anunciado. Entrá una vez entre clase y clase, aunque sea a mirar.</div>
+
+    <p class="nota-pie">Condiciones del plan gratuito verificadas el 12 de agosto de 2026 en el panel de la cuenta. No figuran en la grilla pública de precios, así que pueden cambiar sin aviso. Si al registrarte ves otra cosa, avisá en el foro de la cursada antes de la clase 3.</p>
+  </div>
+</section>
+
+<!-- ─────────── Modelos ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">El motor que le vamos a poner</span>
+    <h2>Qué modelos hay para conectar</h2>
+    <p class="intro">Desde la clase 10 los flujos van a tener un modelo adentro. Este gráfico se arma cada vez que abrís la página con los datos del día, así que no envejece como una captura.</p>
+
+    <div class="panel-vivo" style="position:relative">
+      <div class="panel-cabeza">
+        <h3 id="panelTitulo">Índice de inteligencia por fecha de lanzamiento</h3>
+        <span class="sello-datos" id="selloDatos">cargando…</span>
+      </div>
+      <div class="creadores" id="creadores"></div>
+      <div class="cargando" id="cargandoGrafico">Consultando Artificial Analysis…</div>
+      <svg id="grafico" hidden></svg>
+      <div class="globo" id="globo"></div>
+    </div>
+
+    <p class="nota-pie">Fuente: <a href="https://artificialanalysis.ai/" target="_blank" rel="noopener">Artificial Analysis</a>, Intelligence Index. Los datos se piden una vez por día y se sirven desde caché, así que la clase no depende de que el servicio esté disponible en el momento del encuentro.</p>
+  </div>
+</section>
+
+<!-- ─────────── Casos ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Manos a la obra</span>
+    <h2>Los dos casos de hoy</h2>
+    <p class="intro">El primero es para comprobar que entendiste la mecánica. El segundo es un proceso real con una decisión adentro. Los dos se pueden importar armados, pero conviene construirlos.</p>
+
+    <div class="caso">
+      <span class="n">Caso 00 · 2 nodos · introductorio</span>
+      <h3>De Google Sheets a Gmail</h3>
+      <p>Cero lógica, resultado inmediato. Una planilla que al recibir una fila nueva dispara un correo. Si funciona, entendiste disparador, nodo, mapeo y ejecución.</p>
+      <pre>CUANDO aparece una fila nueva en la hoja "Envios":
+    leer { Nombre y Apellido, Correo, Asunto, Mensaje }
+    enviar un correo a {Correo} con {Asunto} y {Mensaje}
+FIN</pre>
+      <div class="acciones">
+        <a class="boton" href="workflows/00-caso-inicial-n8n.json" download>Descargar el workflow</a>
+      </div>
+    </div>
+
+    <div class="caso">
+      <span class="n">Caso 01 · 5 nodos · intermedio</span>
+      <h3>Los pedidos que se pierden</h3>
+      <p>Valentina vende por Instagram, MercadoLibre y WhatsApp, y carga cada venta a mano. El cliente no recibe confirmación, nadie le avisa a ella de los pedidos grandes, y Tomás no se entera de los nuevos hasta que revisa la planilla. Tres problemas, un solo flujo.</p>
+      <pre>CUANDO se carga un pedido en la planilla:
+    leer { Fecha, Cliente, Email, Cantidad, Producto, Monto, Canal }
+
+    enviar correo de confirmación a {Email}
+    avisar por Telegram al grupo de despacho
+
+    SI Monto &gt; 50000:
+        alertar por Telegram a Valentina
+
+FIN</pre>
+      <p style="font-size:0.9rem">La columna Monto va sin el signo pesos ni puntos de miles: 18000, no $18.000. Si viene con formato, la comparación numérica falla y todos los pedidos parecen chicos.</p>
+      <div class="acciones">
+        <a class="boton" href="workflows/01-caso-valentina-n8n.json" download>Descargar el workflow</a>
+      </div>
+    </div>
+
+    <p class="nota-pie">Para importar: en n8n, Workflows → Create Workflow → los tres puntos arriba a la derecha → Import from File. Después conectá tus credenciales de Google, Gmail y Telegram, y pegá los identificadores de chat que te dé BotFather.</p>
+  </div>
+</section>
+
+<!-- ─────────── Actividad ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Para la clase 2</span>
+    <h2>Traé un proceso tuyo</h2>
+    <p class="intro">La clase que viene arrancamos escribiendo algoritmos, y necesitamos materia prima real. Pensá en algo que hagas o que veas hacer en tu trabajo. Lo que escribas queda guardado en este dispositivo.</p>
+
+    <div class="actividad" style="margin-top:30px">
+      <div class="pregunta">
+        <label for="p1"><b>El proceso</b><span>Contalo como se lo contarías a alguien en el pasillo, sin ordenarlo.</span></label>
+        <textarea id="p1" placeholder="Por ejemplo: cuando llega una factura por mail, alguien la baja, la carga al sistema, y si supera cierto monto la manda a firmar…"></textarea>
+      </div>
+      <div class="pregunta">
+        <label for="p2"><b>Qué lo dispara</b><span>¿Cuál es el evento que arranca todo?</span></label>
+        <textarea id="p2" placeholder="Llega un mail, son las 8 de la mañana, alguien completa un formulario…"></textarea>
+      </div>
+      <div class="pregunta">
+        <label for="p3"><b>Dónde se decide algo</b><span>¿Qué preguntas se hace la persona que lo ejecuta hoy?</span></label>
+        <textarea id="p3" placeholder="¿Supera el monto? ¿El proveedor está registrado? ¿Falta algún dato?"></textarea>
+      </div>
+      <div class="guardado" id="guardado"></div>
+    </div>
+  </div>
+</section>
+
+<div class="envoltura cierre">
+  <h2>Nos vemos el 19 de agosto</h2>
+  <p class="intro" style="margin:0 auto">En la clase 2 tomamos ese proceso que escribiste y lo convertimos en un algoritmo. Recién después volvemos a los nodos.</p>
+  <div class="acciones">
+    <a class="boton" href="cronograma.html">Ver el cronograma completo</a>
+    <a class="boton hueco" href="02.html">Clase 2</a>
+  </div>
+</div>
+
+</main>
+
+<footer class="pie">
+  <div class="envoltura">
+    <span>Facultad de Ciencias Económicas · Universidad de Buenos Aires</span>
+    <span>Clase 1 · Diseño de Procesos de Negocios con Automatización e IA Agéntica</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="acceso.js"></script>
+<script src="clase01.js"></script>
+</body>
+</html>

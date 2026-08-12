@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diplomatura en Diseño de Procesos de Negocios con Automatización e IA Agéntica · FCE-UBA</title>
+<meta name="description" content="Material de cursada de la Diplomatura en Inteligencia Artificial Aplicada a Entornos Digitales de Gestión. Facultad de Ciencias Económicas, UBA. Cohorte agosto - diciembre 2026.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  .portal {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: center;
+    gap: 60px;
+    max-width: var(--ancho);
+    margin: 0 auto;
+    padding: 70px 26px;
+  }
+
+  .sello {
+    font-family: var(--dato);
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--tenue);
+    display: block;
+    margin-bottom: 26px;
+  }
+  .sello b { color: var(--naranja); font-weight: 500; }
+
+  .titulo-portal {
+    font-size: clamp(2.5rem, 5.6vw, 4.4rem);
+    max-width: 13ch;
+  }
+  .titulo-portal em {
+    font-style: normal;
+    color: var(--naranja);
+  }
+
+  .bajada-portal {
+    margin-top: 26px;
+    max-width: 46ch;
+    font-size: 1.05rem;
+  }
+
+  .cifras {
+    display: flex;
+    gap: 40px;
+    margin-top: 44px;
+    padding-top: 26px;
+    border-top: 1px solid var(--linea);
+    flex-wrap: wrap;
+  }
+  .cifra b {
+    display: block;
+    font-family: var(--display);
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .cifra span {
+    font-family: var(--dato);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--tenue);
+  }
+
+  /* ── Panel de acceso ── */
+  .llave {
+    background: var(--sup);
+    border: 1px solid var(--linea);
+    border-radius: 22px;
+    padding: 38px 34px;
+    box-shadow: var(--sombra);
+    position: relative;
+    overflow: hidden;
+  }
+  .llave::after {
+    content: '';
+    position: absolute;
+    top: -60%;
+    right: -30%;
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(circle, var(--brasa) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .llave h2 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+  .llave p { font-size: 0.93rem; }
+
+  .campo { margin-top: 26px; }
+  .campo label {
+    display: block;
+    font-family: var(--dato);
+    font-size: 0.7rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--tenue);
+    margin-bottom: 9px;
+  }
+  .campo input {
+    width: 100%;
+    padding: 15px 17px;
+    background: var(--fondo);
+    border: 1px solid var(--linea);
+    border-radius: 12px;
+    color: var(--texto);
+    font-family: var(--dato);
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+  }
+  .campo input:focus {
+    outline: none;
+    border-color: var(--naranja);
+    box-shadow: 0 0 0 3px var(--brasa);
+  }
+  .llave .boton { width: 100%; margin-top: 18px; }
+
+  .aviso {
+    margin-top: 15px;
+    font-size: 0.88rem;
+    color: var(--error);
+    min-height: 1.2em;
+  }
+  .aviso:empty { margin-top: 0; }
+
+  .recordar {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 16px;
+    font-size: 0.85rem;
+    color: var(--tenue);
+    cursor: pointer;
+  }
+  .recordar input { accent-color: var(--naranja); width: 15px; height: 15px; }
+
+  .pulso {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--linea);
+    font-family: var(--dato);
+    font-size: 0.76rem;
+    color: var(--tenue);
+    line-height: 1.7;
+  }
+  .pulso b { color: var(--texto); font-weight: 500; }
+
+  @media (max-width: 900px) {
+    .portal { grid-template-columns: 1fr; gap: 46px; padding-top: 50px; }
+    .titulo-portal { max-width: none; }
+  }
+</style>
+</head>
+<body>
+
+<button class="tema suelto" type="button" title="Cambiar tema">
+        <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>
+      </button>
+
+<main class="portal">
+  <section>
+    <span class="sello">Facultad de Ciencias Económicas · <b>Universidad de Buenos Aires</b> · 2026</span>
+
+    <h1 class="titulo-portal">Diseño de <em>procesos de negocios</em> con automatización e IA agéntica</h1>
+
+    <p class="bajada-portal">Material de cursada de la cohorte que arranca el 12 de agosto de 2026. Veinte encuentros para aprender a pensar un proceso y construirlo en n8n, de la nube a la instancia propia.</p>
+
+    <div class="cifras">
+      <div class="cifra"><b>20</b><span>clases</span></div>
+      <div class="cifra"><b>6</b><span>módulos</span></div>
+      <div class="cifra"><b>Miércoles</b><span>18 a 21:30 h</span></div>
+      <div class="cifra"><b>Ago — Dic</b><span>2026</span></div>
+    </div>
+  </section>
+
+  <section class="llave">
+    <h2>Acceso al material</h2>
+    <p>Ingresá la clave que te dieron en el primer encuentro.</p>
+
+    <div class="campo">
+      <label for="clave">Clave de cursada</label>
+      <input id="clave" type="password" autocomplete="off" spellcheck="false"
+             placeholder="••••••••••" aria-describedby="aviso">
+    </div>
+
+    <label class="recordar">
+      <input id="recordar" type="checkbox" checked>
+      Mantener el acceso en este dispositivo
+    </label>
+
+    <button class="boton" id="entrar">Entrar</button>
+    <p class="aviso" id="aviso" role="alert"></p>
+
+    <div class="pulso" id="pulso">Consultando el panorama de modelos…</div>
+  </section>
+</main>
+
+<script src="acceso.js"></script>
+<script>
+  const $clave = document.getElementById('clave');
+  const $aviso = document.getElementById('aviso');
+  const $entrar = document.getElementById('entrar');
+  const $recordar = document.getElementById('recordar');
+
+  const destino = new URLSearchParams(location.search).get('volver');
+
+  function entrar() {
+    const seguro = destino && /^\/[A-Za-z0-9._-]+(\.html)?$/.test(destino) && destino !== '/';
+    const url = seguro ? destino : 'cronograma.html';
+    location.href = url;
+  }
+
+  if (haySesion()) entrar();
+
+  async function intentar() {
+    const clave = $clave.value;
+    if (!clave) { $aviso.textContent = 'Escribí la clave para continuar.'; $clave.focus(); return; }
+
+    $entrar.disabled = true;
+    const ok = await validarClave(clave);
+    $entrar.disabled = false;
+
+    if (!ok) {
+      $aviso.textContent = 'Esa clave no corresponde a esta cohorte. Revisá mayúsculas y espacios.';
+      $clave.select();
+      return;
+    }
+
+    $aviso.textContent = '';
+    sessionStorage.setItem('diplo-ok', '1');
+    if ($recordar.checked) localStorage.setItem('diplo-ok', '1');
+    entrar();
+  }
+
+  $entrar.addEventListener('click', intentar);
+  $clave.addEventListener('keydown', e => { if (e.key === 'Enter') intentar(); });
+  $clave.focus();
+
+  // Pulso en vivo: el portal mismo muestra que el campo se mueve.
+  fetch('/api/datos')
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(d => {
+      const total = d.modelos.length;
+      const creadores = new Set(d.modelos.map(m => m.c).filter(Boolean)).size;
+      const ultimo = d.modelos.slice().sort((a, b) => (a.f < b.f ? 1 : -1))[0];
+      document.getElementById('pulso').innerHTML =
+        `Al ${d.fecha} hay <b>${total} modelos</b> medidos por Artificial Analysis, de <b>${creadores} laboratorios</b>.<br>` +
+        `El más reciente es <b>${ultimo.n}</b>, publicado el ${ultimo.f}.`;
+    })
+    .catch(() => {
+      document.getElementById('pulso').textContent =
+        'El panorama de modelos se carga al entrar al material.';
+    });
+</script>
+</body>
+</html>

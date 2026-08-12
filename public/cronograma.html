@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cronograma · Diplomatura en Procesos · FCE-UBA</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  .cabecera { padding: 64px 0 40px; }
+  .cabecera h1 { margin: 18px 0 20px; max-width: 16ch; }
+  .cabecera p { max-width: 58ch; }
+
+  /* ── Regla temporal: cada marca es una clase, la separación es real ── */
+  .regla {
+    position: relative;
+    height: 92px;
+    margin: 46px 0 10px;
+    border-bottom: 1px solid var(--linea);
+  }
+  .marca-clase {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 3px;
+    border-radius: 2px 2px 0 0;
+    background: currentColor;
+    cursor: pointer;
+    transition: height 0.18s ease, opacity 0.18s ease;
+    opacity: 0.6;
+  }
+  .marca-clase:hover, .marca-clase.viva { opacity: 1; }
+  .marca-clase.viernes { width: 3px; opacity: 0.95; }
+  .marca-clase::after {
+    content: attr(data-n);
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--dato);
+    font-size: 0.62rem;
+    color: var(--tenue);
+  }
+  .regla-meses {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--dato);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--tenue);
+    padding-top: 10px;
+  }
+
+  .avance {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 30px;
+    font-family: var(--dato);
+    font-size: 0.75rem;
+    color: var(--tenue);
+  }
+  .avance-riel {
+    flex: 1;
+    height: 3px;
+    background: var(--sup2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .avance-lleno { height: 100%; background: var(--naranja); width: 0; transition: width 0.7s ease; }
+
+  /* ── Cuerpo ── */
+  .cuerpo {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 48px;
+    align-items: start;
+    padding-bottom: 40px;
+  }
+  .lateral { position: sticky; top: 88px; }
+  .lateral h3 {
+    font-size: 0.72rem;
+    font-family: var(--dato);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--tenue);
+    margin-bottom: 16px;
+  }
+  .modulo-item {
+    display: flex;
+    align-items: baseline;
+    gap: 11px;
+    padding: 9px 11px;
+    margin: 0 -11px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .modulo-item:hover { background: var(--sup); }
+  .modulo-item.activo { background: var(--sup2); }
+  .modulo-punto {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transform: translateY(-1px);
+  }
+  .modulo-item span { font-size: 0.88rem; color: var(--texto); }
+  .modulo-item small {
+    display: block;
+    font-family: var(--dato);
+    font-size: 0.66rem;
+    color: var(--tenue);
+  }
+
+  .mes-titulo {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--tenue);
+    padding: 30px 0 14px;
+    border-bottom: 1px solid var(--linea);
+    margin-bottom: 4px;
+  }
+  .mes-titulo:first-child { padding-top: 0; }
+
+  .clase {
+    display: grid;
+    grid-template-columns: 78px 1fr auto;
+    gap: 20px;
+    align-items: start;
+    padding: 20px 14px 20px 12px;
+    margin: 0 -14px 0 -12px;
+    border-radius: 13px;
+    text-decoration: none;
+    color: inherit;
+    border-left: 2px solid transparent;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .clase:hover { background: var(--sup); text-decoration: none; }
+  .clase.disponible:hover { border-left-color: var(--naranja); }
+  .clase.resaltada { background: var(--sup2); }
+
+  .clase-fecha {
+    font-family: var(--dato);
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--texto);
+  }
+  .clase-fecha small { display: block; color: var(--tenue); font-size: 0.68rem; }
+  .clase-fecha .viernes-tag { color: var(--coral); }
+
+  .clase-titulo {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.06rem;
+    letter-spacing: -0.015em;
+    line-height: 1.32;
+  }
+  .clase-bajada { font-size: 0.88rem; margin-top: 5px; color: var(--tenue); }
+  .clase-mod {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 9px;
+    font-family: var(--dato);
+    font-size: 0.65rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+  .clase-estado {
+    font-family: var(--dato);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tenue);
+    white-space: nowrap;
+    padding-top: 4px;
+  }
+  .clase.disponible .clase-estado { color: var(--naranja); }
+
+  @media (max-width: 880px) {
+    .cuerpo { grid-template-columns: 1fr; gap: 30px; }
+    .lateral { position: static; }
+    .lateral > div { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .clase { grid-template-columns: 66px 1fr; }
+    .clase-estado { grid-column: 2; padding-top: 0; }
+    .regla { height: 70px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-int">
+    <a class="marca" href="cronograma.html"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 32 H30 M38 22 H30 M38 42 H30 M30 22 V42" fill="none" stroke="#FB923C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="32" r="5.5" fill="#F97316"/><circle cx="44" cy="21" r="5" fill="#FDBA74"/><circle cx="44" cy="43" r="5" fill="#FDBA74"/></svg>Diplomatura <span>Procesos</span> · FCE-UBA</a>
+    <nav>
+      <a href="cronograma.html" class="actual">Cronograma</a>
+      <a href="01.html">Clase 1</a>
+      <a href="#" id="salir">Salir</a>
+      <button class="tema" type="button" title="Cambiar tema">
+        <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="envoltura cabecera">
+    <span class="rotulo">Cohorte agosto — diciembre 2026</span>
+    <h1>Veinte encuentros, un solo hilo</h1>
+    <p>Los miércoles de 18 a 21:30 h, más tres encuentros en viernes. El recorrido va de aprender a pensar un proceso hasta orquestar agentes sobre una instancia propia de n8n.</p>
+
+    <div class="regla" id="regla"></div>
+    <div class="regla-meses">
+      <span>Agosto</span><span>Septiembre</span><span>Octubre</span><span>Noviembre</span><span>Diciembre</span>
+    </div>
+
+    <div class="avance">
+      <span id="avanceTexto">0 de 20 clases</span>
+      <div class="avance-riel"><div class="avance-lleno" id="avanceLleno"></div></div>
+      <span id="avanceProxima"></span>
+    </div>
+  </div>
+
+  <div class="envoltura cuerpo">
+    <aside class="lateral">
+      <h3>Módulos</h3>
+      <div id="listaModulos"></div>
+    </aside>
+    <section id="listaClases"></section>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="envoltura">
+    <span>Facultad de Ciencias Económicas · Universidad de Buenos Aires</span>
+    <span>Diplomatura en Diseño de Procesos de Negocios con Automatización e IA Agéntica</span>
+  </div>
+</footer>
+
+<script src="acceso.js"></script>
+<script src="clases.js"></script>
+<script>
+  exigirSesion();
+  document.getElementById('salir').addEventListener('click', e => { e.preventDefault(); cerrarSesion(); });
+
+  const hoy = new Date().toISOString().slice(0, 10);
+  let moduloActivo = null;
+
+  /* ── Regla temporal ── */
+  const inicio = new Date(CLASES[0].fecha).getTime();
+  const fin = new Date(CLASES[CLASES.length - 1].fecha).getTime();
+  const regla = document.getElementById('regla');
+
+  CLASES.forEach(c => {
+    const t = new Date(c.fecha).getTime();
+    const pos = ((t - inicio) / (fin - inicio)) * 96 + 2;
+    const m = document.createElement('div');
+    m.className = 'marca-clase' + (c.dia === 'Viernes' ? ' viernes' : '');
+    m.style.left = pos + '%';
+    m.style.height = (c.dia === 'Viernes' ? 54 : 34) + 'px';
+    m.style.color = colorModulo(c.mod);
+    m.dataset.n = c.n;
+    m.title = `Clase ${c.n} · ${fechaLarga(c.fecha)} · ${c.titulo}`;
+    m.addEventListener('click', () => {
+      moduloActivo = null;
+      document.querySelectorAll('.modulo-item').forEach(x => x.classList.remove('activo'));
+      pintarClases();
+      const destino = document.querySelector(`[data-clase="${c.n}"]`);
+      if (!destino) return;
+      destino.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.querySelectorAll('.clase').forEach(el => el.classList.remove('resaltada'));
+      destino.classList.add('resaltada');
+    });
+    regla.appendChild(m);
+  });
+
+  /* ── Avance ── */
+  const dictadas = CLASES.filter(c => c.fecha <= hoy).length;
+  document.getElementById('avanceLleno').style.width = (dictadas / CLASES.length * 100) + '%';
+  document.getElementById('avanceTexto').textContent = `${dictadas} de ${CLASES.length} clases`;
+  const proxima = CLASES.find(c => c.fecha > hoy);
+  document.getElementById('avanceProxima').textContent =
+    proxima ? `próxima: ${fechaLarga(proxima.fecha)}` : 'cursada completa';
+
+  /* ── Módulos ── */
+  const $mods = document.getElementById('listaModulos');
+  Object.entries(MODULOS).forEach(([id, m]) => {
+    const cuenta = CLASES.filter(c => c.mod === id).length;
+    const el = document.createElement('div');
+    el.className = 'modulo-item';
+    el.innerHTML = `<div class="modulo-punto" style="background:${colorModulo(id)}"></div>
+                    <div><span>${m.nombre}</span><small>${id} · ${cuenta} ${cuenta === 1 ? 'clase' : 'clases'}</small></div>`;
+    el.addEventListener('click', () => {
+      moduloActivo = moduloActivo === id ? null : id;
+      document.querySelectorAll('.modulo-item').forEach(x => x.classList.remove('activo'));
+      if (moduloActivo) el.classList.add('activo');
+      pintarClases();
+    });
+    $mods.appendChild(el);
+  });
+
+  /* ── Listado ── */
+  function pintarClases() {
+    const cont = document.getElementById('listaClases');
+    cont.innerHTML = '';
+    const visibles = CLASES.filter(c => !moduloActivo || c.mod === moduloActivo);
+    let mesActual = '';
+
+    visibles.forEach(c => {
+      const mes = MESES[Number(c.fecha.slice(5, 7)) - 1];
+      if (mes !== mesActual) {
+        mesActual = mes;
+        const h = document.createElement('div');
+        h.className = 'mes-titulo';
+        h.textContent = mes;
+        cont.appendChild(h);
+      }
+
+      const m = MODULOS[c.mod];
+      const cm = colorModulo(c.mod);
+      const publicada = Boolean(c.pagina);
+      const a = document.createElement('a');
+      a.className = 'clase' + (publicada ? ' disponible' : '');
+      a.dataset.clase = c.n;
+      a.href = publicada ? c.pagina : String(c.n).padStart(2, '0') + '.html';
+      a.innerHTML = `
+        <div class="clase-fecha">
+          ${fechaLarga(c.fecha)}
+          <small class="${c.dia === 'Viernes' ? 'viernes-tag' : ''}">${c.dia} · 18 h</small>
+        </div>
+        <div>
+          <div class="clase-titulo">${c.n}. ${c.titulo}</div>
+          <div class="clase-bajada">${c.bajada}</div>
+          <div class="clase-mod" style="color:${cm}">
+            <div class="modulo-punto" style="background:${cm}"></div>${m.nombre}
+          </div>
+        </div>
+        <div class="clase-estado">${publicada ? 'Ver clase →' : 'Próximamente'}</div>`;
+      cont.appendChild(a);
+    });
+  }
+
+  pintarClases();
+
+  // Al cambiar de tema hay que rehacer los colores calculados en JavaScript.
+  window.addEventListener('cambio-tema', () => {
+    document.querySelectorAll('.marca-clase').forEach((m, i) => {
+      m.style.color = colorModulo(CLASES[i].mod);
+    });
+    $mods.querySelectorAll('.modulo-punto').forEach((p, i) => {
+      p.style.background = colorModulo(Object.keys(MODULOS)[i]);
+    });
+    pintarClases();
+  });
+</script>
+</body>
+</html>
