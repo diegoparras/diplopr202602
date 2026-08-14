@@ -24,7 +24,7 @@ const CLASES = [
   { n:  1, fecha: '2026-08-12', dia: 'Miércoles', mod: 'M1', pagina: '01.html',
     titulo: 'El ecosistema no-code en 2026 y por qué n8n',
     bajada: 'Qué es automatizar un proceso, qué plataformas existen hoy y con qué criterio se elige una.' },
-  { n:  2, fecha: '2026-08-19', dia: 'Miércoles', mod: 'M1', pagina: null,
+  { n:  2, fecha: '2026-08-19', dia: 'Miércoles', mod: 'M1', pagina: '02.html',
     titulo: 'Pensamiento algorítmico: disparador, condición, acción',
     bajada: 'Los cuatro pilares y el modelo que vamos a usar todo el cuatrimestre. El algoritmo se piensa antes que los nodos.' },
   { n:  3, fecha: '2026-08-21', dia: 'Viernes',   mod: 'M1', pagina: null,

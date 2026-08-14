@@ -1,0 +1,379 @@
+{
+  "name": "Caso 02 · Valentina, segunda vuelta",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Caso 02 — Valentina, segunda vuelta\n\nEl flujo de la clase 1 anda. Aparecen tres problemas nuevos:\nTomas hace distinto segun el canal, los pedidos grandes solo\npreocupan si el pago fue por transferencia, y la planilla no\ndice cuales ya se procesaron.\n\n**El algoritmo, antes de los nodos:**\n```\nCUANDO se carga un pedido en la planilla:\n    leer { Pedido, Fecha, Cliente, Email, Cantidad,\n           Producto, Monto, Canal, Pago }\n\n    enviar correo de confirmacion a {Email}\n\n    SEGUN Canal:\n        MercadoLibre:  avisar a Tomas que imprima la etiqueta\n        Instagram:     avisar a Tomas que pida la direccion\n        otro:          avisar a Tomas que lo revise a mano\n\n    SI Monto > 50000 Y Pago = \"Transferencia\":\n        alertar a Valentina antes de despachar\n\n    marcar la fila como Procesado con la fecha y la hora\nFIN\n```\n\n**Cuenta:** nueve nodos y tres ramas posibles siguen costando\n**1 ejecucion**. En n8n se cobra la corrida, no el nodo.",
+        "height": 640,
+        "width": 520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -760
+      ],
+      "id": "a1c0f2d4-1111-4a01-9b21-0d1f2e3a4b5c",
+      "name": "Consigna"
+    },
+    {
+      "parameters": {
+        "content": "### Antes de correrlo\n\n1. Elegi tu planilla y tu hoja en los tres nodos de Google\n   (el disparador y el de marcar).\n2. La hoja necesita estas columnas, con estos nombres exactos:\n   **Pedido, Fecha, Cliente, Email, Cantidad, Producto, Monto,\n   Canal, Pago, Procesado**\n3. **Monto** va sin signo pesos y sin puntos: 18000, no $18.000.\n4. **Pago** se escribe siempre igual: MercadoLibre, Transferencia\n   o Efectivo. Un desplegable en la planilla evita el problema.\n5. Reemplaza los dos identificadores en mayusculas por los chat id\n   que te da BotFather.\n6. Proba con el boton de ejecutar antes de activar: las corridas\n   de prueba no consumen la cuota.",
+        "height": 420,
+        "width": 520,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -760
+      ],
+      "id": "a1c0f2d4-2222-4a02-9b21-0d1f2e3a4b5c",
+      "name": "Puesta a punto"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Seleccioná tu planilla"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Pedidos"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        0
+      ],
+      "id": "b2d1e3f5-3333-4b03-8c32-1e2f3a4b5c6d",
+      "name": "Nuevo pedido"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Email'] }}",
+        "subject": "=Recibimos tu pedido, {{ $json['Cliente'] }}",
+        "emailType": "text",
+        "message": "=Hola {{ $json['Cliente'] }}:\n\nRegistramos tu pedido {{ $json['Pedido'] }}: {{ $json['Cantidad'] }} x {{ $json['Producto'] }} por ${{ $json['Monto'] }}.\nTe avisamos cuando salga el envio.\n\nGracias por tu compra.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -100,
+        0
+      ],
+      "id": "c3e2f4a6-4444-4c04-9d43-2f3a4b5c6d7e",
+      "name": "Confirmar al cliente"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d4f3a5b7-5551-4d05-8e54-3a4b5c6d7e8f",
+                    "leftValue": "={{ $('Nuevo pedido').item.json['Canal'] }}",
+                    "rightValue": "MercadoLibre",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "MercadoLibre"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d4f3a5b7-5552-4d06-8e54-3a4b5c6d7e8f",
+                    "leftValue": "={{ $('Nuevo pedido').item.json['Canal'] }}",
+                    "rightValue": "Instagram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Instagram"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Otro"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        140,
+        -240
+      ],
+      "id": "d4f3a5b7-5555-4d07-8e54-3a4b5c6d7e8f",
+      "name": "Segun el canal"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DEL_GRUPO",
+        "text": "=MercadoLibre — ya esta pago, imprimir etiqueta\n\nPedido: {{ $('Nuevo pedido').item.json['Pedido'] }}\nCliente: {{ $('Nuevo pedido').item.json['Cliente'] }}\nProducto: {{ $('Nuevo pedido').item.json['Cantidad'] }} x {{ $('Nuevo pedido').item.json['Producto'] }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        -400
+      ],
+      "id": "e5a4b6c8-6661-4e08-9f65-4b5c6d7e8f90",
+      "name": "Despacho MercadoLibre"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DEL_GRUPO",
+        "text": "=Instagram — falta la direccion, pedirla por mensaje directo\n\nPedido: {{ $('Nuevo pedido').item.json['Pedido'] }}\nCliente: {{ $('Nuevo pedido').item.json['Cliente'] }}\nProducto: {{ $('Nuevo pedido').item.json['Cantidad'] }} x {{ $('Nuevo pedido').item.json['Producto'] }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        -240
+      ],
+      "id": "e5a4b6c8-6662-4e09-9f65-4b5c6d7e8f90",
+      "name": "Despacho Instagram"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DEL_GRUPO",
+        "text": "=Canal sin regla — revisar a mano\n\nPedido: {{ $('Nuevo pedido').item.json['Pedido'] }}\nCliente: {{ $('Nuevo pedido').item.json['Cliente'] }}\nCanal declarado: {{ $('Nuevo pedido').item.json['Canal'] }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        -80
+      ],
+      "id": "e5a4b6c8-6663-4e10-9f65-4b5c6d7e8f90",
+      "name": "Revisar a mano"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f6b5c7d9-7771-4f11-8071-5c6d7e8f9012",
+              "leftValue": "={{ Number($('Nuevo pedido').item.json['Monto']) }}",
+              "rightValue": 50000,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "f6b5c7d9-7772-4f12-8071-5c6d7e8f9012",
+              "leftValue": "={{ $('Nuevo pedido').item.json['Pago'] }}",
+              "rightValue": "Transferencia",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        140,
+        120
+      ],
+      "id": "f6b5c7d9-7777-4f13-8071-5c6d7e8f9012",
+      "name": "Monto alto y transferencia"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DE_VALENTINA",
+        "text": "=PEDIDO ALTO POR TRANSFERENCIA — confirmar el ingreso antes de despachar\n\nPedido: {{ $('Nuevo pedido').item.json['Pedido'] }}\nCliente: {{ $('Nuevo pedido').item.json['Cliente'] }}\nMonto: ${{ $('Nuevo pedido').item.json['Monto'] }}\nProducto: {{ $('Nuevo pedido').item.json['Producto'] }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        60
+      ],
+      "id": "a7c6d8e0-8888-4a14-9182-6d7e8f901234",
+      "name": "Alertar a Valentina"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Seleccioná tu planilla"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Pedidos"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Pedido": "={{ $('Nuevo pedido').item.json['Pedido'] }}",
+            "Procesado": "={{ $now.format('dd/MM/yyyy HH:mm') }}"
+          },
+          "matchingColumns": [
+            "Pedido"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        140,
+        340
+      ],
+      "id": "b8d7e9f1-9999-4b15-a293-7e8f90123456",
+      "name": "Marcar como procesado"
+    }
+  ],
+  "connections": {
+    "Nuevo pedido": {
+      "main": [
+        [
+          {
+            "node": "Confirmar al cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirmar al cliente": {
+      "main": [
+        [
+          {
+            "node": "Segun el canal",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Monto alto y transferencia",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Marcar como procesado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Segun el canal": {
+      "main": [
+        [
+          {
+            "node": "Despacho MercadoLibre",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Despacho Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Revisar a mano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monto alto y transferencia": {
+      "main": [
+        [
+          {
+            "node": "Alertar a Valentina",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

@@ -1,0 +1,9 @@
+Acá van los PDF, apuntes y notas de cada clase, con el nombre claseNN.pdf.
+
+Esta carpeta está en .vercelignore, así que no se publica en el sitio, pero sí
+va al repositorio. Si el material no puede estar en GitHub, agregá material/
+al .gitignore y quedátelo local.
+
+Se usa así, desde la raíz del repo:
+
+    /clase 05 material/clase05.pdf

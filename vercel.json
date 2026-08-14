@@ -1,12 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
+  "cleanUrls": false,
   "headers": [
     {
       "source": "/api/datos",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=86400, stale-while-revalidate=604800" }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "public, s-maxage=86400, stale-while-revalidate=604800" }]
     }
   ]
 }
