@@ -120,9 +120,28 @@
     font-size: 0.81rem;
   }
 
+  /* La barra en pantallas angostas.
+     El encabezado se desbordaba a lo ancho en celulares desde antes de que
+     existiera este selector: la marca y el nav no entran juntos en 390 px y
+     nada los dejaba pasar a dos filas. Se corrige acá, junto al componente
+     que ocupa esa fila, porque estilo.css no se reescribe y repetir estas
+     reglas en el <style> de cada clase se pudre en la tercera. */
   @media (max-width: 720px) {
+    .barra-int { flex-wrap: wrap; column-gap: 12px; row-gap: 7px; padding: 11px 20px; }
+    .barra .marca { min-width: 0; font-size: 0.88rem; }
+    .barra nav { margin-left: auto; }
     .selector-boton { font-size: 0.8rem; gap: 6px; padding: 4px 9px 4px 11px; }
     .selector-cuenta { display: none; }
+    /* El botón queda en el medio de la fila, así que el panel se cuelga de la
+       barra entera y no del botón: si no, se sale por la izquierda. */
+    .selector { position: static; }
+    .selector-panel {
+      top: calc(100% + 7px);
+      left: 12px;
+      right: 12px;
+      width: auto;
+      max-height: min(72vh, 460px);
+    }
   }
   `;
 

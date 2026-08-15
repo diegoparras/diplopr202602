@@ -32,6 +32,9 @@
   @media (max-width: 560px) { .cuatro-col { grid-template-columns: 1fr; } }
 
   .portada { padding: 54px 0 20px; }
+  /* La portada no lleva margen lateral propio: en celular, donde la envoltura
+     ya no tiene aire, el título terminaba pegado al borde de la pantalla. */
+  @media (max-width: 720px) { .portada { padding: 40px 26px 18px; } }
   .portada h1 { max-width: 17ch; margin: 20px 0 24px; }
   .portada .meta {
     display: flex; gap: 28px; flex-wrap: wrap;
@@ -179,8 +182,10 @@
   }
 
   /* ── Mesa de prueba ── */
-  .mesa { display: grid; grid-template-columns: 300px 1fr; gap: 30px; align-items: start; margin-top: 30px; }
-  @media (max-width: 900px) { .mesa { grid-template-columns: 1fr; gap: 20px; } }
+  /* minmax(0, 1fr) y no 1fr: si no, el pseudocódigo, que no corta línea,
+     estira la columna y arrastra a toda la página a lo ancho. */
+  .mesa { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 30px; align-items: start; margin-top: 30px; }
+  @media (max-width: 900px) { .mesa { grid-template-columns: minmax(0, 1fr); gap: 20px; } }
   .fila-caso {
     width: 100%; text-align: left; display: block;
     padding: 15px 17px; margin-bottom: 10px;

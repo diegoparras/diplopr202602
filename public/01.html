@@ -25,6 +25,9 @@
   }
 
   .portada { padding: 54px 0 20px; }
+  /* La portada no lleva margen lateral propio: en celular, donde la envoltura
+     ya no tiene aire, el título terminaba pegado al borde de la pantalla. */
+  @media (max-width: 720px) { .portada { padding: 40px 26px 18px; } }
   .portada h1 { max-width: 16ch; margin: 20px 0 24px; }
   .portada .meta {
     display: flex; gap: 28px; flex-wrap: wrap;
@@ -164,6 +167,11 @@
   .tarea .razon {
     grid-column: 1 / -1; font-size: 0.85rem; color: var(--tenue);
     padding-top: 4px; display: none;
+  }
+  /* En celular la consigna y los dos botones no entran en una fila. */
+  @media (max-width: 560px) {
+    .tarea { grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+    .tarea span { grid-column: 1 / -1; }
   }
   .tarea.resuelta .razon { display: block; }
   .marcador { font-family: var(--dato); font-size: 0.78rem; color: var(--tenue); margin-top: 16px; }

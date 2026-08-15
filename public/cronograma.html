@@ -13,6 +13,8 @@
 <link rel="stylesheet" href="estilo.css">
 <style>
   .cabecera { padding: 64px 0 40px; }
+  /* Ídem portada: en celular la cabecera necesita el aire lateral. */
+  @media (max-width: 720px) { .cabecera { padding: 44px 26px 30px; } }
   .cabecera h1 { margin: 18px 0 20px; max-width: 16ch; }
   .cabecera p { max-width: 58ch; }
 
@@ -55,6 +57,10 @@
     text-transform: uppercase;
     color: var(--tenue);
     padding-top: 10px;
+  }
+  /* Los cinco meses con este interletrado no entran abajo de 380 px. */
+  @media (max-width: 400px) {
+    .regla-meses { font-size: 0.58rem; letter-spacing: 0.05em; }
   }
 
   .avance {
