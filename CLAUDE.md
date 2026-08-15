@@ -42,6 +42,7 @@ public/
   tema.js              conmutador claro / oscuro, se carga en el <head>
   acceso.js            validación de la clave
   clases.js            datos del cronograma
+  menu.js              selector de clases publicadas de la barra superior
   workflows/           los JSON importables a n8n
 vercel.json
 ```
@@ -72,6 +73,10 @@ Estático puro: sin build, sin dependencias, sin gestor de paquetes. Vercel sirv
 
 ## Entregables de una clase
 
+0. La barra superior de toda página con `<nav>` lleva el selector de clases:
+   `<span data-selector-clases><a href="cronograma.html">Clases</a></span>` en el
+   `<nav>`, y `clases.js` + `menu.js` antes del script de la clase. El selector
+   se arma solo desde `CLASES`: publicar es poner `pagina` en `clases.js`.
 1. `public/NN.html`, con el número en dos dígitos.
 2. `public/claseNN.js`, solo si la clase tiene lógica propia.
 3. `public/workflows/NN-nombre-del-caso-n8n.json` por cada workflow que construya.
