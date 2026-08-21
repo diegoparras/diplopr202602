@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Clase 3: taller práctico de n8n, lectura de ejecuciones y diagnóstico de errores con ayuda de un chatbot.">
+<title>Clase 3 · n8n en modo taller: construir, probar y destrabar · FCE-UBA</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  :root { --acierto: #22C55E; --fallo: #F87171; --alerta: #EAB308; }
+  :root[data-tema="claro"] { --acierto: #15803D; --fallo: #B4231A; --alerta: #A16207; }
+
+  section.bloque { padding: 96px 0; border-top: 1px solid var(--linea); }
+  section.bloque:first-of-type { border-top: 0; }
+  .bloque h2 { max-width: 19ch; margin: 18px 0 22px; }
+  .bloque .intro { max-width: 64ch; font-size: 1.05rem; }
+  .portada { padding: 54px 0 20px; }
+  .portada h1 { max-width: 16ch; margin: 20px 0 24px; }
+  .portada .meta { display:flex; gap:28px; flex-wrap:wrap; font-family:var(--dato); font-size:.75rem; letter-spacing:.1em; text-transform:uppercase; color:var(--tenue); margin-top:28px; padding-top:22px; border-top:1px solid var(--linea); }
+  .dos-col { display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start; }
+  .tres-col { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .ficha { background:var(--sup); border:1px solid var(--linea); border-radius:16px; padding:24px 22px; box-shadow:var(--sombra); }
+  .ficha h3 { font-size:1.12rem; margin-bottom:8px; }
+  .ficha p, .ficha li { font-size:.9rem; }
+  .ficha ul { margin:12px 0 0 18px; color:var(--tenue); }
+  .marca-capa { display:block; margin-bottom:8px; font-family:var(--dato); font-size:.66rem; letter-spacing:.13em; text-transform:uppercase; color:var(--naranja); }
+  .cita { border-left:2px solid var(--naranja); padding:8px 0 8px 24px; margin-top:30px; font-family:var(--display); font-size:clamp(1.2rem,2.4vw,1.7rem); font-weight:600; letter-spacing:-.02em; line-height:1.35; color:var(--texto); max-width:48ch; }
+  .nota-pie { margin-top:14px; font-family:var(--dato); font-size:.72rem; color:var(--tenue); line-height:1.7; }
+
+  .puente { display:grid; grid-template-columns:1fr auto 1fr; gap:18px; align-items:center; margin-top:34px; }
+  .puente .lado { padding:26px; border:1px solid var(--linea); border-radius:16px; background:var(--sup); }
+  .puente .flecha { font-family:var(--dato); color:var(--naranja); font-size:1.6rem; }
+
+  .tour { display:grid; grid-template-columns:280px 1fr; gap:26px; margin-top:34px; align-items:start; }
+  .tour-nav { display:grid; gap:8px; }
+  .tour-nav button { width:100%; text-align:left; padding:15px 17px; border:1px solid var(--linea); border-radius:12px; background:var(--sup); color:var(--texto); font-family:var(--cuerpo); cursor:pointer; }
+  .tour-nav button span { display:block; font-family:var(--dato); font-size:.65rem; color:var(--tenue); letter-spacing:.1em; text-transform:uppercase; }
+  .tour-nav button.activo { border-color:var(--naranja); background:var(--brasa); }
+  .editor { min-height:420px; border:1px solid var(--linea); border-radius:18px; background:var(--sup); overflow:hidden; box-shadow:var(--sombra); }
+  .editor-barra { display:flex; justify-content:space-between; gap:16px; padding:13px 16px; border-bottom:1px solid var(--linea); font-family:var(--dato); font-size:.7rem; color:var(--tenue); }
+  .editor-cuerpo { display:grid; grid-template-columns:1fr 220px; min-height:366px; }
+  .lienzo { position:relative; min-height:366px; background-image:radial-gradient(var(--rejilla) 1px,transparent 1px); background-size:22px 22px; }
+  .nodo { position:absolute; width:150px; padding:13px; border-radius:12px; border:1px solid var(--linea); background:var(--fondo); box-shadow:var(--sombra); }
+  .nodo b { display:block; font-family:var(--display); font-size:.9rem; }
+  .nodo small { font-family:var(--dato); font-size:.62rem; color:var(--tenue); }
+  .nodo.activo { border-color:var(--naranja); box-shadow:0 0 0 3px var(--brasa); }
+  .n1 { left:7%; top:72px; } .n2 { left:39%; top:72px; } .n3 { left:70%; top:25px; } .n4 { left:70%; top:145px; }
+  .conexion { position:absolute; height:2px; background:var(--naranja); transform-origin:left center; opacity:.55; }
+  .c1 { left:calc(7% + 150px); top:109px; width:calc(32% - 150px); }
+  .c2 { left:calc(39% + 150px); top:109px; width:calc(31% - 147px); transform:rotate(-17deg); }
+  .c3 { left:calc(39% + 150px); top:109px; width:calc(31% - 147px); transform:rotate(17deg); }
+  .panel { padding:18px; border-left:1px solid var(--linea); background:var(--sup2); }
+  .panel .rot { font-family:var(--dato); font-size:.65rem; color:var(--naranja); letter-spacing:.1em; text-transform:uppercase; }
+  .panel h3 { font-size:1.15rem; margin:8px 0; }
+  .panel p { font-size:.84rem; }
+  .panel ul { margin:14px 0 0 18px; color:var(--tenue); font-size:.8rem; }
+
+  .ruta { display:grid; gap:10px; margin-top:30px; }
+  .paso { display:grid; grid-template-columns:54px 1fr auto; gap:16px; align-items:center; padding:17px 20px; border:1px solid var(--linea); border-radius:14px; background:var(--sup); }
+  .paso .num { width:42px; height:42px; display:grid; place-items:center; border-radius:999px; background:var(--brasa); color:var(--naranja); font-family:var(--dato); }
+  .paso b { display:block; font-family:var(--display); }
+  .paso p { font-size:.86rem; }
+  .paso input { width:20px; height:20px; accent-color:var(--naranja); }
+  .progreso { margin-top:18px; height:8px; border-radius:999px; background:var(--sup2); overflow:hidden; }
+  .progreso span { display:block; width:0; height:100%; background:var(--naranja); transition:width .25s ease; }
+  .progreso-texto { margin-top:8px; font-family:var(--dato); font-size:.72rem; color:var(--tenue); }
+
+  .lab { display:grid; grid-template-columns:300px 1fr; gap:28px; margin-top:32px; }
+  .errores { display:grid; gap:9px; }
+  .errores button { text-align:left; padding:15px 17px; border:1px solid var(--linea); border-radius:12px; background:var(--sup); color:var(--texto); cursor:pointer; }
+  .errores button b { display:block; font-family:var(--display); }
+  .errores button span { font-size:.76rem; color:var(--tenue); }
+  .errores button.activo { border-color:var(--fallo); }
+  .consola { border:1px solid var(--linea); border-radius:16px; overflow:hidden; background:var(--sup); }
+  .consola-cabeza { padding:13px 17px; border-bottom:1px solid var(--linea); font-family:var(--dato); font-size:.7rem; color:var(--tenue); }
+  .consola-cuerpo { padding:22px; }
+  .error-exacto { padding:14px 16px; border-left:3px solid var(--fallo); background:var(--sup2); font-family:var(--dato); font-size:.78rem; color:var(--texto); white-space:pre-wrap; }
+  .pistas { display:grid; gap:8px; margin-top:18px; }
+  .pistas button { padding:11px 13px; text-align:left; border:1px solid var(--linea); border-radius:10px; background:transparent; color:var(--tenue); cursor:pointer; }
+  .pistas button:hover { border-color:var(--naranja); color:var(--texto); }
+  .diagnostico { min-height:72px; margin-top:16px; padding:15px; border-radius:11px; background:var(--sup2); color:var(--tenue); font-size:.88rem; }
+  .diagnostico.ok { border:1px solid var(--acierto); color:var(--texto); }
+
+  .constructor { margin-top:30px; padding:30px; border:1px solid var(--linea); border-radius:20px; background:var(--sup); box-shadow:var(--sombra); }
+  .campo { margin-top:18px; }
+  .campo label { display:block; margin-bottom:7px; font-family:var(--dato); font-size:.7rem; color:var(--tenue); letter-spacing:.1em; text-transform:uppercase; }
+  .campo input, .campo textarea { width:100%; padding:13px 15px; border:1px solid var(--linea); border-radius:11px; background:var(--fondo); color:var(--texto); font:inherit; }
+  .campo textarea { min-height:96px; resize:vertical; }
+  .campo input:focus, .campo textarea:focus { outline:none; border-color:var(--naranja); box-shadow:0 0 0 3px var(--brasa); }
+  .opciones { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px; }
+  .opciones label { display:flex; gap:10px; align-items:flex-start; padding:12px; border:1px solid var(--linea); border-radius:10px; color:var(--tenue); font-size:.84rem; }
+  .opciones input { margin-top:4px; accent-color:var(--naranja); }
+  .prompt { margin-top:20px; padding:20px; border:1px solid var(--linea); border-radius:13px; background:var(--fondo); font-family:var(--dato); font-size:.78rem; line-height:1.75; white-space:pre-wrap; min-height:170px; color:var(--texto); }
+  .acciones { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+  .secreto { margin-top:16px; padding:14px 16px; border-left:3px solid var(--alerta); background:var(--sup2); font-size:.86rem; color:var(--texto); }
+
+  .acordeon { display:grid; gap:10px; margin-top:28px; }
+  .acordeon button { width:100%; display:flex; justify-content:space-between; gap:18px; padding:17px 19px; border:1px solid var(--linea); border-radius:12px; background:var(--sup); color:var(--texto); font-family:var(--display); font-weight:700; cursor:pointer; }
+  .acordeon .respuesta { display:none; padding:16px 19px; margin-top:-10px; border:1px solid var(--linea); border-top:0; border-radius:0 0 12px 12px; background:var(--sup2); }
+  .acordeon .abierto + .respuesta { display:block; }
+  .acordeon .respuesta p, .acordeon .respuesta li { font-size:.9rem; }
+  .acordeon .respuesta ol { margin-left:20px; color:var(--tenue); }
+
+  .cierre { text-align:center; padding:90px 0 40px; }
+  .cierre h2 { margin:0 auto 22px; max-width:22ch; }
+  .revelar { opacity:0; transform:translateY(14px); transition:opacity .6s ease,transform .6s ease; }
+  .revelar.visible { opacity:1; transform:none; }
+  @media (max-width:900px) { section.bloque{padding:68px 0}.dos-col,.tres-col,.tour,.lab{grid-template-columns:1fr}.editor-cuerpo{grid-template-columns:1fr}.panel{border-left:0;border-top:1px solid var(--linea)}.puente{grid-template-columns:1fr}.puente .flecha{transform:rotate(90deg);justify-self:center}.opciones{grid-template-columns:1fr} }
+  @media (max-width:640px) { .editor{display:none}.paso{grid-template-columns:44px 1fr}.paso input{grid-column:2}.nodo{width:120px}.paso{padding:15px}.constructor{padding:22px} }
+</style>
+</head>
+<body>
+<header class="barra"><div class="barra-int">
+  <a class="marca" href="cronograma.html"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 32 H30 M38 22 H30 M38 42 H30 M30 22 V42" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="32" r="5.5" fill="currentColor"/><circle cx="44" cy="21" r="5" fill="currentColor"/><circle cx="44" cy="43" r="5" fill="currentColor"/></svg>Diplomatura <span>Procesos</span> · FCE-UBA</a>
+  <nav><a href="cronograma.html">Cronograma</a><a href="03.html" class="actual">Clase 3</a><a href="#" id="salir">Salir</a><button class="tema" type="button" title="Cambiar tema"><svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2"/></svg></button></nav>
+</div></header>
+
+<main>
+<div class="envoltura portada">
+  <span class="rotulo">Clase 03 · Módulo 1 · Entender el terreno</span>
+  <h1>n8n en modo taller: construir, probar y destrabar</h1>
+  <p class="intro">El algoritmo de la clase 2 entra hoy al lienzo. Vamos a convertirlo en nodos, mirar los datos de una ejecución y aprender una rutina para encontrar errores —con un chatbot como copiloto, no como adivino.</p>
+  <div class="meta"><span>21 de agosto de 2026</span><span>Viernes · Taller práctico</span><span>FCE — UBA</span></div>
+</div>
+
+<section class="bloque"><div class="envoltura">
+  <span class="rotulo">El puente</span><h2>Del proceso escrito al workflow visible</h2>
+  <p class="intro">La clase pasada terminaste con disparador, datos, condiciones y acciones. n8n no cambia esa lógica: la vuelve ejecutable y deja rastros para que puedas inspeccionarla.</p>
+  <div class="puente"><div class="lado"><span class="marca-capa">Antes de abrir n8n</span><h3>CUANDO llega un pedido</h3><p>Leer los datos, validar el monto y elegir qué acción corresponde.</p></div><div class="flecha" aria-hidden="true">→</div><div class="lado"><span class="marca-capa">Adentro de n8n</span><h3>Trigger → Edit Fields → IF → acciones</h3><p>Los nodos implementan decisiones que ya estaban tomadas.</p></div></div>
+  <div class="cita">Si no sabés explicar qué hace el flujo sin nombrar nodos, todavía no estás listo para construirlo.</div>
+</div></section>
+
+<section class="bloque"><div class="envoltura">
+  <span class="rotulo">Tour interactivo</span><h2>Seis lugares que hay que dominar en el editor</h2>
+  <p class="intro">Elegí una zona. El esquema muestra para qué sirve y qué pregunta conviene hacerse ahí.</p>
+  <div class="tour">
+    <div class="tour-nav" id="tourNav">
+      <button data-zona="lienzo" class="activo"><span>01</span>Lienzo y conexiones</button>
+      <button data-zona="nodo"><span>02</span>Configuración del nodo</button>
+      <button data-zona="datos"><span>03</span>Entrada y salida</button>
+      <button data-zona="expresiones"><span>04</span>Expresiones</button>
+      <button data-zona="ejecuciones"><span>05</span>Ejecuciones</button>
+      <button data-zona="activar"><span>06</span>Prueba y activación</button>
+    </div>
+    <div class="editor" aria-live="polite">
+      <div class="editor-barra"><span>Pedido mínimo · borrador</span><span id="editorEstado">Modo de edición</span></div>
+      <div class="editor-cuerpo"><div class="lienzo"><span class="conexion c1"></span><span class="conexion c2"></span><span class="conexion c3"></span><div class="nodo n1 activo" data-nodo="trigger"><b>Manual Trigger</b><small>disparador</small></div><div class="nodo n2" data-nodo="datos"><b>Preparar pedido</b><small>datos</small></div><div class="nodo n3" data-nodo="si"><b>Pedido alto</b><small>verdadero</small></div><div class="nodo n4" data-nodo="no"><b>Pedido normal</b><small>falso</small></div></div><aside class="panel"><span class="rot" id="panelRot">Lienzo</span><h3 id="panelTitulo">El mapa del proceso</h3><p id="panelTexto">Las flechas no significan “después” solamente: llevan los ítems que produjo el nodo anterior.</p><ul id="panelLista"><li>Nombrá cada nodo por su función</li><li>Leé el flujo de izquierda a derecha</li><li>No mezcles ramas sin decidir cómo reunirlas</li></ul></aside></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="bloque"><div class="envoltura">
+  <span class="rotulo">Manos al lienzo</span><h2>Un flujo pequeño que enseña lo importante</h2>
+  <p class="intro">Importá el archivo de práctica y seguí esta ruta. No usa credenciales ni servicios externos: todo ocurre dentro de n8n para que podamos concentrarnos en la mecánica.</p>
+  <div class="ruta" id="ruta">
+    <label class="paso"><span class="num">01</span><span><b>Importar y nombrar</b><p>Importá el JSON, recorré los nodos y guardá el workflow con un nombre que explique el caso.</p></span><input type="checkbox" aria-label="Marcar importar y nombrar como completado"></label>
+    <label class="paso"><span class="num">02</span><span><b>Ejecutar desde el disparador</b><p>Corré el flujo completo y observá el camino que quedó resaltado.</p></span><input type="checkbox" aria-label="Marcar ejecutar como completado"></label>
+    <label class="paso"><span class="num">03</span><span><b>Abrir la salida de cada nodo</b><p>Buscá el ítem, sus campos y el tipo de cada valor. Número y texto no son lo mismo.</p></span><input type="checkbox" aria-label="Marcar inspección de datos como completada"></label>
+    <label class="paso"><span class="num">04</span><span><b>Modificar un dato y volver a probar</b><p>Cambiá el monto para que el pedido tome la otra rama. Una prueba sin caso alternativo no alcanza.</p></span><input type="checkbox" aria-label="Marcar segunda prueba como completada"></label>
+    <label class="paso"><span class="num">05</span><span><b>Fijar datos antes de editar</b><p>Usá datos fijados para repetir la prueba sin depender del paso anterior; soltarlos es parte del cierre.</p></span><input type="checkbox" aria-label="Marcar datos fijados como completado"></label>
+  </div>
+  <div class="progreso"><span id="barraProgreso"></span></div><p class="progreso-texto" id="progresoTexto">0 de 5 pasos completados</p>
+  <div class="acciones"><a class="boton" href="workflows/03-laboratorio-diagnostico-n8n.json" download>Descargar workflow de práctica</a></div>
+  <p class="nota-pie">Los checks se guardan en este dispositivo. El archivo no contiene credenciales ni conexiones externas.</p>
+</div></section>
+
+<section class="bloque"><div class="envoltura">
+  <span class="rotulo">Laboratorio de errores</span><h2>Encontrar el primer lugar donde la realidad se desvía</h2>
+  <p class="intro">Elegí un problema y probá una acción de diagnóstico. La meta no es memorizar mensajes: es aprender una secuencia que sirve para casi cualquier workflow.</p>
+  <div class="lab"><div class="errores" id="errores"></div><div class="consola"><div class="consola-cabeza" id="consolaCabeza">Ejecución manual · error</div><div class="consola-cuerpo"><pre class="error-exacto" id="errorExacto"></pre><div class="pistas" id="pistas"></div><div class="diagnostico" id="diagnostico">Elegí la acción que harías primero.</div></div></div></div>
+  <div class="cita">El nodo rojo es donde n8n se detuvo. La causa puede haber nacido uno o dos nodos antes.</div>
+</div></section>
+
+<section class="bloque"><div class="envoltura">
+  <span class="rotulo">Chatbot como copiloto</span><h2>Un buen pedido de ayuda ya contiene media solución</h2>
+  <p class="intro">El chatbot no ve tu pantalla ni conoce tu intención. Dale el error exacto, el resultado esperado, una muestra mínima de los datos y pedile pruebas ordenadas. Nunca pegues tokens, contraseñas ni identificadores sensibles.</p>
+  <div class="constructor">
+    <div class="dos-col"><div class="campo"><label for="errorUsuario">Mensaje de error exacto</label><textarea id="errorUsuario" placeholder="Pegá el mensaje completo, sin resumirlo"></textarea></div><div class="campo"><label for="esperadoUsuario">Qué esperabas y qué ocurrió</label><textarea id="esperadoUsuario" placeholder="Esperaba que la rama verdadera se ejecutara, pero todos los ítems fueron por falso"></textarea></div></div>
+    <div class="campo"><label for="datosUsuario">Muestra mínima de entrada, sin secretos</label><textarea id="datosUsuario" placeholder='{ "monto": 75000, "pago": "Transferencia" }'></textarea></div>
+    <div class="opciones"><label><input type="checkbox" data-contexto="ultimo" checked>Indicar el último nodo que funcionó</label><label><input type="checkbox" data-contexto="tipo" checked>Pedir que revise tipos y nombres de campos</label><label><input type="checkbox" data-contexto="hipotesis" checked>Pedir hipótesis ordenadas con una prueba por hipótesis</label><label><input type="checkbox" data-contexto="cambio" checked>Pedir un solo cambio por vez y cómo revertirlo</label></div>
+    <div class="prompt" id="promptGenerado" aria-live="polite"></div>
+    <div class="acciones"><button class="boton" id="generarPrompt" type="button">Generar pedido de ayuda</button><button class="boton hueco" id="copiarPrompt" type="button">Copiar</button></div>
+    <div class="secreto"><strong>Antes de copiar:</strong> reemplazá credenciales, tokens, correos, teléfonos y datos personales por marcadores como <code>[TOKEN_OCULTO]</code>. Si exportás el workflow, revisá también valores fijados y notas.</div>
+  </div>
+</div></section>
+
+<section class="bloque"><div class="envoltura">
+  <span class="rotulo">Trucos que ahorran horas</span><h2>La rutina de quien depura sin adivinar</h2>
+  <p class="intro">Abrí cada pregunta para ver una técnica concreta.</p>
+  <div class="acordeon" id="acordeon">
+    <div><button type="button" aria-expanded="false">¿Por dónde empiezo si hay diez nodos?<span>＋</span></button><div class="respuesta"><p>Buscá la primera salida distinta de lo esperado. Ejecutá por partes, de izquierda a derecha, y compará entrada con salida. El primer nodo que transforma mal el dato reduce el problema a una sola configuración.</p></div></div>
+    <div><button type="button" aria-expanded="false">¿Cuándo conviene fijar datos?<span>＋</span></button><div class="respuesta"><p>Cuando el disparador es lento, externo o difícil de repetir. Fijá una muestra representativa, probá los nodos siguientes y soltá los datos antes de activar el workflow.</p></div></div>
+    <div><button type="button" aria-expanded="false">¿Qué le comparto al chatbot?<span>＋</span></button><div class="respuesta"><ol><li>Objetivo del proceso en una frase.</li><li>Nodo que falla y mensaje exacto.</li><li>Entrada mínima y salida observada.</li><li>Configuración relevante o expresión.</li><li>Qué ya probaste y qué cambió.</li></ol></div></div>
+    <div><button type="button" aria-expanded="false">¿Qué hago con una respuesta que propone cinco cambios?<span>＋</span></button><div class="respuesta"><p>Pedile que ordene hipótesis por probabilidad y que dé una prueba reversible para la primera. Cambiar muchas cosas juntas borra la evidencia y hace imposible saber cuál era la causa.</p></div></div>
+    <div><button type="button" aria-expanded="false">¿Cuándo el chatbot no alcanza?<span>＋</span></button><div class="respuesta"><p>Cuando el problema depende de permisos reales, caídas del servicio, cuotas, credenciales o datos que no podés compartir. Ahí usá el historial de ejecuciones, la documentación oficial y una prueba controlada con una cuenta segura.</p></div></div>
+  </div>
+</div></section>
+
+<section class="bloque"><div class="envoltura">
+  <span class="rotulo">Cierre operativo</span><h2>Antes de activar, una pausa de sesenta segundos</h2>
+  <div class="tres-col" style="margin-top:30px"><div class="ficha"><span class="marca-capa">Lógica</span><h3>Dos caminos probados</h3><p>Un caso feliz y uno alternativo; condiciones con tipos y mayúsculas reales.</p></div><div class="ficha"><span class="marca-capa">Datos</span><h3>Sin secretos fijados</h3><p>Revisá datos de prueba, nombres de nodos, notas y credenciales elegidas.</p></div><div class="ficha"><span class="marca-capa">Operación</span><h3>Dueño y señal de falla</h3><p>Alguien sabe que el flujo existe, qué hace y dónde mirar si deja de hacerlo.</p></div></div>
+  <div class="cita">Un workflow no está terminado cuando corre una vez. Está terminado cuando alguien puede entender qué pasó cuando no corre.</div>
+</div></section>
+
+<div class="envoltura cierre"><h2>La próxima clase: los datos que viajan</h2><p class="intro" style="margin:0 auto">Hoy vimos que cada nodo recibe y entrega ítems. En la clase 4 abrimos esa caja: estructura, tipos, múltiples ítems y por qué una expresión funciona en una ejecución y falla en otra.</p><div class="acciones" style="justify-content:center"><a class="boton" href="cronograma.html">Ver cronograma</a><a class="boton hueco" href="04.html">Clase 4</a></div></div>
+</main>
+
+<footer class="pie"><div class="envoltura"><span>Facultad de Ciencias Económicas · Universidad de Buenos Aires</span><span>Clase 3 · Diseño de Procesos de Negocios con Automatización e IA Agéntica</span></div></footer>
+<script src="acceso.js"></script><script src="clase03.js"></script>
+</body>
+</html>
+
