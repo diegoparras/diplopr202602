@@ -30,7 +30,7 @@ const CLASES = [
   { n:  3, fecha: '2026-08-21', dia: 'Viernes',   mod: 'M1', pagina: '03.html',
     titulo: 'n8n en modo taller: construir, probar y destrabar',
     bajada: 'Del algoritmo al lienzo: editor, datos de ejecución, diagnóstico de errores y un chatbot como copiloto.' },
-  { n:  4, fecha: '2026-08-26', dia: 'Miércoles', mod: 'M2', pagina: null,
+  { n:  4, fecha: '2026-08-26', dia: 'Miércoles', mod: 'M2', pagina: '04.html',
     titulo: 'Anatomía de un workflow: nodos, ítems y datos que viajan',
     bajada: 'Lo que nadie ve en un diagrama plano: cómo se mueven los datos de nodo en nodo.' },
   { n:  5, fecha: '2026-09-02', dia: 'Miércoles', mod: 'M2', pagina: null,

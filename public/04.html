@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 4 · Anatomía de un workflow: nodos, ítems y datos que viajan · FCE-UBA</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  /* Las mismas tres variables que definieron las clases 2 y 3. */
+  :root { --acierto: #22C55E; --fallo: #F87171; --alerta: #EAB308; }
+  :root[data-tema="claro"] { --acierto: #15803D; --fallo: #B4231A; --alerta: #A16207; }
+
+  section.bloque { padding: 96px 0; border-top: 1px solid var(--linea); }
+  section.bloque:first-of-type { border-top: 0; }
+  .bloque h2 { max-width: 20ch; margin: 18px 0 22px; }
+  .bloque .intro { max-width: 62ch; font-size: 1.05rem; }
+
+  .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 54px; align-items: start; }
+  .tres-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+  @media (max-width: 900px) {
+    .dos-col, .tres-col { grid-template-columns: 1fr; gap: 26px; }
+    section.bloque { padding: 68px 0; }
+  }
+
+  .portada { padding: 54px 0 20px; }
+  .portada h1 { max-width: 17ch; margin: 20px 0 24px; }
+  .portada .meta {
+    display: flex; gap: 28px; flex-wrap: wrap;
+    font-family: var(--dato); font-size: 0.75rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue);
+    margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--linea);
+  }
+
+  .ficha { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 24px 22px; box-shadow: var(--sombra); }
+  .ficha h3 { font-size: 1.12rem; margin-bottom: 8px; }
+  .ficha p { font-size: 0.9rem; }
+  .ficha .marca-capa {
+    font-family: var(--dato); font-size: 0.66rem;
+    letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja);
+    display: block; margin-bottom: 8px;
+  }
+  .ficha ul { margin: 12px 0 0 18px; }
+  .ficha li { font-size: 0.88rem; color: var(--tenue); margin-bottom: 6px; }
+
+  .cita {
+    border-left: 2px solid var(--naranja);
+    padding: 8px 0 8px 24px; margin-top: 30px;
+    font-family: var(--display); font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+    font-weight: 600; letter-spacing: -0.02em; line-height: 1.35; color: var(--texto);
+    max-width: 48ch;
+  }
+
+  code, .mono { font-family: var(--dato); font-size: 0.85em; color: var(--naranja); }
+
+  /* ── Los errores heredados de la clase 3 ── */
+  .heredado { display: grid; gap: 12px; margin-top: 30px; }
+  .heredado-item {
+    background: var(--sup); border: 1px solid var(--linea);
+    border-left: 2px solid var(--fallo); border-radius: 14px;
+    padding: 20px 22px; box-shadow: var(--sombra);
+  }
+  .heredado-item pre {
+    font-family: var(--dato); font-size: 0.78rem; color: var(--fallo);
+    white-space: pre-wrap; margin-bottom: 10px;
+  }
+  .heredado-item p { font-size: 0.92rem; }
+  .heredado-item .donde {
+    display: block; margin-top: 10px;
+    font-family: var(--dato); font-size: 0.68rem;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--tenue);
+  }
+
+  /* ── Panel de tres vistas ── */
+  .panel-datos {
+    margin-top: 30px; background: var(--sup); border: 1px solid var(--linea);
+    border-radius: 18px; overflow: hidden; box-shadow: var(--sombra);
+  }
+  .panel-barra {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    padding: 14px 18px; border-bottom: 1px solid var(--linea); background: var(--sup2);
+  }
+  .panel-barra button {
+    padding: 7px 15px; border-radius: 999px; border: 1px solid var(--linea);
+    background: transparent; color: var(--tenue); cursor: pointer;
+    font-family: var(--dato); font-size: 0.72rem; transition: all 0.15s ease;
+  }
+  .panel-barra button:hover { color: var(--texto); border-color: var(--naranja); }
+  .panel-barra button.viva { color: var(--sobre-naranja); background: var(--naranja); border-color: var(--naranja); }
+  .panel-barra .cuenta { margin-left: auto; font-family: var(--dato); font-size: 0.7rem; color: var(--tenue); }
+  .panel-cuerpo { padding: 4px 0; overflow-x: auto; }
+
+  table.datos { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  table.datos th, table.datos td {
+    text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--linea);
+    font-family: var(--dato); white-space: nowrap;
+  }
+  table.datos th { color: var(--tenue); font-weight: 500; cursor: pointer; }
+  table.datos th:hover { color: var(--naranja); }
+  table.datos td { color: var(--texto); }
+  table.datos td.vacio { color: var(--tenue); opacity: 0.5; }
+  table.datos tr.encabezado-fila td { color: var(--tenue); }
+
+  pre.json {
+    font-family: var(--dato); font-size: 0.78rem; line-height: 1.7;
+    padding: 16px 18px; color: var(--texto); white-space: pre; overflow-x: auto;
+  }
+  pre.json .clave { color: var(--naranja); }
+  pre.json .texto { color: var(--acierto); }
+  pre.json .numero { color: var(--alerta); }
+
+  .esquema { padding: 6px 0; }
+  .esquema-fila {
+    display: grid; grid-template-columns: 200px 130px 1fr; gap: 16px;
+    padding: 11px 18px; border-bottom: 1px solid var(--linea);
+    font-family: var(--dato); font-size: 0.79rem; align-items: baseline;
+  }
+  .esquema-fila:last-child { border-bottom: 0; }
+  .esquema-fila b { color: var(--texto); font-weight: 500; }
+  .esquema-fila .tipo { color: var(--tenue); }
+  .esquema-fila .tipo.mixto { color: var(--alerta); }
+  .esquema-fila .ej { color: var(--tenue); overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 700px) { .esquema-fila { grid-template-columns: 1fr; gap: 3px; } }
+
+  .lupa {
+    padding: 16px 18px; border-top: 1px solid var(--linea); background: var(--sup2);
+    font-family: var(--dato); font-size: 0.8rem; color: var(--texto); min-height: 3.4em;
+  }
+  .lupa small { display: block; font-size: 0.72rem; color: var(--tenue); margin-top: 6px; }
+
+  /* ── Tabla de tipos ── */
+  .tipos { margin-top: 28px; border: 1px solid var(--linea); border-radius: 16px; overflow: hidden; }
+  .tipos-fila {
+    display: grid; grid-template-columns: 1fr 1fr 150px; gap: 18px;
+    padding: 14px 20px; border-top: 1px solid var(--linea); align-items: baseline;
+    font-family: var(--dato); font-size: 0.8rem;
+  }
+  .tipos-fila:first-child { border-top: 0; background: var(--sup2); color: var(--tenue); }
+  .tipos-fila .val { color: var(--texto); }
+  .tipos-fila .res { font-weight: 500; }
+  .tipos-fila .res.si { color: var(--acierto); }
+  .tipos-fila .res.no { color: var(--fallo); }
+  @media (max-width: 700px) { .tipos-fila { grid-template-columns: 1fr; gap: 4px; } }
+
+  /* ── El caudal en 3D ── */
+  .flujo3d {
+    position: relative; height: 440px; margin-top: 30px;
+    border-radius: 20px 20px 0 0; border: 1px solid var(--linea); border-bottom: 0;
+    background: radial-gradient(ellipse at 50% 120%, var(--brasa), transparent 62%), var(--sup);
+    overflow: hidden; box-shadow: var(--sombra);
+  }
+  .flujo3d canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+  .flujo3d canvas:active { cursor: grabbing; }
+  .flujo-panel {
+    position: absolute; top: 18px; left: 18px; max-width: 300px;
+    padding: 15px 17px; background: var(--velo); backdrop-filter: blur(10px);
+    border: 1px solid var(--linea); border-radius: 14px;
+  }
+  .flujo-panel .n {
+    font-family: var(--dato); font-size: 0.65rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--naranja);
+  }
+  .flujo-panel h4 { font-family: var(--display); font-size: 1.1rem; margin: 5px 0 7px; letter-spacing: -0.02em; }
+  .flujo-panel p { font-size: 0.84rem; }
+  .flujo-pista { position: absolute; bottom: 16px; right: 20px; font-family: var(--dato); font-size: 0.68rem; color: var(--tenue); }
+
+  .caudal-mandos {
+    background: var(--sup); border: 1px solid var(--linea); border-top: 0;
+    padding: 22px 24px; box-shadow: var(--sombra);
+    border-radius: 0 0 20px 20px;
+  }
+  .caudal-mando { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .caudal-mando label { font-family: var(--dato); font-size: 0.75rem; color: var(--tenue); }
+  .caudal-mando input[type=range] { flex: 1; min-width: 200px; accent-color: var(--naranja); }
+  .caudal-mando output {
+    font-family: var(--display); font-weight: 800; font-size: 1.6rem;
+    letter-spacing: -0.03em; color: var(--naranja); min-width: 2.5ch;
+  }
+  .cinta { margin-top: 20px; display: grid; gap: 8px; }
+  .cinta-fila {
+    display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: baseline;
+    padding: 9px 0; border-top: 1px solid var(--linea);
+    font-family: var(--dato); font-size: 0.79rem; color: var(--tenue);
+  }
+  .cinta-fila b { color: var(--texto); font-weight: 500; font-size: 0.92rem; }
+  .cinta-total {
+    margin-top: 16px; padding: 16px 20px; border-radius: 13px;
+    background: var(--brasa); font-size: 0.93rem; color: var(--texto);
+  }
+
+  /* ── Mapeador ── */
+  .mapeador { display: grid; gap: 12px; margin-top: 28px; }
+  .casillero {
+    background: var(--sup); border: 1px solid var(--linea); border-radius: 14px;
+    padding: 18px 20px; box-shadow: var(--sombra);
+  }
+  .casillero .contexto {
+    font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--naranja); display: block; margin-bottom: 7px;
+  }
+  .casillero h4 { font-family: var(--display); font-size: 1.02rem; margin-bottom: 4px; }
+  .casillero .pedido { font-size: 0.87rem; color: var(--tenue); margin-bottom: 12px; }
+  .casillero .linea { display: flex; gap: 10px; flex-wrap: wrap; }
+  .casillero input {
+    flex: 1; min-width: 240px; padding: 11px 14px;
+    background: var(--fondo); border: 1px solid var(--linea); border-radius: 10px;
+    color: var(--texto); font-family: var(--dato); font-size: 0.84rem;
+  }
+  .casillero input:focus { outline: none; border-color: var(--naranja); box-shadow: 0 0 0 3px var(--brasa); }
+  .casillero.bien input { border-color: var(--acierto); }
+  .casillero.mal input { border-color: var(--fallo); }
+  .casillero button {
+    padding: 11px 20px; border-radius: 999px; border: 1px solid var(--linea);
+    background: transparent; color: var(--tenue); cursor: pointer;
+    font-family: var(--dato); font-size: 0.74rem; transition: all 0.15s ease;
+  }
+  .casillero button:hover { color: var(--texto); border-color: var(--naranja); }
+  .casillero .dictamen { font-size: 0.85rem; color: var(--tenue); margin-top: 11px; min-height: 1.2em; }
+  .casillero.bien .dictamen { color: var(--texto); }
+
+  /* ── Cardinalidad ── */
+  .cardi { display: grid; gap: 12px; margin-top: 28px; }
+  .cardi-fila {
+    display: grid; grid-template-columns: 190px 1fr; gap: 22px; align-items: start;
+    padding: 20px 22px; background: var(--sup); border: 1px solid var(--linea);
+    border-radius: 14px; box-shadow: var(--sombra);
+  }
+  .cardi-fila svg { width: 100%; height: auto; }
+  .cardi-fila h4 { font-family: var(--display); font-size: 1.05rem; margin-bottom: 6px; }
+  .cardi-fila p { font-size: 0.89rem; }
+  @media (max-width: 700px) { .cardi-fila { grid-template-columns: 1fr; gap: 12px; } }
+
+  /* ── Casos ── */
+  .caso {
+    background: var(--sup); border: 1px solid var(--linea); border-left: 2px solid var(--naranja);
+    border-radius: 16px; padding: 26px; margin-top: 18px; box-shadow: var(--sombra);
+  }
+  .caso .n {
+    font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--naranja);
+  }
+  .caso h3 { margin: 6px 0 10px; }
+  .caso pre {
+    margin: 16px 0; padding: 16px 18px; background: var(--fondo);
+    border: 1px solid var(--linea); border-radius: 11px;
+    font-family: var(--dato); font-size: 0.8rem; line-height: 1.65;
+    color: var(--texto); overflow-x: auto;
+  }
+  .caso .acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+  .escalera { display: grid; margin-top: 30px; }
+  .escalon {
+    display: grid; grid-template-columns: 170px 1fr;
+    gap: 24px; padding: 20px 0;
+    border-top: 1px solid var(--linea); align-items: baseline;
+  }
+  .escalon:last-child { border-bottom: 1px solid var(--linea); }
+  .escalon .epoca { font-family: var(--display); font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; }
+  .escalon .epoca small {
+    display: block; font-family: var(--dato); font-weight: 400;
+    font-size: 0.7rem; letter-spacing: 0.1em; color: var(--tenue);
+  }
+  @media (max-width: 640px) { .escalon { grid-template-columns: 1fr; gap: 6px; } }
+
+  /* ── Actividad ── */
+  .actividad { background: var(--sup); border-radius: 20px; padding: 34px; border: 1px solid var(--linea); box-shadow: var(--sombra); }
+  .pregunta { margin-top: 24px; }
+  .pregunta label { display: block; margin-bottom: 8px; }
+  .pregunta label b {
+    font-family: var(--display); font-size: 1.08rem; font-weight: 600;
+    color: var(--naranja); display: block;
+  }
+  .pregunta label span { font-size: 0.88rem; color: var(--tenue); }
+  .pregunta textarea {
+    width: 100%; min-height: 84px; resize: vertical;
+    padding: 13px 15px; background: var(--fondo);
+    border: 1px solid var(--linea); border-radius: 12px;
+    color: var(--texto); font-family: var(--cuerpo); font-size: 0.95rem; line-height: 1.55;
+  }
+  .pregunta textarea:focus { outline: none; border-color: var(--naranja); box-shadow: 0 0 0 3px var(--brasa); }
+  .guardado { font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); margin-top: 16px; min-height: 1.2em; }
+
+  .nota-pie { margin-top: 14px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); line-height: 1.7; }
+
+  .cierre { text-align: center; padding: 90px 0 40px; }
+  .cierre h2 { margin: 0 auto 22px; max-width: 24ch; }
+  .cierre .acciones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+
+  .revelar { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .revelar.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-int">
+    <a class="marca" href="cronograma.html"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 32 H30 M38 22 H30 M38 42 H30 M30 22 V42" fill="none" stroke="#FB923C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="32" r="5.5" fill="#F97316"/><circle cx="44" cy="21" r="5" fill="#FDBA74"/><circle cx="44" cy="43" r="5" fill="#FDBA74"/></svg>Diplomatura <span>Procesos</span> · FCE-UBA</a>
+    <nav>
+      <a href="cronograma.html">Cronograma</a>
+      <a href="04.html" class="actual">Clase 4</a>
+      <a href="#" id="salir">Salir</a>
+      <button class="tema" type="button" title="Cambiar tema">
+        <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<div class="envoltura portada">
+  <span class="rotulo">Clase 04 · Módulo 2 · Anatomía de un flujo</span>
+  <h1>Anatomía de un workflow: nodos, ítems y datos que viajan</h1>
+  <p class="intro">El viernes aprendiste a diagnosticar tres errores sin saber por qué ocurren. Hoy abrimos la caja: qué es un ítem, qué tipo tiene cada campo, qué pasa cuando son cuarenta, y por qué una expresión anda en un nodo y falla en el siguiente.</p>
+  <div class="meta">
+    <span>26 de agosto de 2026</span>
+    <span>Miércoles · 18 a 21:30 h</span>
+    <span>FCE — UBA</span>
+  </div>
+</div>
+
+<!-- ─────────── Retomamos ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Retomamos</span>
+    <h2>Tres de los cuatro errores del viernes son el mismo error</h2>
+    <p class="intro">El laboratorio de la clase 3 te enseñó qué hacer primero frente a cada mensaje. Esa parte es la que salva la noche. Pero tres de los cuatro casos tienen la misma raíz, y es la que vamos a desarmar hoy.</p>
+
+    <div class="heredado" id="heredado"></div>
+
+    <div class="cita">Un mensaje de error no habla del nodo que falló. Habla de la forma que tenían los datos cuando llegaron ahí.</div>
+  </div>
+</section>
+
+<!-- ─────────── El ítem por dentro ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">La unidad mínima</span>
+    <h2>Todo lo que viaja por un flujo es un ítem</h2>
+    <p class="intro">Un nodo no recibe "los datos". Recibe una lista de ítems, y cada ítem es una caja con dos compartimentos: <code>json</code>, donde van los campos con nombre, y <code>binary</code>, donde va el archivo cuando hay uno. El editor te muestra esa misma lista de tres maneras distintas.</p>
+
+    <div class="panel-datos">
+      <div class="panel-barra">
+        <button type="button" data-vista="tabla" class="viva">Tabla</button>
+        <button type="button" data-vista="json">JSON</button>
+        <button type="button" data-vista="esquema">Esquema</button>
+        <span class="cuenta" id="panelCuenta"></span>
+      </div>
+      <div class="panel-cuerpo" id="panelCuerpo"></div>
+      <div class="lupa" id="lupa">Tocá el nombre de un campo para ver cómo se lo nombra en una expresión.</div>
+    </div>
+
+    <div class="tres-col" style="margin-top:30px">
+      <div class="ficha"><span class="marca-capa">Tabla</span><h3>Para mirar valores</h3><p>Una fila por ítem, una columna por campo. Es la vista cómoda y la que miente cuando un campo está anidado adentro de otro.</p></div>
+      <div class="ficha"><span class="marca-capa">JSON</span><h3>Para ver la forma real</h3><p>Muestra la estructura tal cual es, con las llaves, los corchetes y las comillas. Las comillas son la información importante: si un valor las tiene, es texto.</p></div>
+      <div class="ficha"><span class="marca-capa">Esquema</span><h3>Para escribir expresiones</h3><p>Lista los campos con su tipo. Es de donde se arrastra un campo al casillero de un nodo, y es la vista que hay que abrir antes de escribir una expresión a mano.</p></div>
+    </div>
+
+    <p class="nota-pie">El compartimento <code>binary</code> no aparece en estas tres vistas: tiene su propia solapa. Un PDF adjunto o una imagen descargada viajan ahí, y en el <code>json</code> queda solo el nombre del archivo. Lo usamos en serio en la clase 8, cuando entren las APIs.</p>
+  </div>
+</section>
+
+<!-- ─────────── Los tipos ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">El segundo error</span>
+    <h2>Un número escrito con comillas no es un número</h2>
+    <p class="intro">Arrastramos esta trampa desde la clase 1, cuando dijimos que la columna Monto va sin signo pesos. Ahora se puede explicar. Estas son las mismas comparaciones que hace el nodo, evaluadas de verdad por esta página.</p>
+
+    <div class="tipos" id="tipos"></div>
+
+    <div class="dos-col" style="margin-top:30px">
+      <div class="ficha">
+        <span class="marca-capa">Por qué pasa</span>
+        <h3>La planilla no manda tipos, manda celdas</h3>
+        <p>Una celda con formato de moneda o con un punto de miles llega como texto. Una celda de la misma columna, cargada a mano sin formato, llega como número. La misma columna puede traer las dos cosas, y el esquema te lo muestra.</p>
+      </div>
+      <div class="ficha">
+        <span class="marca-capa">Cómo se arregla</span>
+        <h3>Convertir antes de comparar, no después</h3>
+        <p>O se limpia el origen con un desplegable y una columna sin formato, o se convierte de forma explícita en el flujo antes de que la condición lo mire. La segunda opción es la que usamos en los casos 01 y 02, con <code>Number( )</code> alrededor del campo.</p>
+      </div>
+    </div>
+
+    <div class="cita">La validación laxa te deja seguir con un dato del tipo equivocado. La estricta te frena y te avisa. Ninguna de las dos convierte nada por vos.</div>
+  </div>
+</section>
+
+<!-- ─────────── El caudal ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">La tesis de hoy</span>
+    <h2>Un nodo no se ejecuta una vez, se ejecuta una vez por ítem</h2>
+    <p class="intro">Valentina se fue una semana. Vuelve y tiene la planilla llena de pedidos sin procesar. El algoritmo que escribimos en la clase 2 no cambia ni una línea: lo único que cambia es el disparador, que en vez de esperar una fila nueva lee todas las que ya están. Y ahí aparece todo lo que no sabíamos.</p>
+
+    <div class="flujo3d" id="flujo3d">
+      <canvas id="lienzoFlujo"></canvas>
+      <div class="flujo-panel" id="flujoPanel">
+        <span class="n" id="flujoN">El caudal</span>
+        <h4 id="flujoTitulo">Cinco nodos, un solo disparo</h4>
+        <p id="flujoTexto">Movés la perilla y mirás cómo cambia la cantidad de ítems en cada tramo. Tocá un nodo para ver qué le hace al caudal.</p>
+      </div>
+      <span class="flujo-pista">arrastrá para girar</span>
+    </div>
+
+    <div class="caudal-mandos">
+      <div class="caudal-mando">
+        <label for="filas">Filas en la planilla</label>
+        <input type="range" id="filas" min="1" max="48" value="40">
+        <output id="filasVal">40</output>
+      </div>
+      <div class="cinta" id="cinta"></div>
+      <div class="cinta-total" id="cintaTotal"></div>
+    </div>
+
+    <p class="nota-pie">El grafo muestra la espina del caso: cinco nodos de los nueve que tiene el workflow completo. Los cuatro que faltan no cambian la cantidad de ítems y por eso no cambian el dibujo.</p>
+
+    <p class="nota-pie">Las proporciones de la simulación: seis de cada diez filas están sin procesar y dos de cada diez pendientes superan el umbral pagando por transferencia. Son las mismas proporciones que usó la calculadora de la clase 1, para que las dos cuentas se puedan comparar.</p>
+
+    <div class="cita" style="margin-top:34px">Cuarenta filas leídas, veinticuatro correos, cinco pedidos apartados en un solo mensaje, veinticuatro filas marcadas. Una ejecución.</div>
+  </div>
+</section>
+
+<!-- ─────────── Nombrar un dato ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Expresiones</span>
+    <h2>Las dos maneras de nombrar un dato que ya viajó</h2>
+    <p class="intro">Un casillero de un nodo puede tener un valor fijo o una expresión. La expresión va entre llaves dobles y adentro se nombra el dato. Hay dos formas de nombrarlo, y elegir mal es el tercer error del viernes.</p>
+
+    <div class="dos-col" style="margin-top:26px">
+      <div class="ficha" style="border-left:2px solid var(--naranja)">
+        <span class="marca-capa">La corta</span>
+        <h3><code>{{ $json.Email }}</code></h3>
+        <p>Toma el campo del ítem que viene entrando a este nodo, o sea de la salida del nodo inmediatamente anterior. Es cómoda y es la que arma el editor cuando arrastrás un campo.</p>
+        <p style="margin-top:12px">Deja de servir apenas hay un nodo en el medio que devuelve otra cosa. Después de un nodo de Gmail, <code>$json</code> ya no es el pedido: es la respuesta de Gmail.</p>
+      </div>
+      <div class="ficha" style="border-left:2px solid var(--naranja)">
+        <span class="marca-capa">La larga</span>
+        <h3><code>{{ $('Leer la planilla').item.json.Email }}</code></h3>
+        <p>Va a buscar el campo a un nodo determinado, por su nombre, sin importar cuántos nodos hayan pasado en el medio. Es la que usamos desde la clase 1 sin explicarla.</p>
+        <p style="margin-top:12px">Por eso los nodos se nombran por lo que hacen: el nombre del nodo es parte del código del flujo, y si lo renombrás, se rompen todas las expresiones que lo mencionan.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:48px">Llená los cuatro casilleros</h3>
+    <p class="intro" style="margin-top:8px">Este es el flujo del caso de hoy. Escribí la expresión que corresponde en cada casillero. Se aceptan las dos formas de escribirla, con punto y con corchetes.</p>
+
+    <div class="mapeador" id="mapeador"></div>
+    <div class="guardado" id="marcadorMapa"></div>
+  </div>
+</section>
+
+<!-- ─────────── El emparejamiento ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">El tercer error</span>
+    <h2>Cómo sabe el nodo cuál de los cuarenta le toca</h2>
+    <p class="intro">Cuando escribís <code>$('Leer la planilla').item</code> mientras corren cuarenta ítems, n8n tiene que resolver cuál de los cuarenta. Lo hace siguiendo el rastro hacia atrás: cada ítem de salida recuerda de qué ítem de entrada nació.</p>
+
+    <div class="tres-col" style="margin-top:30px">
+      <div class="ficha"><span class="marca-capa">Anda</span><h3>Uno a uno</h3><p>El nodo recibió cuarenta ítems y devolvió cuarenta. El rastro es directo y <code>.item</code> encuentra el que corresponde sin dudar.</p></div>
+      <div class="ficha"><span class="marca-capa">Se pierde</span><h3>Cuando el rastro se corta</h3><p>Si en el medio hay un nodo que junta muchos ítems en uno, o que crea ítems nuevos de la nada, el vínculo se pierde y la expresión no puede resolver cuál. Ahí aparece el <code>Cannot read properties of undefined</code>.</p></div>
+      <div class="ficha"><span class="marca-capa">La salida</span><h3><code>.first()</code> y <code>.all()</code></h3><p>Cuando no hay un ítem que corresponda, hay que decir cuál querés: el primero, o la lista entera para recorrerla. Es una decisión explícita, no un parche.</p></div>
+    </div>
+
+    <div class="ficha" style="margin-top:24px">
+      <h3>La regla práctica</h3>
+      <ul>
+        <li>Mientras la cantidad de ítems no cambie, <code>.item</code> es seguro</li>
+        <li>Después de un nodo que junta o multiplica, usá <code>.first()</code> o recorré <code>.all()</code></li>
+        <li>Si una expresión anda en la prueba con un ítem y falla con cuarenta, el problema no es la expresión: es que probaste con un solo ítem</li>
+      </ul>
+    </div>
+
+    <p class="nota-pie">Este es exactamente el caso que el cierre de la clase 3 dejó anunciado: por qué una expresión funciona en una ejecución y falla en otra. La respuesta corta es que la primera ejecución tenía un ítem y la segunda tenía cuarenta.</p>
+  </div>
+</section>
+
+<!-- ─────────── Cardinalidad ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Vocabulario para la clase 5</span>
+    <h2>Los tres cambios de cantidad que puede hacer un nodo</h2>
+    <p class="intro">Casi todos los nodos hacen lo primero. Los otros dos son los que rompen el rastro y los que hay que reconocer de lejos.</p>
+
+    <div class="cardi" id="cardi"></div>
+
+    <p class="nota-pie">La clase 5 le pone nombre propio a cada uno de los tres. Hoy alcanza con reconocer la forma cuando aparece en el panel de salida: si entraron cuarenta y salieron cuarenta, si entraron cuarenta y salió uno, o si entró uno y salieron cuarenta.</p>
+  </div>
+</section>
+
+<!-- ─────────── El caso ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Manos al lienzo</span>
+    <h2>El procesador de atrasados</h2>
+    <p class="intro">El mismo algoritmo de la clase 2 con un disparador distinto. Se construye entero en clase y es el primero que procesa muchas cosas de una vez.</p>
+
+    <div class="caso">
+      <span class="n">Caso 04 · 9 nodos · una sola ejecución</span>
+      <h3>Valentina vuelve de vacaciones</h3>
+      <p>Arranca a mano, lee toda la planilla, se queda con lo pendiente, confirma a cada cliente, junta los pedidos que hay que revisar en un solo mensaje y marca todo como procesado.</p>
+      <pre>CUANDO alguien aprieta el botón:
+    leer todas las filas de la planilla
+
+    quedarse solo con las que tienen Procesado vacío
+
+    PARA CADA pedido:
+        enviar correo de confirmación a {Email}
+        SI Monto &gt; 50000 Y Pago = "Transferencia":
+            apartarlo para la revisión
+
+    juntar los apartados en un solo resumen
+    enviar el resumen a Valentina
+
+    marcar cada fila procesada con la fecha y la hora
+FIN</pre>
+      <p style="font-size:0.9rem">Acá aparece <code>PARA CADA</code> por primera vez. La clase 2 lo dejó reservado justamente para este momento, cuando los ítems dejaran de ser uno.</p>
+      <div class="acciones">
+        <a class="boton" href="workflows/04-caso-atrasados-n8n.json" download>Descargar el workflow</a>
+      </div>
+    </div>
+
+    <div class="escalera">
+      <div class="escalon"><div class="epoca">1 · 2<small>de cero a muchos</small></div><p>El disparador manual entrega un solo ítem vacío. El nodo que lee la planilla entrega uno por fila. Ese salto es el que no habíamos visto nunca: un nodo puede devolver más ítems de los que recibió.</p></div>
+      <div class="escalon"><div class="epoca">3<small>de muchos a menos</small></div><p>El filtro deja pasar los que tienen Procesado vacío y descarta el resto. Filtrar no es decidir un camino: es sacar ítems de la lista.</p></div>
+      <div class="escalon"><div class="epoca">4 · 5<small>uno por ítem</small></div><p>El correo corre una vez por pedido pendiente y la condición evalúa una vez por pedido. Los que dan verdadero siguen; los que dan falso se detienen ahí, sin error y sin aviso.</p></div>
+      <div class="escalon"><div class="epoca">6 · 7 · 8<small>de muchos a uno</small></div><p>Un nodo se queda con los dos campos que importan, otro junta todos los apartados en un solo ítem con la lista adentro, y el mensaje a Valentina sale una vez. Es la diferencia entre un aviso útil y cinco notificaciones sueltas que nadie lee.</p></div>
+      <div class="escalon"><div class="epoca">9<small>otra vez uno por ítem</small></div><p>La actualización de la planilla corre una vez por pedido pendiente y escribe la fecha en su fila. Veinticuatro escrituras, una ejecución.</p></div>
+    </div>
+
+    <p class="nota-pie">Si ningún pedido cumple la condición, el resumen no sale y no falla nada: un nodo que no recibe ítems no se ejecuta. Es otra consecuencia del modelo de ítems y conviene verla en clase apagando la condición.</p>
+
+    <p class="nota-pie">El mensaje de resumen usa la única línea de código de toda la clase: recorre la lista de apartados y arma una línea por cada uno. Está comentada adentro del archivo. En la clase 5 vamos a ver que ese mismo resultado se puede conseguir sin escribir código.</p>
+  </div>
+</section>
+
+<!-- ─────────── Actividad ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Para la clase 5</span>
+    <h2>Mirá tu proceso de nuevo, ahora contando ítems</h2>
+    <p class="intro">Tomá el algoritmo que escribiste en la clase 2 y respondé estas tres preguntas sobre él. Lo que escribas queda guardado en este dispositivo.</p>
+
+    <div class="actividad" style="margin-top:30px">
+      <div class="pregunta">
+        <label for="q1"><b>Cuántas cosas entran de una vez</b><span>¿Tu disparador trae una sola cosa o puede traer muchas? ¿Cuántas, en un día normal y en el peor día del mes?</span></label>
+        <textarea id="q1" placeholder="Por ejemplo: llega una factura por vez, pero el último día del mes llegan sesenta juntas…"></textarea>
+      </div>
+      <div class="pregunta">
+        <label for="q2"><b>Dónde cambiaría la cantidad</b><span>¿En qué paso se descartarían cosas, y en cuál habría que juntar muchas en un solo aviso?</span></label>
+        <textarea id="q2" placeholder="Por ejemplo: se descartan las que ya están cargadas, y el aviso al jefe tendría que ser uno solo con todas…"></textarea>
+      </div>
+      <div class="pregunta">
+        <label for="q3"><b>Qué campo va a llegar con el tipo equivocado</b><span>Miralo con lo que sabés ahora: montos con signo, fechas escritas a mano, códigos con ceros adelante.</span></label>
+        <textarea id="q3" placeholder="Por ejemplo: el CUIT llega con guiones en algunos casos y sin guiones en otros…"></textarea>
+      </div>
+      <div class="guardado" id="guardado"></div>
+    </div>
+
+    <p class="nota-pie">Si completaste la actividad de la clase 2, tu algoritmo está guardado en este mismo navegador. Volvé a <a href="02.html">la clase 2</a> a buscarlo antes de responder.</p>
+  </div>
+</section>
+
+<div class="envoltura cierre">
+  <h2>Nos vemos el miércoles 2 de septiembre</h2>
+  <p class="intro" style="margin:0 auto">Hoy contamos ítems sin nombrar casi ningún nodo. En la clase 5 vienen los ocho que resuelven el noventa por ciento de los flujos, y tres de ellos son los que cambian la cantidad de ítems que acabás de aprender a reconocer.</p>
+  <div class="acciones">
+    <a class="boton" href="cronograma.html">Ver el cronograma completo</a>
+    <a class="boton hueco" href="05.html">Clase 5</a>
+  </div>
+</div>
+
+</main>
+
+<footer class="pie">
+  <div class="envoltura">
+    <span>Facultad de Ciencias Económicas · Universidad de Buenos Aires</span>
+    <span>Clase 4 · Diseño de Procesos de Negocios con Automatización e IA Agéntica</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="acceso.js"></script>
+<script src="clase04.js"></script>
+</body>
+</html>
