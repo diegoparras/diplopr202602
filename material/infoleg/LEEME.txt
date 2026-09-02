@@ -1,0 +1,23 @@
+Capturas de InfoLeg tomadas el 2 de septiembre de 2026 para preparar la clase 5.
+Sirven para verificar los selectores CSS del workflow sin volver a golpear el sitio.
+
+  ficha-401266.html   verNorma.do?id=401266 — Ley 27.742
+  res-cookie.html     resultado de buscar Ley 27742 (una norma)
+  dec.html            resultado de buscar Decreto 70 / 2023 (dos normas)
+
+Cómo se obtuvieron, y lo que se aprendió en el camino:
+
+  1. El buscador vive en un iframe, en otro dominio que el sitio principal:
+     servicios.infoleg.gob.ar/infolegInternet/mostrarBusquedaNormas.do
+  2. Ese GET entrega una cookie JSESSIONID. El POST a buscarNormas.do sin esa
+     cookie devuelve 200 OK y ninguna norma. Con la cookie, devuelve la norma.
+     El jsessionid en la URL no alcanza.
+  3. Los códigos de tipoNorma salen del <select> del formulario: 1 Ley,
+     2 Decreto, 3 Resolución, 4 Disposición.
+  4. Buscar algo que no existe devuelve 200 OK y la página del buscador otra
+     vez (130 KB), sin ningún mensaje de error.
+  5. No hay /robots.txt en ninguno de los dos dominios: 404 en ambos.
+  6. El sitio sirve ISO-8859-1 y corre Apache 2.2.22.
+
+Son páginas públicas de normativa nacional y no se publican en el sitio:
+esta carpeta está en .vercelignore.

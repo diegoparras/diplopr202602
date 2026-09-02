@@ -378,30 +378,28 @@
     <p class="intro">Como en la clase 2 y como en la 4. Si esto no se puede leer en voz alta y entender, el lienzo no lo va a arreglar.</p>
 
     <div class="caso">
-      <span class="n">Caso 05 · 14 nodos · una ejecución por pedido</span>
+      <span class="n">Caso 05 · 18 nodos · una ejecución por pedido</span>
       <h3>El bot que lee InfoLeg</h3>
       <pre>CUANDO llega un mensaje al bot:
     leer { texto, chat }
-    entender qué pidió: tipo de norma y número
+    entender qué pidió: tipo de norma, número y año
 
     SI no se entiende qué norma es:
         responder "decime tipo y número: ley 27742"
         FIN
 
-    buscar la norma y quedarse con su id de InfoLeg
+    abrir la sesión en el buscador y guardar la llave
+    buscar con esa llave
 
-    con el id, calcular la carpeta del anexo y pedir el texto
-    extraer el título y el arranque del articulado
+    SEGÚN cuántas encontró:
+        ninguna:  responder que no aparece
+        varias:   responder la lista y preguntar cuál
+        una:      traer su ficha
 
-    SEGÚN tipo:
-        ley:      citar "Ley 27.742 (B.O. 08/07/2024)"
-        decreto:  citar "Decreto 70/2023"
-        otro:     citar tal como vino
-
-    juntar la ficha con el texto en una sola respuesta
+    juntar la fila del listado con la ficha
     responder por el mismo chat, con el link a InfoLeg
 FIN</pre>
-      <p style="font-size:0.9rem">Ocho verbos. Cada uno se va a convertir en uno de los ocho nodos, y en el mismo orden. Esa correspondencia no es una casualidad didáctica: es la razón por la que escribimos el algoritmo primero.</p>
+      <p style="font-size:0.9rem">Fijate el cuarto párrafo: «abrir la sesión y guardar la llave». Ese paso no estaba cuando escribimos el algoritmo la primera vez. Apareció al probar, y es la clase de cosa que ningún diagrama previo adivina: el buscador de InfoLeg no contesta si no reconoce una sesión.</p>
       <div class="acciones">
         <a class="boton" href="workflows/05-boletin-infoleg-n8n.json" download>Descargar el workflow</a>
         <a class="boton hueco" href="workflows/05-sin-codigo-n8n.json" download>El de «juntar sin código»</a>
@@ -469,9 +467,25 @@ Summarize    →  concatenar "linea", separador salto de línea
 
     <div class="cita">El Code es el octavo nodo porque es el último, no porque sea el peor.</div>
 
-    <p class="intro" style="margin-top:22px">Y para que quede claro que no es una prohibición: en el caso de hoy el Code aparece, y aparece por una razón que ningún nodo puede cubrir. InfoLeg guarda el texto de cada norma en una carpeta que agrupa de a cinco mil ids. La Ley 27.742 tiene el id <code>401266</code>, así que su texto vive en <code>anexos/400000-404999/401266/norma.htm</code>. Ese <code>400000-404999</code> no viene en ninguna respuesta: es una cuenta, <code>Math.floor(id / 5000) * 5000</code>. Eso es un nodo Code bien usado.</p>
-  </div>
-</section>
+    <p class="intro" style="margin-top:22px">Y para que quede claro que no es una prohibición, la historia de cómo este mismo caso nos enseñó las dos caras.</p>
+
+    <div class="comparo">
+      <div class="comparo-lado antes">
+        <span class="rot">El Code que sobró</span>
+        <h4>Una cuenta que no hacía falta</h4>
+        <p>InfoLeg guarda el texto de cada norma en carpetas que agrupan de a cinco mil ids: la Ley 27.742 tiene el id <code>401266</code> y su texto vive en <code>anexos/400000-404999/401266/norma.htm</code>. Escribimos un nodo Code para calcular esa carpeta con <code>Math.floor(id / 5000) * 5000</code>. Funcionaba perfecto.</p>
+        <p>Después abrimos la ficha y ahí estaba el link, escrito, listo para copiar. Un selector CSS y el nodo Code al tacho. <b>El mejor código es el que se borra.</b></p>
+      </div>
+      <div class="comparo-lado despues">
+        <span class="rot">El Code que se quedó</span>
+        <h4>Tres listas que hay que cruzar</h4>
+        <p>El nodo HTML no devuelve normas: devuelve listas paralelas. Una de enlaces, una de títulos, una de fechas. Para armar una norma por fila hay que cruzarlas por posición, y de paso pasar «21-dic-2023» a un formato que se pueda comparar.</p>
+        <p>Eso no lo hace ningún nodo. Ahí el Code se gana el lugar, y de paso es el que convierte un ítem en varios: la tercera forma de cardinalidad que la clase 4 te enseñó a reconocer.</p>
+      </div>
+    </div>
+
+    <p class="nota-pie">Las dos cosas pasaron preparando esta clase, en ese orden. La regla no es «no uses Code»: es «fijate primero si el dato ya está ahí».</p>
+  </section>
 
 <!-- ─────────── El simulador ─────────── -->
 <section class="bloque">
@@ -497,7 +511,7 @@ Summarize    →  concatenar "linea", separador salto de línea
       </div>
     </div>
 
-    <p class="nota-pie">Los datos del panel son una captura preparada para la clase, no una consulta en vivo: la página no sale a InfoLeg. El id 401266 y la ruta del anexo son reales y se pueden verificar; el extracto está recortado. En n8n, el archivo del caso trae esa misma captura fijada con pin data, así que el flujo se puede probar entero aunque InfoLeg esté caído.</p>
+    <p class="nota-pie">Todo lo que ves en el panel son respuestas reales de InfoLeg, capturadas el 2 de septiembre de 2026 para preparar la clase; la página no sale a internet. Los tres pedidos se corrieron de verdad, incluido el de «decreto 70 2023», que devuelve dos normas. En n8n, el archivo del caso trae la misma captura fijada con pin data, así que el flujo se puede probar entero aunque InfoLeg esté caído.</p>
   </div>
 </section>
 
@@ -506,7 +520,7 @@ Summarize    →  concatenar "linea", separador salto de línea
   <div class="envoltura">
     <span class="rotulo">La letra chica</span>
     <h2>El HTML no es una API, y conviene decirlo antes de festejar</h2>
-    <p class="intro">El flujo anda. También andaba el que se rompió el mes pasado en otra oficina. Estas cinco cosas separan un truco de una automatización que se puede dejar prendida.</p>
+    <p class="intro">El flujo anda: lo probamos contra InfoLeg de punta a punta antes de esta clase. Estas cinco cosas, todas verificadas ese día, separan un truco de una automatización que se puede dejar prendida.</p>
 
     <div class="fragil" id="fragilidades"></div>
 

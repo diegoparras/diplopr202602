@@ -3,25 +3,33 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## El agente no scrapea\n\nEste flujo tiene cuatro nodos arriba. Abajo, intactos, siguen los\ncatorce del caso 05: son los que salen a InfoLeg, calculan la\ncarpeta, parsean el HTML y arman la cita.\n\n**Qué hace el agente:** entender \"che, la de bases\", \"el decreto\nde diciembre del 23\", \"pasame la 27742 otra vez\". Eso es lo único\nque el nodo Edit Fields del caso 05 hace mal.\n\n**Qué NO hace el agente:** salir a la web a mirar HTML. Si le\ndejás eso, cada consulta cuesta tokens, tarda, y dos personas que\npreguntan lo mismo reciben respuestas distintas.\n\n**La frase de la clase:** el agente elige, los nodos hacen.\n\n**Para que funcione:**\n1. Importá primero `05-boletin-infoleg-n8n.json` y guardalo.\n2. Agregale un disparador \"Execute Sub-workflow\" con entradas\n   `tipo` y `numero`, en lugar del Telegram Trigger.\n3. En el nodo herramienta de acá, elegí ese workflow de la lista.\n4. Cargá una credencial del proveedor del modelo.\n\nEsto es un adelanto de la clase 10, donde el nodo AI Agent es el\ntema y no el postre. Hoy alcanza con ver las dos capas separadas.",
+        "content": "## El agente no scrapea\n\nEste flujo tiene cuatro nodos arriba. Abajo, intactos, siguen los\ndieciocho del caso 05: son los que abren la sesion, salen a InfoLeg,\nparsean el HTML y deciden que hacer cuando aparece mas de una norma.\n\n**Qué hace el agente:** entender \"che, la de bases\", \"el decreto\nde diciembre del 23\", \"pasame la 27742 otra vez\". Eso es lo único\nque el nodo Edit Fields del caso 05 hace mal.\n\n**Qué NO hace el agente:** salir a la web a mirar HTML. Si le\ndejás eso, cada consulta cuesta tokens, tarda, y dos personas que\npreguntan lo mismo reciben respuestas distintas.\n\n**La frase de la clase:** el agente elige, los nodos hacen.\n\n**Para que funcione:**\n1. Importá primero `05-boletin-infoleg-n8n.json` y guardalo.\n2. Agregale un disparador \"Execute Sub-workflow\" con entradas\n   `tipoNorma`, `numero` y `anio`, en lugar del Telegram Trigger.\n3. En el nodo herramienta de acá, elegí ese workflow de la lista.\n4. Cargá una credencial del proveedor del modelo.\n\nEsto es un adelanto de la clase 10, donde el nodo AI Agent es el\ntema y no el postre. Hoy alcanza con ver las dos capas separadas.",
         "height": 640,
         "width": 500,
         "color": 5
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-600, -100],
+      "position": [
+        -600,
+        -100
+      ],
       "id": "c5000003-0001-4001-8c01-000000000001",
       "name": "Las dos capas"
     },
     {
       "parameters": {
-        "updates": ["message"],
+        "updates": [
+          "message"
+        ],
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
-      "position": [-40, 120],
+      "position": [
+        -40,
+        120
+      ],
       "id": "c5000003-0010-4010-8c10-000000000010",
       "name": "Llega el pedido",
       "webhookId": "c5000003-aaaa-4aaa-8caa-000000000010"
@@ -36,7 +44,10 @@
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
-      "position": [220, 120],
+      "position": [
+        220,
+        120
+      ],
       "id": "c5000003-0020-4020-8c20-000000000020",
       "name": "Entender el pedido"
     },
@@ -47,7 +58,10 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
       "typeVersion": 1.3,
-      "position": [140, 340],
+      "position": [
+        140,
+        340
+      ],
       "id": "c5000003-0030-4030-8c30-000000000030",
       "name": "Modelo"
     },
@@ -59,18 +73,22 @@
       },
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
-      "position": [300, 340],
+      "position": [
+        300,
+        340
+      ],
       "id": "c5000003-0040-4040-8c40-000000000040",
       "name": "Memoria del chat"
     },
     {
       "parameters": {
-        "description": "Busca una norma argentina en InfoLeg y devuelve su ficha, un extracto del texto y el link. Usala siempre que la persona mencione una ley, un decreto o una resolución.",
+        "description": "Busca una norma argentina en InfoLeg y devuelve su ficha y el link. Puede devolver más de una norma con el mismo número: en ese caso mostrale las opciones a la persona y preguntale cuál. Usala siempre que mencionen una ley, un decreto o una resolución.",
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "tipo": "={{ $fromAI('tipo', 'Ley, Decreto o Resolución', 'string') }}",
-            "numero": "={{ $fromAI('numero', 'El número de la norma, solo dígitos', 'string') }}"
+            "tipoNorma": "={{ $fromAI('tipoNorma', 'Código del tipo de norma en InfoLeg: 1 Ley, 2 Decreto, 3 Resolución', 'string') }}",
+            "numero": "={{ $fromAI('numero', 'El número de la norma, solo dígitos', 'string') }}",
+            "anio": "={{ $fromAI('anio', 'El año de sanción con cuatro dígitos, o vacío si no lo dijeron', 'string') }}"
           },
           "matchingColumns": [],
           "schema": [],
@@ -80,7 +98,10 @@
       },
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
       "typeVersion": 2.2,
-      "position": [460, 340],
+      "position": [
+        460,
+        340
+      ],
       "id": "c5000003-0050-4050-8c50-000000000050",
       "name": "buscar_norma"
     },
@@ -94,18 +115,73 @@
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [600, 120],
+      "position": [
+        600,
+        120
+      ],
       "id": "c5000003-0060-4060-8c60-000000000060",
       "name": "Responder al chat"
     }
   ],
   "connections": {
-    "Llega el pedido": { "main": [[{ "node": "Entender el pedido", "type": "main", "index": 0 }]] },
-    "Entender el pedido": { "main": [[{ "node": "Responder al chat", "type": "main", "index": 0 }]] },
-    "Modelo": { "ai_languageModel": [[{ "node": "Entender el pedido", "type": "ai_languageModel", "index": 0 }]] },
-    "Memoria del chat": { "ai_memory": [[{ "node": "Entender el pedido", "type": "ai_memory", "index": 0 }]] },
-    "buscar_norma": { "ai_tool": [[{ "node": "Entender el pedido", "type": "ai_tool", "index": 0 }]] }
+    "Llega el pedido": {
+      "main": [
+        [
+          {
+            "node": "Entender el pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entender el pedido": {
+      "main": [
+        [
+          {
+            "node": "Responder al chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Modelo": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Entender el pedido",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria del chat": {
+      "ai_memory": [
+        [
+          {
+            "node": "Entender el pedido",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_norma": {
+      "ai_tool": [
+        [
+          {
+            "node": "Entender el pedido",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "pinData": {}
 }

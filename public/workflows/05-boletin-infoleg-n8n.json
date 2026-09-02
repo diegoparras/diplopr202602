@@ -3,38 +3,49 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Caso 05 — El bot que lee InfoLeg\n\nEn el estudio, cada vez que sale una norma alguien entra a InfoLeg,\nbusca, copia el link y lo pega en el grupo. La mitad de las veces\npega mal el número.\n\nInfoLeg no tiene API ni RSS. Tiene HTML.\n\n**El algoritmo, antes de los nodos:**\n```\nCUANDO llega un mensaje al bot:\n    leer { texto, chat }\n    entender qué pidió: tipo de norma y número\n\n    SI no se entiende qué norma es:\n        responder \"decime tipo y número: ley 27742\"\n        FIN\n\n    buscar la norma y quedarse con su id de InfoLeg\n\n    con el id, calcular la carpeta del anexo y pedir el texto\n    extraer el título y el arranque del articulado\n\n    SEGÚN tipo:\n        ley:      citar \"Ley 27.742 (B.O. 08/07/2024)\"\n        decreto:  citar \"Decreto 70/2023\"\n        otro:     citar tal como vino\n\n    juntar la ficha con el texto en una sola respuesta\n    responder por el mismo chat, con el link a InfoLeg\nFIN\n```\n\n**Los ocho:** Trigger, HTTP Request (dos veces), IF, Switch,\nMerge, Edit Fields, Code y un nodo de app. El HTML es el noveno,\ny aparece por una sola razón: la web no devuelve JSON.",
+        "content": "## Caso 05 — El bot que lee InfoLeg\n\nEn el estudio, cada vez que sale una norma alguien entra a InfoLeg,\nbusca, copia el link y lo pega en el grupo. La mitad de las veces\npega mal el numero, o pega la modificatoria en vez de la ley.\n\nInfoLeg no tiene API ni RSS. Tiene HTML, y tiene sesion.\n\n**El algoritmo, antes de los nodos:**\n```\nCUANDO llega un mensaje al bot:\n    leer { texto, chat }\n    entender que pidio: tipo de norma, numero y anio\n\n    SI no se entiende que norma es:\n        responder \"decime tipo y numero: ley 27742\"\n        FIN\n\n    abrir la sesion en el buscador y guardar la llave\n    buscar con esa llave\n\n    SEGUN cuantas encontro:\n        ninguna:  responder que no aparece\n        varias:   responder la lista y preguntar cual\n        una:      traer su ficha y responder con el link\n\n    juntar la fila del listado con la ficha\n    responder por el mismo chat\nFIN\n```\n\n**Los ocho, todos con motivo:** Trigger, HTTP Request (tres veces),\nEdit Fields, IF, Code, Switch, Merge y un nodo de app. El HTML y el\nSummarize son los dos invitados.",
         "height": 900,
         "width": 540,
         "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-1240, -140],
+      "position": [
+        -1300,
+        -180
+      ],
       "id": "c5000001-0001-4001-8a01-000000000001",
       "name": "Consigna"
     },
     {
       "parameters": {
-        "content": "## Puesta a punto\n\n**1 · El bot.** Hablale a @BotFather en Telegram, `/newbot`,\nguardá el token en una credencial de n8n. El chat responde solo\ndespués de que vos le escribas primero al bot.\n\n**2 · La URL del buscador.** El nodo \"Buscar en InfoLeg\" viene\ncon una URL de ejemplo. La real se saca en dos minutos: abrí\nel buscador de InfoLeg, hacé la búsqueda a mano y copiá la URL\nde la barra de direcciones. Si la búsqueda va por POST, abrí\nF12 → Red, botón derecho sobre el pedido → copiar como cURL, y\npegalo en n8n con \"Import cURL\". Esa es la técnica; la URL\ncambia cuando el sitio cambia.\n\n**3 · Mientras tanto, datos fijados.** El nodo del buscador\ntiene pin data con la Ley 27.742 ya resuelta (id 401266). El\nflujo corre entero sin internet: podés probar los ocho nodos\naunque InfoLeg esté caído. Al soltar el pin, sale a la web.\n\n**4 · Los selectores.** El nodo HTML extrae `title` y `body`\nporque son los dos que existen en cualquier página. Los\nselectores finos se sacan en clase con el inspector, y son lo\nprimero que se rompe cuando InfoLeg toca su plantilla.\n\n**5 · Modales.** Ritmo bajo, un pedido por vez, y nunca\nrepublicar el texto completo: se manda el extracto y el link\nal original.",
-        "height": 720,
-        "width": 480,
+        "content": "## Puesta a punto\n\n**1 - El bot.** Hablale a @BotFather, `/newbot`, guardas el token en\nuna credencial de n8n. El bot solo puede escribirte despues de que\nvos le escribas primero.\n\n**2 - La sesion.** Esto es lo que hace distinto a este flujo. El\nbuscador de InfoLeg no contesta si no reconoce una sesion: el mismo\nPOST, con y sin cookie, devuelve resultados o una pagina vacia. Por\neso hay dos pedidos y no uno. El primero, \"Golpear la puerta\", existe\nsolo para que el servidor entregue el JSESSIONID.\n\nVerificado el 2 de septiembre de 2026:\n- sin cookie: 200 OK y ninguna norma\n- con `Cookie: JSESSIONID=...`: 200 OK y la norma\n- el jsessionid en la URL (`buscarNormas.do;jsessionid=...`) NO alcanza\n\n**3 - El User-Agent no importa.** Probado con el mismo que manda n8n:\nel buscador contesta igual. (`/robots.txt` responde 403 a un cliente\nsin User-Agent de navegador, pero es un 404 disfrazado: ese archivo\nno existe en ninguno de los dos dominios.)\n\n**4 - Los selectores.** Los de este flujo estan sacados del HTML real\ny verificados con un parser, no escritos de memoria. Son lo primero\nque se va a romper el dia que InfoLeg toque su plantilla, y por eso\nel flujo mira `#paging_cantidad` antes de confiar en la tabla.\n\n**5 - El charset.** InfoLeg sirve ISO-8859-1. Si en el panel de salida\nves `Ã³` donde va una `o` con tilde, es eso y no un error del flujo.\n\n**6 - Cuando no hay resultados no lo dice.** Buscar una ley que no\nexiste devuelve 200 OK y la pagina del buscador otra vez, 130 KB en\nvez de 5. No hay error, no hay mensaje: hay que darse cuenta mirando\nsi la tabla trajo filas. Por eso el nodo Code devuelve igual un item\ncon `cantidad: 0` en vez de cero items.\n\n**7 - Modales.** Un pedido por vez, sin rafagas, y nunca republicar el\ntexto completo: extracto y link al original.",
+        "height": 900,
+        "width": 500,
         "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-660, -140],
+      "position": [
+        -720,
+        -180
+      ],
       "id": "c5000001-0002-4002-8a02-000000000002",
       "name": "Puesta a punto"
     },
     {
       "parameters": {
-        "updates": ["message"],
+        "updates": [
+          "message"
+        ],
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
-      "position": [-120, 200],
+      "position": [
+        -140,
+        300
+      ],
       "id": "c5000001-0010-4010-8a10-000000000010",
       "name": "Llega el pedido",
       "webhookId": "c5000001-aaaa-4aaa-8aaa-000000000010"
@@ -58,13 +69,25 @@
             {
               "id": "c5000001-0023-4023-8a23-000000000023",
               "name": "tipo",
-              "value": "={{ $json.message.text.toLowerCase().includes('decreto') ? 'Decreto' : ($json.message.text.toLowerCase().includes('ley') ? 'Ley' : 'Otro') }}",
+              "value": "={{ $json.message.text.toLowerCase().includes('decreto') ? 'Decreto' : ($json.message.text.toLowerCase().includes('resoluc') ? 'Resolución' : ($json.message.text.toLowerCase().includes('ley') ? 'Ley' : 'Otro')) }}",
               "type": "string"
             },
             {
               "id": "c5000001-0024-4024-8a24-000000000024",
+              "name": "tipoNorma",
+              "value": "={{ ({ 'Ley': '1', 'Decreto': '2', 'Resolución': '3' })[$json.message.text.toLowerCase().includes('decreto') ? 'Decreto' : ($json.message.text.toLowerCase().includes('resoluc') ? 'Resolución' : ($json.message.text.toLowerCase().includes('ley') ? 'Ley' : 'x'))] || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "c5000001-0025-4025-8a25-000000000025",
               "name": "numero",
-              "value": "={{ $json.message.text.replace(/\\D/g, '') }}",
+              "value": "={{ ($json.message.text.match(/\\b(\\d{1,6})\\b/) || [])[1] || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "c5000001-0026-4026-8a26-000000000026",
+              "name": "anio",
+              "value": "={{ ($json.message.text.match(/\\b(19|20)\\d{2}\\b/) || [''])[0] }}",
               "type": "string"
             }
           ]
@@ -74,7 +97,10 @@
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [100, 200],
+      "position": [
+        80,
+        300
+      ],
       "id": "c5000001-0020-4020-8a20-000000000020",
       "name": "Entender el pedido"
     },
@@ -100,11 +126,12 @@
             },
             {
               "id": "c5000001-0032-4032-8a32-000000000032",
-              "leftValue": "={{ $json.tipo }}",
-              "rightValue": "Otro",
+              "leftValue": "={{ $json.tipoNorma }}",
+              "rightValue": "",
               "operator": {
                 "type": "string",
-                "operation": "notEquals"
+                "operation": "notEmpty",
+                "singleValue": true
               }
             }
           ],
@@ -115,171 +142,37 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [320, 200],
+      "position": [
+        300,
+        300
+      ],
       "id": "c5000001-0030-4030-8a30-000000000030",
       "name": "¿Entendí qué norma es?"
     },
     {
       "parameters": {
         "chatId": "={{ $json.chat_id }}",
-        "text": "=No te entendí. Decime tipo y número, por ejemplo:\n\n  ley 27742\n  decreto 70/2023",
+        "text": "=No te entendí. Decime tipo y número, por ejemplo:\n\n  ley 27742\n  decreto 70 2023",
         "additionalFields": {
           "appendAttribution": false
         }
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [560, 380],
+      "position": [
+        520,
+        480
+      ],
       "id": "c5000001-0040-4040-8a40-000000000040",
       "name": "Pedir tipo y número"
     },
     {
       "parameters": {
-        "url": "https://servicios.infoleg.gob.ar/infolegInternet/buscarNormas.do",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            { "name": "tipo", "value": "={{ $json.tipo }}" },
-            { "name": "nro", "value": "={{ $json.numero }}" }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [560, 100],
-      "id": "c5000001-0050-4050-8a50-000000000050",
-      "name": "Buscar en InfoLeg"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
-                "conditions": [
-                  {
-                    "id": "c5000001-0061-4061-8a61-000000000061",
-                    "leftValue": "={{ $json.tipo }}",
-                    "rightValue": "Ley",
-                    "operator": { "type": "string", "operation": "equals" }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "ley"
-            },
-            {
-              "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
-                "conditions": [
-                  {
-                    "id": "c5000001-0062-4062-8a62-000000000062",
-                    "leftValue": "={{ $json.tipo }}",
-                    "rightValue": "Decreto",
-                    "operator": { "type": "string", "operation": "equals" }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "decreto"
-            }
-          ]
-        },
-        "options": {
-          "fallbackOutput": "extra",
-          "renameFallbackOutput": "otra"
-        }
-      },
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.2,
-      "position": [800, -60],
-      "id": "c5000001-0060-4060-8a60-000000000060",
-      "name": "Cómo se cita"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "c5000001-0071-4071-8a71-000000000071",
-              "name": "cita",
-              "value": "=Ley {{ Number($json.numero).toLocaleString('es-AR') }} (B.O. {{ $json.publicacion }})",
-              "type": "string"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [1040, -180],
-      "id": "c5000001-0070-4070-8a70-000000000070",
-      "name": "Cita de ley"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "c5000001-0081-4081-8a81-000000000081",
-              "name": "cita",
-              "value": "=Decreto {{ $json.numero }}/{{ $json.publicacion.slice(0, 4) }} (B.O. {{ $json.publicacion }})",
-              "type": "string"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [1040, -60],
-      "id": "c5000001-0080-4080-8a80-000000000080",
-      "name": "Cita de decreto"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "c5000001-0091-4091-8a91-000000000091",
-              "name": "cita",
-              "value": "={{ $json.tipo }} {{ $json.numero }}",
-              "type": "string"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [1040, 60],
-      "id": "c5000001-0090-4090-8a90-000000000090",
-      "name": "Cita genérica"
-    },
-    {
-      "parameters": {
-        "jsCode": "// El único lugar de la clase donde hace falta código, y se ve por qué:\n// InfoLeg guarda el texto de cada norma adentro de una carpeta que agrupa\n// de a cinco mil ids. La 27.742 tiene id 401266, así que su carpeta es\n// 400000-404999. Eso no es un dato que venga en la respuesta: es una cuenta.\n\nconst salida = [];\n\nfor (const item of $input.all()) {\n  const id = Number(item.json.id_infoleg);\n  const desde = Math.floor(id / 5000) * 5000;\n  const hasta = desde + 4999;\n\n  salida.push({\n    json: {\n      ...item.json,\n      carpeta: `${desde}-${hasta}`,\n      url_ficha: `https://servicios.infoleg.gob.ar/infolegInternet/verNorma.do?id=${id}`,\n      url_texto: `https://servicios.infoleg.gob.ar/infolegInternet/anexos/${desde}-${hasta}/${id}/norma.htm`\n    }\n  });\n}\n\nreturn salida;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [800, 240],
-      "id": "c5000001-0100-4100-8a00-000000000100",
-      "name": "Calcular la carpeta"
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.url_texto }}",
+        "url": "https://servicios.infoleg.gob.ar/infolegInternet/mostrarBusquedaNormas.do",
         "options": {
           "response": {
             "response": {
-              "neverError": true,
+              "fullResponse": true,
               "responseFormat": "text"
             }
           }
@@ -287,41 +180,21 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1040, 240],
-      "id": "c5000001-0110-4110-8a10-000000000110",
-      "name": "Traer el texto"
-    },
-    {
-      "parameters": {
-        "operation": "extractHtmlContent",
-        "extractionValues": {
-          "values": [
-            {
-              "key": "titulo_pagina",
-              "cssSelector": "title"
-            },
-            {
-              "key": "cuerpo",
-              "cssSelector": "body"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.html",
-      "typeVersion": 1.2,
-      "position": [1260, 240],
-      "id": "c5000001-0120-4120-8a20-000000000120",
-      "name": "Extraer del HTML"
+      "position": [
+        520,
+        200
+      ],
+      "id": "c5000001-0050-4050-8a50-000000000050",
+      "name": "Golpear la puerta"
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "c5000001-0131-4131-8a31-000000000131",
-              "name": "extracto",
-              "value": "={{ $json.cuerpo.replace(/\\s+/g, ' ').trim().slice(0, 600) }}…",
+              "id": "c5000001-0061-4061-8a61-000000000061",
+              "name": "cookie",
+              "value": "={{ [].concat($json.headers['set-cookie']).find(c => c.startsWith('JSESSIONID')).split(';')[0] }}",
               "type": "string"
             }
           ]
@@ -331,9 +204,273 @@
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [1480, 240],
+      "position": [
+        740,
+        200
+      ],
+      "id": "c5000001-0060-4060-8a60-000000000060",
+      "name": "Quedarse con la llave"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://servicios.infoleg.gob.ar/infolegInternet/buscarNormas.do",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Cookie",
+              "value": "={{ $json.cookie }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "tipoNorma",
+              "value": "={{ $('Entender el pedido').item.json.tipoNorma }}"
+            },
+            {
+              "name": "numero",
+              "value": "={{ $('Entender el pedido').item.json.numero }}"
+            },
+            {
+              "name": "anioSancion",
+              "value": "={{ $('Entender el pedido').item.json.anio }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        200
+      ],
+      "id": "c5000001-0070-4070-8a70-000000000070",
+      "name": "Buscar la norma"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "data",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "cantidad_texto",
+              "cssSelector": "#paging_cantidad"
+            },
+            {
+              "key": "enlaces",
+              "cssSelector": "td.vr_azul11 a",
+              "returnValue": "attribute",
+              "attribute": "href",
+              "returnArray": true
+            },
+            {
+              "key": "etiquetas",
+              "cssSelector": "td.vr_azul11 a",
+              "returnArray": true
+            },
+            {
+              "key": "titulos",
+              "cssSelector": "td:nth-child(3) b",
+              "returnArray": true
+            },
+            {
+              "key": "fechas",
+              "cssSelector": "a[href*='verBoletin']",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {
+          "trimValues": true
+        }
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        1180,
+        200
+      ],
+      "id": "c5000001-0080-4080-8a80-000000000080",
+      "name": "Leer la tabla"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El unico lugar donde hace falta codigo, y se ve por que:\n// el nodo HTML devuelve TRES listas paralelas (los enlaces, los titulos,\n// las fechas) y nosotros necesitamos UNA norma por fila. Cruzar listas por\n// posicion no es algo que ningun nodo sepa hacer.\n//\n// De paso pasamos la fecha de \"08-jul-2024\" a \"2024-07-08\", que es la unica\n// forma de poder compararla despues.\n\nconst MESES = { ene: '01', feb: '02', mar: '03', abr: '04', may: '05', jun: '06',\n                jul: '07', ago: '08', sep: '09', oct: '10', nov: '11', dic: '12' };\n\nfunction aIso(fecha) {\n  const partes = String(fecha || '').trim().split('-');\n  if (partes.length !== 3 || !MESES[partes[1]]) return fecha || '';\n  return partes[2] + '-' + MESES[partes[1]] + '-' + partes[0].padStart(2, '0');\n}\n\nconst lista = (v) => (Array.isArray(v) ? v : v ? [v] : []);\n\nconst salida = [];\n\nfor (const item of $input.all()) {\n  const enlaces = lista(item.json.enlaces);\n  const etiquetas = lista(item.json.etiquetas);\n  const titulos = lista(item.json.titulos);\n  const fechas = lista(item.json.fechas);\n\n  // Si no hubo resultados devolvemos igual UN item con cantidad 0.\n  // Si devolvieramos cero items, el Switch que sigue no se ejecutaria nunca\n  // y el bot se quedaria callado: un nodo que no recibe items no corre.\n  if (enlaces.length === 0) {\n    salida.push({ json: { cantidad: 0 } });\n    continue;\n  }\n\n  for (let i = 0; i < enlaces.length; i++) {\n    const id = (String(enlaces[i]).match(/id=(\\d+)/) || [])[1] || '';\n    salida.push({\n      json: {\n        cantidad: enlaces.length,\n        id: id,\n        etiqueta: String(etiquetas[i] || '').replace(/\\s+/g, ' ').trim(),\n        titulo: String(titulos[i] || '').replace(/\\s+/g, ' ').trim(),\n        publicacion: aIso(fechas[i]),\n        url_ficha: 'https://servicios.infoleg.gob.ar/infolegInternet/verNorma.do?id=' + id\n      }\n    });\n  }\n}\n\nreturn salida;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        200
+      ],
+      "id": "c5000001-0090-4090-8a90-000000000090",
+      "name": "Una norma por fila"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c5000001-0101-4101-8a01-000000000101",
+                    "leftValue": "={{ $json.cantidad }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ninguna"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c5000001-0102-4102-8a02-000000000102",
+                    "leftValue": "={{ $json.cantidad }}",
+                    "rightValue": 1,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "una"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "varias"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1620,
+        200
+      ],
+      "id": "c5000001-0100-4100-8a00-000000000100",
+      "name": "Cuántas encontró"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Entender el pedido').item.json.chat_id }}",
+        "text": "=No encontré {{ $('Entender el pedido').item.json.pedido }} en InfoLeg.\n\nOjo: la base arranca en 1997. Si la norma es anterior, puede estar sin cargar.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1860,
+        40
+      ],
+      "id": "c5000001-0110-4110-8a10-000000000110",
+      "name": "No la encontré"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url_ficha }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1860,
+        200
+      ],
+      "id": "c5000001-0120-4120-8a20-000000000120",
+      "name": "Traer la ficha"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "data",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "encabezado",
+              "cssSelector": "#Textos_Completos p strong"
+            },
+            {
+              "key": "sancion",
+              "cssSelector": "span.vr_azul11"
+            },
+            {
+              "key": "titulo_ficha",
+              "cssSelector": "span.destacado"
+            },
+            {
+              "key": "rubro",
+              "cssSelector": "#Textos_Completos h1"
+            },
+            {
+              "key": "texto_completo",
+              "cssSelector": "a:contains('Texto completo')",
+              "returnValue": "attribute",
+              "attribute": "href"
+            },
+            {
+              "key": "vinculos",
+              "cssSelector": "a[href*='verVinculos']",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {
+          "trimValues": true
+        }
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        2080,
+        200
+      ],
       "id": "c5000001-0130-4130-8a30-000000000130",
-      "name": "Recortar el extracto"
+      "name": "Extraer la ficha"
     },
     {
       "parameters": {
@@ -343,69 +480,297 @@
       },
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.1,
-      "position": [1700, 60],
+      "position": [
+        2300,
+        260
+      ],
       "id": "c5000001-0140-4140-8a40-000000000140",
-      "name": "Ficha + texto"
+      "name": "Fila + ficha"
     },
     {
       "parameters": {
-        "chatId": "={{ $json.chat_id }}",
-        "text": "={{ $json.cita }}\n\n{{ $json.titulo }}\n\nSancionada: {{ $json.sancion }}\nPublicada: {{ $json.publicacion }}\n\n{{ $json.extracto }}\n\nTexto completo en InfoLeg:\n{{ $json.url_ficha }}",
+        "chatId": "={{ $('Entender el pedido').item.json.chat_id }}",
+        "text": "={{ $json.etiqueta }} — B.O. {{ $json.publicacion }}\n\n{{ $json.titulo }}\n{{ $json.rubro }}\n\nSancionada: {{ $json.sancion }}\n{{ [].concat($json.vinculos).join('\\n') }}\n\nFicha completa:\n{{ $json.url_ficha }}\n\nTexto completo:\nhttps://servicios.infoleg.gob.ar/infolegInternet/{{ $json.texto_completo }}",
         "additionalFields": {
           "appendAttribution": false
         }
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1920, 60],
+      "position": [
+        2520,
+        260
+      ],
       "id": "c5000001-0150-4150-8a50-000000000150",
       "name": "Responder al chat"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5000001-0161-4161-8a61-000000000161",
+              "name": "linea",
+              "value": "=• {{ $json.etiqueta }} (B.O. {{ $json.publicacion }}) — {{ $json.titulo }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1860,
+        420
+      ],
+      "id": "c5000001-0160-4160-8a60-000000000160",
+      "name": "Una línea por opción"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "concatenate",
+              "field": "linea",
+              "separateBy": "other",
+              "customSeparator": "\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        2080,
+        420
+      ],
+      "id": "c5000001-0170-4170-8a70-000000000170",
+      "name": "Juntar las opciones"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Entender el pedido').item.json.chat_id }}",
+        "text": "=Encontré más de una norma con ese número:\n\n{{ $json.concatenated_linea }}\n\nDecime cuál te sirve y te paso la ficha.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2300,
+        420
+      ],
+      "id": "c5000001-0180-4180-8a80-000000000180",
+      "name": "Preguntar cuál"
     }
   ],
   "connections": {
-    "Llega el pedido": { "main": [[{ "node": "Entender el pedido", "type": "main", "index": 0 }]] },
-    "Entender el pedido": { "main": [[{ "node": "¿Entendí qué norma es?", "type": "main", "index": 0 }]] },
+    "Llega el pedido": {
+      "main": [
+        [
+          {
+            "node": "Entender el pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entender el pedido": {
+      "main": [
+        [
+          {
+            "node": "¿Entendí qué norma es?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "¿Entendí qué norma es?": {
       "main": [
-        [{ "node": "Buscar en InfoLeg", "type": "main", "index": 0 }],
-        [{ "node": "Pedir tipo y número", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Golpear la puerta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pedir tipo y número",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Buscar en InfoLeg": {
-      "main": [[
-        { "node": "Cómo se cita", "type": "main", "index": 0 },
-        { "node": "Calcular la carpeta", "type": "main", "index": 0 }
-      ]]
-    },
-    "Cómo se cita": {
+    "Golpear la puerta": {
       "main": [
-        [{ "node": "Cita de ley", "type": "main", "index": 0 }],
-        [{ "node": "Cita de decreto", "type": "main", "index": 0 }],
-        [{ "node": "Cita genérica", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Quedarse con la llave",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Cita de ley": { "main": [[{ "node": "Ficha + texto", "type": "main", "index": 0 }]] },
-    "Cita de decreto": { "main": [[{ "node": "Ficha + texto", "type": "main", "index": 0 }]] },
-    "Cita genérica": { "main": [[{ "node": "Ficha + texto", "type": "main", "index": 0 }]] },
-    "Calcular la carpeta": { "main": [[{ "node": "Traer el texto", "type": "main", "index": 0 }]] },
-    "Traer el texto": { "main": [[{ "node": "Extraer del HTML", "type": "main", "index": 0 }]] },
-    "Extraer del HTML": { "main": [[{ "node": "Recortar el extracto", "type": "main", "index": 0 }]] },
-    "Recortar el extracto": { "main": [[{ "node": "Ficha + texto", "type": "main", "index": 1 }]] },
-    "Ficha + texto": { "main": [[{ "node": "Responder al chat", "type": "main", "index": 0 }]] }
+    "Quedarse con la llave": {
+      "main": [
+        [
+          {
+            "node": "Buscar la norma",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar la norma": {
+      "main": [
+        [
+          {
+            "node": "Leer la tabla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer la tabla": {
+      "main": [
+        [
+          {
+            "node": "Una norma por fila",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Una norma por fila": {
+      "main": [
+        [
+          {
+            "node": "Cuántas encontró",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cuántas encontró": {
+      "main": [
+        [
+          {
+            "node": "No la encontré",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Traer la ficha",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fila + ficha",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Una línea por opción",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traer la ficha": {
+      "main": [
+        [
+          {
+            "node": "Extraer la ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer la ficha": {
+      "main": [
+        [
+          {
+            "node": "Fila + ficha",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Fila + ficha": {
+      "main": [
+        [
+          {
+            "node": "Responder al chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Una línea por opción": {
+      "main": [
+        [
+          {
+            "node": "Juntar las opciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Juntar las opciones": {
+      "main": [
+        [
+          {
+            "node": "Preguntar cuál",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": { "executionOrder": "v1" },
+  "settings": {
+    "executionOrder": "v1"
+  },
   "pinData": {
-    "Buscar en InfoLeg": [
+    "Leer la tabla": [
       {
         "json": {
-          "chat_id": "PEGAR_CHAT_ID",
-          "pedido": "ley 27742",
-          "tipo": "Ley",
-          "numero": "27742",
-          "titulo": "LEY DE BASES Y PUNTOS DE PARTIDA PARA LA LIBERTAD DE LOS ARGENTINOS",
-          "sancion": "2024-06-27",
-          "publicacion": "2024-07-08",
-          "id_infoleg": 401266
+          "cantidad_texto": "Cantidad de Normas Encontradas: 1 en 1 página.",
+          "enlaces": [
+            "/infolegInternet/verNorma.do?id=401266"
+          ],
+          "etiquetas": [
+            "Ley 27742"
+          ],
+          "titulos": [
+            "LEY DE BASES Y PUNTOS DE PARTIDA PARA LA LIBERTAD DE LOS ARGENTINOS"
+          ],
+          "fechas": [
+            "08-jul-2024"
+          ]
         }
       }
     ]
