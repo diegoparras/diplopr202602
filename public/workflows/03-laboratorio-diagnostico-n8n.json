@@ -1,0 +1,30 @@
+{
+  "name": "Clase 03 - Laboratorio de diagnóstico",
+  "nodes": [
+    { "parameters": {}, "id": "manual-trigger", "name": "Iniciar prueba", "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [0, 0] },
+    { "parameters": { "assignments": { "assignments": [
+      { "id": "pedido", "name": "pedido", "value": "P-103", "type": "string" },
+      { "id": "cliente", "name": "cliente", "value": "Caso de prueba", "type": "string" },
+      { "id": "monto", "name": "monto", "value": 75000, "type": "number" },
+      { "id": "pago", "name": "pago", "value": "Transferencia", "type": "string" }
+    ]}, "options": {} }, "id": "preparar-pedido", "name": "Preparar pedido", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [240, 0] },
+    { "parameters": { "conditions": { "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 }, "conditions": [
+      { "id": "monto-alto", "leftValue": "={{ $json.monto }}", "rightValue": 50000, "operator": { "type": "number", "operation": "gt" } }
+    ], "combinator": "and" }, "options": {} }, "id": "evaluar-monto", "name": "¿Pedido alto?", "type": "n8n-nodes-base.if", "typeVersion": 2.2, "position": [480, 0] },
+    { "parameters": { "assignments": { "assignments": [{ "id": "resultado-alto", "name": "resultado", "value": "Revisar antes de despachar", "type": "string" }]}, "options": {} }, "id": "pedido-alto", "name": "Pedido alto", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [720, -100] },
+    { "parameters": { "assignments": { "assignments": [{ "id": "resultado-normal", "name": "resultado", "value": "Seguir circuito normal", "type": "string" }]}, "options": {} }, "id": "pedido-normal", "name": "Pedido normal", "type": "n8n-nodes-base.set", "typeVersion": 3.4, "position": [720, 100] },
+    { "parameters": { "content": "## Clase 03 · laboratorio\n1. Ejecutá el flujo.\n2. Inspeccioná entrada y salida.\n3. Cambiá monto a 25000 y repetí.\n4. Cambiá monto a texto para provocar un error de tipo.\n5. Practicá el pedido de ayuda sin compartir secretos.", "height": 230, "width": 360 }, "id": "consigna", "name": "Consigna", "type": "n8n-nodes-base.stickyNote", "typeVersion": 1, "position": [0, -330] }
+  ],
+  "pinData": {},
+  "connections": {
+    "Iniciar prueba": { "main": [[{ "node": "Preparar pedido", "type": "main", "index": 0 }]] },
+    "Preparar pedido": { "main": [[{ "node": "¿Pedido alto?", "type": "main", "index": 0 }]] },
+    "¿Pedido alto?": { "main": [[{ "node": "Pedido alto", "type": "main", "index": 0 }],[{ "node": "Pedido normal", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "c03b0000-0000-4000-8000-000000000003",
+  "meta": { "templateCredsSetupCompleted": true },
+  "tags": []
+}
+
