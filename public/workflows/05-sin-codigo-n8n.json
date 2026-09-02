@@ -1,0 +1,129 @@
+{
+  "name": "Caso 05 bis · La deuda de la clase 4: juntar sin código",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## La deuda de la clase 4\n\nEl resumen para Valentina se armaba con la única línea de código\nde aquella clase, escondida adentro del texto del mensaje:\n\n```\n{{ $json.pedidos.map(p => '- ' + p.Cliente + ': $' + p.Monto).join('\\n') }}\n```\n\nFuncionaba. Y la clase 4 dejó dicho que se podía sin escribir\ncódigo. Acá está: **dos nodos.**\n\n**Edit Fields** arma una línea por ítem — uno entra, uno sale.\n**Summarize** las pega todas en un solo texto — muchos entran,\nuno sale.\n\nEsa es la regla de los ocho nodos: el Code es el octavo porque\nes el último, no porque sea el peor. Se usa cuando hay una\ncuenta que ningún nodo sabe hacer, como calcular la carpeta del\nanexo de InfoLeg en el caso de hoy.\n\nEl nombre del campo que genera Summarize se lee en el panel de\nsalida: `concatenated_linea`.",
+        "height": 560,
+        "width": 460,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-560, -60],
+      "id": "c5000002-0001-4001-8b01-000000000001",
+      "name": "La deuda"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-60, 120],
+      "id": "c5000002-0010-4010-8b10-000000000010",
+      "name": "Iniciar a mano"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5000002-0021-4021-8b21-000000000021",
+              "name": "Cliente",
+              "value": "={{ $json.Cliente }}",
+              "type": "string"
+            },
+            {
+              "id": "c5000002-0022-4022-8b22-000000000022",
+              "name": "Monto",
+              "value": "={{ $json.Monto }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [160, 120],
+      "id": "c5000002-0020-4020-8b20-000000000020",
+      "name": "Los apartados"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5000002-0031-4031-8b31-000000000031",
+              "name": "linea",
+              "value": "=- {{ $json.Cliente }}: ${{ $json.Monto }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [380, 120],
+      "id": "c5000002-0030-4030-8b30-000000000030",
+      "name": "Armar la línea"
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "concatenate",
+              "field": "linea",
+              "separateBy": "other",
+              "customSeparator": "\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [600, 120],
+      "id": "c5000002-0040-4040-8b40-000000000040",
+      "name": "Juntar sin código"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5000002-0051-4051-8b51-000000000051",
+              "name": "mensaje",
+              "value": "=PEDIDOS PARA REVISAR\n\nSon altos y pagados por transferencia. Confirmá el ingreso antes de despachar:\n\n{{ $json.concatenated_linea }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [820, 120],
+      "id": "c5000002-0050-4050-8b50-000000000050",
+      "name": "Mensaje listo"
+    }
+  ],
+  "connections": {
+    "Iniciar a mano": { "main": [[{ "node": "Los apartados", "type": "main", "index": 0 }]] },
+    "Los apartados": { "main": [[{ "node": "Armar la línea", "type": "main", "index": 0 }]] },
+    "Armar la línea": { "main": [[{ "node": "Juntar sin código", "type": "main", "index": 0 }]] },
+    "Juntar sin código": { "main": [[{ "node": "Mensaje listo", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {
+    "Los apartados": [
+      { "json": { "Cliente": "Nahuel Ortiz", "Monto": "67000" } },
+      { "json": { "Cliente": "Carla Benítez", "Monto": "84000" } },
+      { "json": { "Cliente": "Sofía Ramírez", "Monto": "91500" } }
+    ]
+  }
+}

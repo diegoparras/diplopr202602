@@ -1,0 +1,413 @@
+{
+  "name": "Caso 05 · El bot que lee InfoLeg",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Caso 05 — El bot que lee InfoLeg\n\nEn el estudio, cada vez que sale una norma alguien entra a InfoLeg,\nbusca, copia el link y lo pega en el grupo. La mitad de las veces\npega mal el número.\n\nInfoLeg no tiene API ni RSS. Tiene HTML.\n\n**El algoritmo, antes de los nodos:**\n```\nCUANDO llega un mensaje al bot:\n    leer { texto, chat }\n    entender qué pidió: tipo de norma y número\n\n    SI no se entiende qué norma es:\n        responder \"decime tipo y número: ley 27742\"\n        FIN\n\n    buscar la norma y quedarse con su id de InfoLeg\n\n    con el id, calcular la carpeta del anexo y pedir el texto\n    extraer el título y el arranque del articulado\n\n    SEGÚN tipo:\n        ley:      citar \"Ley 27.742 (B.O. 08/07/2024)\"\n        decreto:  citar \"Decreto 70/2023\"\n        otro:     citar tal como vino\n\n    juntar la ficha con el texto en una sola respuesta\n    responder por el mismo chat, con el link a InfoLeg\nFIN\n```\n\n**Los ocho:** Trigger, HTTP Request (dos veces), IF, Switch,\nMerge, Edit Fields, Code y un nodo de app. El HTML es el noveno,\ny aparece por una sola razón: la web no devuelve JSON.",
+        "height": 900,
+        "width": 540,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-1240, -140],
+      "id": "c5000001-0001-4001-8a01-000000000001",
+      "name": "Consigna"
+    },
+    {
+      "parameters": {
+        "content": "## Puesta a punto\n\n**1 · El bot.** Hablale a @BotFather en Telegram, `/newbot`,\nguardá el token en una credencial de n8n. El chat responde solo\ndespués de que vos le escribas primero al bot.\n\n**2 · La URL del buscador.** El nodo \"Buscar en InfoLeg\" viene\ncon una URL de ejemplo. La real se saca en dos minutos: abrí\nel buscador de InfoLeg, hacé la búsqueda a mano y copiá la URL\nde la barra de direcciones. Si la búsqueda va por POST, abrí\nF12 → Red, botón derecho sobre el pedido → copiar como cURL, y\npegalo en n8n con \"Import cURL\". Esa es la técnica; la URL\ncambia cuando el sitio cambia.\n\n**3 · Mientras tanto, datos fijados.** El nodo del buscador\ntiene pin data con la Ley 27.742 ya resuelta (id 401266). El\nflujo corre entero sin internet: podés probar los ocho nodos\naunque InfoLeg esté caído. Al soltar el pin, sale a la web.\n\n**4 · Los selectores.** El nodo HTML extrae `title` y `body`\nporque son los dos que existen en cualquier página. Los\nselectores finos se sacan en clase con el inspector, y son lo\nprimero que se rompe cuando InfoLeg toca su plantilla.\n\n**5 · Modales.** Ritmo bajo, un pedido por vez, y nunca\nrepublicar el texto completo: se manda el extracto y el link\nal original.",
+        "height": 720,
+        "width": 480,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-660, -140],
+      "id": "c5000001-0002-4002-8a02-000000000002",
+      "name": "Puesta a punto"
+    },
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [-120, 200],
+      "id": "c5000001-0010-4010-8a10-000000000010",
+      "name": "Llega el pedido",
+      "webhookId": "c5000001-aaaa-4aaa-8aaa-000000000010"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5000001-0021-4021-8a21-000000000021",
+              "name": "chat_id",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "c5000001-0022-4022-8a22-000000000022",
+              "name": "pedido",
+              "value": "={{ $json.message.text.trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "c5000001-0023-4023-8a23-000000000023",
+              "name": "tipo",
+              "value": "={{ $json.message.text.toLowerCase().includes('decreto') ? 'Decreto' : ($json.message.text.toLowerCase().includes('ley') ? 'Ley' : 'Otro') }}",
+              "type": "string"
+            },
+            {
+              "id": "c5000001-0024-4024-8a24-000000000024",
+              "name": "numero",
+              "value": "={{ $json.message.text.replace(/\\D/g, '') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [100, 200],
+      "id": "c5000001-0020-4020-8a20-000000000020",
+      "name": "Entender el pedido"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c5000001-0031-4031-8a31-000000000031",
+              "leftValue": "={{ $json.numero }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c5000001-0032-4032-8a32-000000000032",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "Otro",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [320, 200],
+      "id": "c5000001-0030-4030-8a30-000000000030",
+      "name": "¿Entendí qué norma es?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=No te entendí. Decime tipo y número, por ejemplo:\n\n  ley 27742\n  decreto 70/2023",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [560, 380],
+      "id": "c5000001-0040-4040-8a40-000000000040",
+      "name": "Pedir tipo y número"
+    },
+    {
+      "parameters": {
+        "url": "https://servicios.infoleg.gob.ar/infolegInternet/buscarNormas.do",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "tipo", "value": "={{ $json.tipo }}" },
+            { "name": "nro", "value": "={{ $json.numero }}" }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [560, 100],
+      "id": "c5000001-0050-4050-8a50-000000000050",
+      "name": "Buscar en InfoLeg"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
+                "conditions": [
+                  {
+                    "id": "c5000001-0061-4061-8a61-000000000061",
+                    "leftValue": "={{ $json.tipo }}",
+                    "rightValue": "Ley",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ley"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
+                "conditions": [
+                  {
+                    "id": "c5000001-0062-4062-8a62-000000000062",
+                    "leftValue": "={{ $json.tipo }}",
+                    "rightValue": "Decreto",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "decreto"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "otra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [800, -60],
+      "id": "c5000001-0060-4060-8a60-000000000060",
+      "name": "Cómo se cita"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5000001-0071-4071-8a71-000000000071",
+              "name": "cita",
+              "value": "=Ley {{ Number($json.numero).toLocaleString('es-AR') }} (B.O. {{ $json.publicacion }})",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1040, -180],
+      "id": "c5000001-0070-4070-8a70-000000000070",
+      "name": "Cita de ley"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5000001-0081-4081-8a81-000000000081",
+              "name": "cita",
+              "value": "=Decreto {{ $json.numero }}/{{ $json.publicacion.slice(0, 4) }} (B.O. {{ $json.publicacion }})",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1040, -60],
+      "id": "c5000001-0080-4080-8a80-000000000080",
+      "name": "Cita de decreto"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5000001-0091-4091-8a91-000000000091",
+              "name": "cita",
+              "value": "={{ $json.tipo }} {{ $json.numero }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1040, 60],
+      "id": "c5000001-0090-4090-8a90-000000000090",
+      "name": "Cita genérica"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El único lugar de la clase donde hace falta código, y se ve por qué:\n// InfoLeg guarda el texto de cada norma adentro de una carpeta que agrupa\n// de a cinco mil ids. La 27.742 tiene id 401266, así que su carpeta es\n// 400000-404999. Eso no es un dato que venga en la respuesta: es una cuenta.\n\nconst salida = [];\n\nfor (const item of $input.all()) {\n  const id = Number(item.json.id_infoleg);\n  const desde = Math.floor(id / 5000) * 5000;\n  const hasta = desde + 4999;\n\n  salida.push({\n    json: {\n      ...item.json,\n      carpeta: `${desde}-${hasta}`,\n      url_ficha: `https://servicios.infoleg.gob.ar/infolegInternet/verNorma.do?id=${id}`,\n      url_texto: `https://servicios.infoleg.gob.ar/infolegInternet/anexos/${desde}-${hasta}/${id}/norma.htm`\n    }\n  });\n}\n\nreturn salida;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 240],
+      "id": "c5000001-0100-4100-8a00-000000000100",
+      "name": "Calcular la carpeta"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url_texto }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1040, 240],
+      "id": "c5000001-0110-4110-8a10-000000000110",
+      "name": "Traer el texto"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "titulo_pagina",
+              "cssSelector": "title"
+            },
+            {
+              "key": "cuerpo",
+              "cssSelector": "body"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [1260, 240],
+      "id": "c5000001-0120-4120-8a20-000000000120",
+      "name": "Extraer del HTML"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5000001-0131-4131-8a31-000000000131",
+              "name": "extracto",
+              "value": "={{ $json.cuerpo.replace(/\\s+/g, ' ').trim().slice(0, 600) }}…",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1480, 240],
+      "id": "c5000001-0130-4130-8a30-000000000130",
+      "name": "Recortar el extracto"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [1700, 60],
+      "id": "c5000001-0140-4140-8a40-000000000140",
+      "name": "Ficha + texto"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.cita }}\n\n{{ $json.titulo }}\n\nSancionada: {{ $json.sancion }}\nPublicada: {{ $json.publicacion }}\n\n{{ $json.extracto }}\n\nTexto completo en InfoLeg:\n{{ $json.url_ficha }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1920, 60],
+      "id": "c5000001-0150-4150-8a50-000000000150",
+      "name": "Responder al chat"
+    }
+  ],
+  "connections": {
+    "Llega el pedido": { "main": [[{ "node": "Entender el pedido", "type": "main", "index": 0 }]] },
+    "Entender el pedido": { "main": [[{ "node": "¿Entendí qué norma es?", "type": "main", "index": 0 }]] },
+    "¿Entendí qué norma es?": {
+      "main": [
+        [{ "node": "Buscar en InfoLeg", "type": "main", "index": 0 }],
+        [{ "node": "Pedir tipo y número", "type": "main", "index": 0 }]
+      ]
+    },
+    "Buscar en InfoLeg": {
+      "main": [[
+        { "node": "Cómo se cita", "type": "main", "index": 0 },
+        { "node": "Calcular la carpeta", "type": "main", "index": 0 }
+      ]]
+    },
+    "Cómo se cita": {
+      "main": [
+        [{ "node": "Cita de ley", "type": "main", "index": 0 }],
+        [{ "node": "Cita de decreto", "type": "main", "index": 0 }],
+        [{ "node": "Cita genérica", "type": "main", "index": 0 }]
+      ]
+    },
+    "Cita de ley": { "main": [[{ "node": "Ficha + texto", "type": "main", "index": 0 }]] },
+    "Cita de decreto": { "main": [[{ "node": "Ficha + texto", "type": "main", "index": 0 }]] },
+    "Cita genérica": { "main": [[{ "node": "Ficha + texto", "type": "main", "index": 0 }]] },
+    "Calcular la carpeta": { "main": [[{ "node": "Traer el texto", "type": "main", "index": 0 }]] },
+    "Traer el texto": { "main": [[{ "node": "Extraer del HTML", "type": "main", "index": 0 }]] },
+    "Extraer del HTML": { "main": [[{ "node": "Recortar el extracto", "type": "main", "index": 0 }]] },
+    "Recortar el extracto": { "main": [[{ "node": "Ficha + texto", "type": "main", "index": 1 }]] },
+    "Ficha + texto": { "main": [[{ "node": "Responder al chat", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {
+    "Buscar en InfoLeg": [
+      {
+        "json": {
+          "chat_id": "PEGAR_CHAT_ID",
+          "pedido": "ley 27742",
+          "tipo": "Ley",
+          "numero": "27742",
+          "titulo": "LEY DE BASES Y PUNTOS DE PARTIDA PARA LA LIBERTAD DE LOS ARGENTINOS",
+          "sancion": "2024-06-27",
+          "publicacion": "2024-07-08",
+          "id_infoleg": 401266
+        }
+      }
+    ]
+  }
+}
