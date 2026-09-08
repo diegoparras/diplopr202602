@@ -1,0 +1,102 @@
+{
+  "name": "Caso 06 · Avisar si algo falla",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## El flujo que avisa\n\nSe escribe una vez y sirve para los veinte workflows que armes\ndespues. No se dispara solo: se lo asignas a cada workflow en\nSettings -> Error workflow.\n\n**Que hace.** Cuando cualquier flujo que lo tenga asignado falla,\neste arranca y manda un mensaje directo al dueno del proceso con\nlas cuatro cosas que hacen falta para entender que paso:\n\n  - que flujo fue, por su nombre\n  - en que nodo se corto\n  - el mensaje de error tal como vino\n  - el link a esa ejecucion, para abrirla y ver los datos\n\n**Lo que NO hace.** No arregla nada ni reintenta: eso se decide\nnodo por nodo en el flujo que falla. Este solo se encarga de que\nuna persona se entere el martes a la manana y no el viernes,\ncuando alguien pregunta por que no llego nada.\n\n**Ojo con el destinatario.** Va al dueno del proceso, no al grupo\nde la cursada ni a un canal general. Un aviso que le llega a\ntodos no le llega a nadie.",
+        "height": 620,
+        "width": 460,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -60
+      ],
+      "id": "c6000002-0001-4001-8d01-000000000001",
+      "name": "Para qué sirve"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        120
+      ],
+      "id": "c6000002-0010-4010-8d10-000000000010",
+      "name": "Cuando otro flujo falla"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c6000002-0021-4021-8d21-000000000021",
+              "name": "aviso",
+              "value": "=⚠️ Falló «{{ $json.workflow.name }}»\n\nNodo: {{ $json.execution.lastNodeExecuted }}\nError: {{ $json.execution.error.message }}\nCuándo: {{ $json.execution.error.timestamp || $now }}\n\nVer la ejecución:\n{{ $json.execution.url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        180,
+        120
+      ],
+      "id": "c6000002-0020-4020-8d20-000000000020",
+      "name": "Armar el aviso"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DEL_DUENO",
+        "text": "={{ $json.aviso }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        120
+      ],
+      "id": "c6000002-0030-4030-8d30-000000000030",
+      "name": "Avisar al dueño",
+      "retryOnFail": false
+    }
+  ],
+  "connections": {
+    "Cuando otro flujo falla": {
+      "main": [
+        [
+          {
+            "node": "Armar el aviso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar el aviso": {
+      "main": [
+        [
+          {
+            "node": "Avisar al dueño",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

@@ -105,10 +105,12 @@ Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 5. La 5 dejó abiertas dos cosas que la 6 tiene
-que cerrar: qué pasa cuando el sitio que consulta el flujo no responde, y cuánto
-cuesta tenerlo prendido cuando en vez de una consulta son doscientas. El caso de
-la 5 (un bot que lee InfoLeg) sirve de material para las dos.
+Estado: publicadas las clases 1 a 6, con lo que cierra el módulo 2. La 6 dejó dos
+cosas anotadas para más adelante: el bot pregunta «¿cuál de las dos?» y no tiene
+memoria entre ejecuciones, que se resuelve con Data Tables en la 9 y con memoria
+de agente en la 10. Y cambia la regla para el módulo 3: la clase 7 arranca con un
+proceso que trae cada participante, no con un caso de cátedra. La actividad de la
+6 es ese material.
 
 ## Despliegue
 

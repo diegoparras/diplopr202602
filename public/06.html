@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 6 · Ramas, bucles, errores y el costo de cada ejecución · FCE-UBA</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  /* Las mismas tres variables que vienen definiendo las clases 2 a 5. */
+  :root { --acierto: #22C55E; --fallo: #F87171; --alerta: #EAB308; }
+  :root[data-tema="claro"] { --acierto: #15803D; --fallo: #B4231A; --alerta: #A16207; }
+
+  section.bloque { padding: 96px 0; border-top: 1px solid var(--linea); }
+  section.bloque:first-of-type { border-top: 0; }
+  .bloque h2 { max-width: 20ch; margin: 18px 0 22px; }
+  .bloque .intro { max-width: 62ch; font-size: 1.05rem; }
+
+  .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 54px; align-items: start; }
+  .tres-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+  @media (max-width: 900px) {
+    .dos-col, .tres-col { grid-template-columns: 1fr; gap: 26px; }
+    section.bloque { padding: 68px 0; }
+  }
+
+  .portada { padding: 54px 0 20px; }
+  .portada h1 { max-width: 18ch; margin: 20px 0 24px; }
+  .portada .meta {
+    display: flex; gap: 28px; flex-wrap: wrap;
+    font-family: var(--dato); font-size: 0.75rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue);
+    margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--linea);
+  }
+  @media (max-width: 720px) { .portada { padding: 40px 26px 18px; } }
+
+  .ficha { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 24px 22px; box-shadow: var(--sombra); }
+  .ficha h3 { font-size: 1.12rem; margin-bottom: 8px; }
+  .ficha p { font-size: 0.9rem; }
+  .ficha .marca-capa {
+    font-family: var(--dato); font-size: 0.66rem;
+    letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja);
+    display: block; margin-bottom: 8px;
+  }
+  .ficha ul { margin: 12px 0 0 18px; }
+  .ficha li { font-size: 0.88rem; color: var(--tenue); margin-bottom: 6px; }
+
+  .cita {
+    border-left: 2px solid var(--naranja);
+    padding: 8px 0 8px 24px; margin-top: 30px;
+    font-family: var(--display); font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+    font-weight: 600; letter-spacing: -0.02em; line-height: 1.35; color: var(--texto);
+    max-width: 48ch;
+  }
+
+  code, .mono { font-family: var(--dato); font-size: 0.85em; color: var(--naranja); }
+
+  .caso {
+    background: var(--sup); border: 1px solid var(--linea); border-left: 2px solid var(--naranja);
+    border-radius: 16px; padding: 26px; margin-top: 18px; box-shadow: var(--sombra);
+  }
+  .caso .n {
+    font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--naranja);
+  }
+  .caso h3 { margin: 6px 0 10px; }
+  .caso pre {
+    font-family: var(--dato); font-size: 0.78rem; line-height: 1.75;
+    background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px 20px; margin: 16px 0; color: var(--texto);
+    white-space: pre; overflow-x: auto;
+  }
+  .caso .acciones { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+
+  .nota-pie { margin-top: 14px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); line-height: 1.7; }
+
+  /* ── Lo que quedó prendido de la clase 5 ── */
+  .pendiente { display: grid; gap: 12px; margin-top: 30px; }
+  .pendiente-item {
+    background: var(--sup); border: 1px solid var(--linea);
+    border-left: 2px solid var(--alerta); border-radius: 14px;
+    padding: 20px 22px; box-shadow: var(--sombra);
+  }
+  .pendiente-item b { font-family: var(--display); font-size: 1.02rem; color: var(--texto); display: block; margin-bottom: 6px; }
+  .pendiente-item p { font-size: 0.92rem; }
+  .pendiente-item .donde {
+    display: block; margin-top: 10px;
+    font-family: var(--dato); font-size: 0.68rem;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--naranja);
+  }
+
+  /* ── Contador: qué cuenta como ejecución ── */
+  .cuenta-rejilla { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 30px; }
+  @media (max-width: 760px) { .cuenta-rejilla { grid-template-columns: 1fr; } }
+  .cuenta-tarjeta {
+    display: flex; gap: 14px; align-items: flex-start; text-align: left; width: 100%;
+    background: var(--sup); border: 1px solid var(--linea); border-radius: 14px;
+    padding: 18px 20px; box-shadow: var(--sombra);
+    cursor: pointer; color: var(--texto); font-family: var(--cuerpo);
+    transition: border-color 0.15s ease;
+  }
+  .cuenta-tarjeta:hover { border-color: var(--naranja); }
+  .cuenta-tarjeta .sello {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--dato); font-size: 0.95rem; font-weight: 500;
+    border: 1px solid var(--linea);
+  }
+  .cuenta-tarjeta b { display: block; font-size: 0.97rem; margin-bottom: 4px; }
+  .cuenta-tarjeta p { font-size: 0.87rem; }
+  .cuenta-tarjeta .porque {
+    display: none; margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid var(--linea); font-size: 0.85rem; color: var(--texto);
+  }
+  .cuenta-tarjeta.abierta .porque { display: block; }
+  .cuenta-tarjeta .pista {
+    display: block; margin-top: 8px; font-family: var(--dato);
+    font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue);
+  }
+
+  /* ── La calculadora ── */
+  .calc {
+    margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    background: var(--sup); border: 1px solid var(--linea);
+    border-radius: 18px; overflow: hidden; box-shadow: var(--sombra);
+  }
+  @media (max-width: 900px) { .calc { grid-template-columns: 1fr; } }
+  .calc-mandos { padding: 26px 24px; }
+  .calc-panel { padding: 26px 24px; border-left: 1px solid var(--linea); background: var(--sup2); }
+  @media (max-width: 900px) { .calc-panel { border-left: 0; border-top: 1px solid var(--linea); } }
+  .mando { margin-bottom: 22px; }
+  .mando label {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+    font-size: 0.9rem; margin-bottom: 8px;
+  }
+  .mando label b { font-family: var(--dato); font-size: 1rem; color: var(--naranja); font-weight: 500; }
+  .mando input[type="range"] { width: 100%; accent-color: var(--naranja); }
+  .mando input[type="number"] {
+    width: 110px; padding: 8px 11px; background: var(--fondo);
+    border: 1px solid var(--linea); border-radius: 10px; color: var(--texto);
+    font-family: var(--dato); font-size: 0.9rem;
+  }
+  .mando input[type="number"]:focus { outline: none; border-color: var(--naranja); }
+  .mando small { display: block; margin-top: 6px; font-size: 0.8rem; color: var(--tenue); }
+
+  .marcador-grande {
+    font-family: var(--display); font-weight: 800; letter-spacing: -0.03em;
+    font-size: clamp(2.4rem, 6vw, 3.4rem); line-height: 1; color: var(--texto);
+  }
+  .marcador-pie { font-family: var(--dato); font-size: 0.75rem; color: var(--tenue); margin-top: 6px; }
+  .riel {
+    height: 26px; background: var(--fondo); border: 1px solid var(--linea);
+    border-radius: 8px; overflow: hidden; position: relative; margin: 20px 0 8px;
+  }
+  .riel-lleno { height: 100%; transition: width 0.25s ease, background 0.25s ease; }
+  .veredicto {
+    margin-top: 18px; padding: 15px 17px; border-radius: 13px;
+    background: var(--fondo); border: 1px solid var(--linea);
+    font-size: 0.92rem; color: var(--texto);
+  }
+  .veredicto b { color: var(--naranja); }
+  .memoria-5 {
+    margin-top: 16px; padding: 14px 16px; border-radius: 12px;
+    background: var(--brasa); border: 1px solid var(--linea); font-size: 0.88rem;
+  }
+  .memoria-5 span {
+    display: block; font-family: var(--dato); font-size: 0.66rem;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--naranja); margin-bottom: 6px;
+  }
+
+  /* ── Las cuatro formas de fallar ── */
+  .fallas { display: grid; gap: 14px; margin-top: 30px; }
+  .falla {
+    display: grid; grid-template-columns: 190px 1fr; gap: 22px;
+    background: var(--sup); border: 1px solid var(--linea); border-radius: 16px;
+    padding: 22px 24px; box-shadow: var(--sombra);
+  }
+  @media (max-width: 760px) { .falla { grid-template-columns: 1fr; gap: 10px; } }
+  .falla .cara { }
+  .falla .cara b {
+    display: block; font-family: var(--display); font-size: 1.15rem;
+    letter-spacing: -0.02em; margin-bottom: 4px;
+  }
+  .falla .cara span {
+    font-family: var(--dato); font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--tenue);
+  }
+  .falla p { font-size: 0.92rem; }
+  .falla .queHacer {
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--linea);
+    font-size: 0.88rem; color: var(--texto);
+  }
+  .falla .queHacer b { color: var(--naranja); }
+
+  /* ── ¿Reintentar o no? ── */
+  .reintento { display: grid; gap: 10px; margin-top: 30px; }
+  .accion {
+    display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;
+    padding: 15px 18px; background: var(--sup); border: 1px solid var(--linea);
+    border-radius: 13px; box-shadow: var(--sombra);
+  }
+  @media (max-width: 560px) {
+    .accion { grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+    .accion > span:first-child { grid-column: 1 / -1; }
+  }
+  .accion button {
+    padding: 7px 15px; border-radius: 999px; border: 1px solid var(--linea);
+    background: transparent; color: var(--tenue); cursor: pointer;
+    font-family: var(--dato); font-size: 0.72rem; transition: all 0.15s ease;
+  }
+  .accion button:hover { color: var(--texto); border-color: var(--naranja); }
+  .accion.ok button.elegida { background: var(--acierto); border-color: var(--acierto); color: var(--sobre-naranja); }
+  .accion.mal button.elegida { background: var(--fallo); border-color: var(--fallo); color: var(--sobre-naranja); }
+  .accion .razon {
+    grid-column: 1 / -1; font-size: 0.86rem; color: var(--tenue);
+    padding-top: 4px; display: none;
+  }
+  .accion.resuelta .razon { display: block; }
+  .marcador { font-family: var(--dato); font-size: 0.78rem; color: var(--tenue); margin-top: 16px; }
+
+  /* ── El aviso ── */
+  .aviso-flujo {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    margin-top: 26px; padding: 22px; background: var(--sup);
+    border: 1px solid var(--linea); border-radius: 16px; box-shadow: var(--sombra);
+  }
+  .aviso-caja {
+    flex: 1 1 180px; min-width: 0; padding: 14px 16px;
+    background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px;
+  }
+  .aviso-caja b { display: block; font-size: 0.95rem; margin-bottom: 3px; }
+  .aviso-caja small { font-family: var(--dato); font-size: 0.7rem; color: var(--tenue); }
+  .aviso-flecha { font-family: var(--dato); color: var(--naranja); flex-shrink: 0; }
+
+  /* ── Actividad ── */
+  .actividad { background: var(--sup); border-radius: 20px; padding: 34px; border: 1px solid var(--linea); box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .actividad { padding: 22px; } }
+  .pregunta { margin-top: 24px; }
+  .pregunta label { display: block; margin-bottom: 8px; }
+  .pregunta label b {
+    font-family: var(--display); font-size: 1.08rem; font-weight: 600;
+    color: var(--naranja); display: block;
+  }
+  .pregunta label span { font-size: 0.88rem; color: var(--tenue); }
+  .pregunta textarea {
+    width: 100%; min-height: 84px; resize: vertical;
+    padding: 13px 15px; background: var(--fondo);
+    border: 1px solid var(--linea); border-radius: 12px;
+    color: var(--texto); font-family: var(--cuerpo); font-size: 0.95rem; line-height: 1.55;
+  }
+  .pregunta textarea:focus { outline: none; border-color: var(--naranja); }
+  .guardado { margin-top: 16px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); }
+
+  .cierre { text-align: center; padding: 90px 0 40px; }
+  .cierre h2 { margin: 0 auto 22px; max-width: 24ch; }
+  .cierre .acciones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+  @media (max-width: 720px) { .cierre { padding: 60px 26px 30px; } }
+
+  .revelar { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .revelar.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-int">
+    <a class="marca" href="cronograma.html"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 32 H30 M38 22 H30 M38 42 H30 M30 22 V42" fill="none" stroke="#FB923C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="32" r="5.5" fill="#F97316"/><circle cx="44" cy="21" r="5" fill="#FDBA74"/><circle cx="44" cy="43" r="5" fill="#FDBA74"/></svg>Diplomatura <span>Procesos</span> · FCE-UBA</a>
+    <nav>
+      <a href="cronograma.html">Cronograma</a>
+      <span data-selector-clases><a href="cronograma.html">Clases</a></span>
+      <a href="#" id="salir">Salir</a>
+      <button class="tema" type="button" title="Cambiar tema">
+        <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<div class="envoltura portada">
+  <span class="rotulo">Clase 06 · Módulo 2 · Anatomía de un flujo</span>
+  <h1>Ramas, bucles, errores y el costo de cada ejecución</h1>
+  <p class="intro">El bot de la clase pasada anda. Pero anda los días en que InfoLeg contesta, y nadie sabe todavía cuánto cuesta tenerlo prendido. Hoy cerramos el módulo con las tres preguntas que separan una demo de algo que se puede dejar corriendo: cuántas veces se ejecuta, qué pasa cuando falla y cómo se entera una persona.</p>
+  <div class="meta">
+    <span>9 de septiembre de 2026</span>
+    <span>Miércoles · 18 a 21:30 h</span>
+    <span>FCE — UBA</span>
+  </div>
+</div>
+
+<!-- ─────────── Retomamos ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Retomamos</span>
+    <h2>Tres cosas que dejamos prendidas la clase pasada</h2>
+    <p class="intro">No son mejoras opcionales. Son las tres preguntas que alguien va a hacer el día que este flujo deje de ser un ejercicio, y las tres tienen respuesta hoy.</p>
+
+    <div class="pendiente" id="pendientes"></div>
+
+    <div class="cita">Un flujo que anda no está terminado. Está terminado cuando sabés qué hace el día que algo falla.</div>
+  </div>
+</section>
+
+<!-- ─────────── Qué cuenta ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">La unidad de cobro</span>
+    <h2>Se cobra la corrida, no el nodo</h2>
+    <p class="intro">El bot de InfoLeg tiene dieciocho nodos, hace tres pedidos a internet y puede salir por tres ramas distintas. Cada consulta que responde es <b>una</b> ejecución. Esta es la primera cuenta que hay que aprender a hacer, porque cambia cómo se diseña: partir un flujo en dos flujos cuesta el doble; agregarle diez nodos no cuesta nada.</p>
+
+    <p class="intro" style="margin-top:18px">Tocá cada caso y fijate si suma o no suma. Varios sorprenden.</p>
+
+    <div class="cuenta-rejilla" id="cuentaCasos"></div>
+
+    <p class="nota-pie">Reglas de conteo según la documentación de n8n, consultada el 8 de septiembre de 2026: <a href="https://docs.n8n.io/build/understand-workflows/understand-executions/types-of-executions" target="_blank" rel="noopener">Types of executions</a>. Es la clase de dato que cambia sin aviso: antes de tomar una decisión de plata, verificalo en tu propio panel de facturación.</p>
+  </div>
+</section>
+
+<!-- ─────────── La calculadora ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">La cuenta que nadie hace a tiempo</span>
+    <h2>Cuándo te quedás sin mes</h2>
+    <p class="intro">Probar es gratis: las corridas manuales del editor no consumen nada. Producir sí. La diferencia entre un flujo que funciona en la demo y uno que aguanta el mes es esta cuenta, y se hace <em>antes</em> de activarlo.</p>
+
+    <div class="calc">
+      <div class="calc-mandos">
+        <div class="mando">
+          <label for="porDia">Consultas en un día normal <b id="porDiaVal">15</b></label>
+          <input type="range" id="porDia" min="0" max="300" step="1" value="15">
+          <small>Cuántas veces se dispara el flujo un día cualquiera.</small>
+        </div>
+        <div class="mando">
+          <label for="pico">El peor día del mes <b id="picoVal">120</b></label>
+          <input type="range" id="pico" min="0" max="1000" step="5" value="120">
+          <small>El día del vencimiento, el cierre, la fecha límite. Todo proceso tiene uno.</small>
+        </div>
+        <div class="mando">
+          <label for="picos">Cuántos días así hay por mes <b id="picosVal">2</b></label>
+          <input type="range" id="picos" min="0" max="10" step="1" value="2">
+        </div>
+        <div class="mando">
+          <label for="limite">Tu límite mensual</label>
+          <input type="number" id="limite" min="1" max="200000" step="1" value="50">
+          <small>Miralo en tu panel de n8n, no acá: el número que trae por defecto es el del plan gratuito verificado el 12 de agosto de 2026 y puede haber cambiado.</small>
+        </div>
+      </div>
+      <div class="calc-panel">
+        <div class="marcador-grande" id="totalMes">570</div>
+        <div class="marcador-pie" id="totalPie">ejecuciones por mes</div>
+        <div class="riel"><div class="riel-lleno" id="rielLleno"></div></div>
+        <div class="marcador-pie" id="rielPie"></div>
+        <div class="veredicto" id="veredictoCalc"></div>
+        <div class="memoria-5" id="memoria5" hidden></div>
+      </div>
+    </div>
+
+    <p class="nota-pie">La cuenta usa un mes de 30 días. Los planes pagos de n8n se cotizan por volumen de ejecuciones y los números cambian seguido: no los copiamos acá para no publicar un dato viejo. Están en la grilla de precios de n8n, y el que manda siempre es el de tu panel.</p>
+  </div>
+</section>
+
+<!-- ─────────── Las cuatro formas de fallar ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Diseño de errores</span>
+    <h2>Cuatro maneras de fallar, y solo una avisa</h2>
+    <p class="intro">Cuando alguien dice «el flujo se rompió» casi siempre está hablando de la primera. Las otras tres son las que hacen daño de verdad, porque el panel de n8n las muestra en verde.</p>
+
+    <div class="fallas" id="fallas"></div>
+
+    <p class="nota-pie">La segunda no es un ejemplo de manual: es lo que hace InfoLeg cuando buscás una norma que no existe, verificado el 2 de septiembre de 2026 preparando la clase 5. Devuelve 200 OK y la página del buscador otra vez, 130 KB en vez de 5, sin un solo mensaje de error.</p>
+  </div>
+</section>
+
+<!-- ─────────── Reintentar ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">La tentación</span>
+    <h2>Reintentar no siempre es gratis</h2>
+    <p class="intro">n8n trae el reintento incorporado en cada nodo: cuántas veces, cuánto esperar entre intentos. Prenderlo en todos lados parece prudente y no lo es. Antes de activarlo hay una sola pregunta que hacerse: <b>si esto corre dos veces, ¿pasa algo malo?</b></p>
+
+    <div class="reintento" id="reintento"></div>
+    <div class="marcador" id="marcadorReintento"></div>
+
+    <div class="cita">Leer se puede repetir. Escribir, avisar y cobrar, no. Esa es toda la regla.</div>
+
+    <p class="nota-pie">La palabra técnica es idempotencia: una operación es idempotente cuando repetirla deja el mundo igual que hacerla una sola vez. No hace falta el nombre para usarla, pero conviene reconocerla cuando aparezca en la documentación.</p>
+  </div>
+</section>
+
+<!-- ─────────── El aviso ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Cuando falla igual</span>
+    <h2>Que se entere una persona, no el registro</h2>
+    <div class="dos-col">
+      <div>
+        <p class="intro">n8n guarda cada ejecución fallida en su historial. Eso sirve para investigar, no para enterarse: nadie entra al historial un martes a la mañana porque sí. La diferencia entre un flujo en producción y uno abandonado es que el primero avisa.</p>
+        <p class="intro" style="margin-top:16px">Se resuelve con un flujo aparte que se dispara cuando otro falla. Se escribe una vez y se le enchufa a todos los demás desde la configuración de cada workflow.</p>
+      </div>
+      <div>
+        <div class="ficha">
+          <span class="marca-capa">Lo que tiene que decir el aviso</span>
+          <h3>Cuatro datos, ni uno más</h3>
+          <ul>
+            <li><b>Qué flujo</b> falló, por su nombre, no por su identificador.</li>
+            <li><b>En qué nodo</b> se cortó: es lo primero que se mira.</li>
+            <li><b>El mensaje</b> tal como vino, sin interpretarlo.</li>
+            <li><b>Un link</b> a esa ejecución para abrirla y ver los datos.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="aviso-flujo">
+      <div class="aviso-caja"><b>Error Trigger</b><small>se dispara cuando otro flujo falla</small></div>
+      <span class="aviso-flecha">→</span>
+      <div class="aviso-caja"><b>Edit Fields</b><small>arma el mensaje con los cuatro datos</small></div>
+      <span class="aviso-flecha">→</span>
+      <div class="aviso-caja"><b>Mensaje directo</b><small>al dueño del proceso, no al grupo</small></div>
+    </div>
+
+    <p class="nota-pie">Tres nodos, un solo flujo, y sirve para los veinte que armes después. El archivo está abajo, en los descargables del caso.</p>
+  </div>
+</section>
+
+<!-- ─────────── Bucles ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">El malentendido</span>
+    <h2>Casi nunca necesitás un bucle</h2>
+    <p class="intro">Es la pregunta que aparece siempre en esta altura del curso: «¿y cómo hago un <code>PARA CADA</code>?». La respuesta incomoda: en n8n ya lo estás haciendo. La clase 4 lo mostró sin nombrarlo — un nodo se ejecuta una vez por ítem — así que cuarenta pedidos recorren el flujo solos, sin que vos escribas ningún bucle.</p>
+
+    <div class="tres-col" style="margin-top:30px">
+      <div class="ficha">
+        <span class="marca-capa">No hace falta</span>
+        <h3>Repetir una acción por cada cosa</h3>
+        <p>Cuarenta correos a cuarenta clientes, cuarenta filas actualizadas. El nodo corre una vez por ítem y listo. Poner un bucle acá agrega complejidad y no cambia nada.</p>
+      </div>
+      <div class="ficha">
+        <span class="marca-capa">Sí hace falta</span>
+        <h3>Pedir de a tandas</h3>
+        <p>Cuando el otro lado no acepta cuarenta pedidos seguidos, o cobra por volumen, o te frena. El bucle sirve para ir de a diez y esperar entre tanda y tanda.</p>
+      </div>
+      <div class="ficha">
+        <span class="marca-capa">Sí hace falta</span>
+        <h3>Paginar</h3>
+        <p>Cuando la respuesta viene en páginas y no sabés cuántas hay hasta que la última llega vacía. Ahí el bucle es de verdad: se repite hasta que una condición cambia.</p>
+      </div>
+    </div>
+
+    <p class="nota-pie">El bot de InfoLeg tiene un caso del segundo tipo esperando: si alguien pidiera las normas de todo un mes, serían decenas de pedidos seguidos a un servicio público. Ir despacio no es una cortesía, es la diferencia entre que te atiendan y que te bloqueen.</p>
+  </div>
+</section>
+
+<!-- ─────────── El caso ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Manos al lienzo</span>
+    <h2>El mismo bot, esta vez a prueba de martes</h2>
+    <p class="intro">No construimos nada nuevo: endurecemos lo que ya anda. Cinco cambios sobre el flujo de la clase 5, y cada uno responde a una de las cuatro formas de fallar.</p>
+
+    <div class="caso">
+      <span class="n">Caso 06 · el flujo de la 5, endurecido</span>
+      <h3>Qué cambia y por qué</h3>
+      <pre>1. Los tres pedidos a InfoLeg reintentan dos veces, esperando
+   cinco segundos. Leer se puede repetir sin consecuencias.
+
+2. Después de buscar, el flujo se pregunta si la respuesta tiene
+   cara de resultado. Si no la tiene, no sigue como si nada:
+   avisa que el sitio contestó cualquier cosa.
+
+3. El nodo que responde por el chat NO reintenta. Si falla el
+   envío, preferimos ningún mensaje a dos mensajes iguales.
+
+4. Cada pedido a InfoLeg espera un segundo antes de salir.
+   Un flujo apurado es un flujo bloqueado.
+
+5. El workflow tiene un flujo de errores asignado, así que
+   cuando algo se rompe hay alguien que se entera.</pre>
+      <p style="font-size:0.9rem">El primero y el tercero parecen contradecirse y no: el reintento se enciende nodo por nodo, según lo que hace ese nodo. Esa decisión, tomada una vez por nodo, es la mitad del diseño de errores.</p>
+      <div class="acciones">
+        <a class="boton" href="workflows/06-bot-endurecido-n8n.json" download>Descargar el bot endurecido</a>
+        <a class="boton hueco" href="workflows/06-avisar-si-algo-falla-n8n.json" download>El flujo que avisa</a>
+      </div>
+    </div>
+
+    <p class="nota-pie">Para asignarle el flujo de errores a un workflow: abrilo, tres puntos arriba a la derecha, Settings, y elegilo en «Error workflow». Se hace una vez por workflow y conviene hacerlo el día que lo activás, no el día que falla.</p>
+  </div>
+</section>
+
+<!-- ─────────── La pregunta sin respuesta ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Lo que todavía no sabemos hacer</span>
+    <h2>El bot preguntó «¿cuál de las dos?» y nadie le contestó</h2>
+    <div class="dos-col">
+      <div>
+        <p class="intro">Cuando alguien pide «decreto 70 2023», el flujo encuentra dos normas, manda las opciones y pregunta cuál. La persona contesta «la primera». Y el bot no tiene la menor idea de qué está hablando.</p>
+        <p class="intro" style="margin-top:16px">No es un error del flujo: es que cada ejecución arranca sin memoria de la anterior. Es la limitación más importante de todo lo que construimos hasta acá, y no se arregla con un nodo más.</p>
+      </div>
+      <div>
+        <div class="ficha">
+          <span class="marca-capa">Dónde se resuelve</span>
+          <h3>Dos caminos, dos clases</h3>
+          <ul>
+            <li><b>Guardar el estado</b> en algún lado que sobreviva a la ejecución: las Data Tables de la clase 9.</li>
+            <li><b>Darle memoria de conversación</b> al flujo: el nodo de agente y su memoria, en la clase 10.</li>
+          </ul>
+          <p style="margin-top:12px">Los dos caminos son válidos y sirven para cosas distintas. Lo importante hoy es reconocer el problema cuando aparece, que es justo lo que acaba de pasar.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Actividad ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Para la clase 7</span>
+    <h2>Traé tu proceso, ahora en serio</h2>
+    <p class="intro">La clase que viene arranca el módulo 3 y cambia la regla: en vez de un caso que traigo yo, construimos uno tuyo, de punta a punta. Estas tres respuestas son el material con el que vas a llegar. Lo que escribas queda guardado en este dispositivo.</p>
+
+    <div class="actividad" style="margin-top:30px">
+      <div class="pregunta">
+        <label for="q1"><b>El proceso, en una frase</b><span>¿Cuál de todos los que pensaste desde la clase 2 vas a construir? Uno solo, y que te importe: vas a estar cuatro clases con él.</span></label>
+        <textarea id="q1" placeholder="Por ejemplo: cada vez que entra una factura de proveedor por correo, cargarla en la planilla y avisarle al que tiene que autorizarla…"></textarea>
+      </div>
+      <div class="pregunta">
+        <label for="q2"><b>Qué pasa hoy cuando falla</b><span>Ese proceso ya existe y lo hace una persona. ¿Qué pasa hoy cuando se le pasa algo? ¿Quién se entera, cuándo y cómo?</span></label>
+        <textarea id="q2" placeholder="Por ejemplo: nadie se entera hasta que el proveedor llama preguntando por qué no le pagamos…"></textarea>
+      </div>
+      <div class="pregunta">
+        <label for="q3"><b>Cuál es su peor día</b><span>Con la calculadora de arriba al lado: ¿cuántas veces por día, cuántas el peor día, y entra en tu plan?</span></label>
+        <textarea id="q3" placeholder="Por ejemplo: ocho por día, pero el 30 de cada mes llegan sesenta juntas y ahí me paso del límite…"></textarea>
+      </div>
+      <div class="guardado" id="guardado"></div>
+    </div>
+
+    <p class="nota-pie">Si completaste las actividades de las clases 2, 4 y 5, todo eso está guardado en este mismo navegador y conviene releerlo antes de elegir. La clase 7 empieza con lo que escribas acá.</p>
+  </div>
+</section>
+
+<div class="envoltura cierre">
+  <h2>Nos vemos el miércoles 16 de septiembre</h2>
+  <p class="intro" style="margin:0 auto">Con esto cierra el módulo 2: ya sabés qué es un ítem, qué hace cada nodo, qué cuesta una corrida y qué pasa cuando algo se rompe. El módulo 3 empieza distinto. No traigo yo el caso: lo traés vos, contado en desorden, y lo construimos entero en clase.</p>
+  <div class="acciones">
+    <a class="boton" href="cronograma.html">Ver el cronograma completo</a>
+    <a class="boton hueco" href="05.html">Volver a la clase 5</a>
+  </div>
+</div>
+
+</main>
+
+<footer class="pie">
+  <div class="envoltura">
+    <span>Facultad de Ciencias Económicas · Universidad de Buenos Aires</span>
+    <span>Clase 6 · Diseño de Procesos de Negocios con Automatización e IA Agéntica</span>
+  </div>
+</footer>
+
+<script src="acceso.js"></script>
+<script src="clases.js"></script>
+<script src="menu.js"></script>
+<script src="clase06.js"></script>
+</body>
+</html>
