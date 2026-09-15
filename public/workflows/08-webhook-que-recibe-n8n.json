@@ -1,0 +1,217 @@
+{
+  "name": "Caso 08 bis · El webhook que recibe",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## El webhook que recibe\n\nAl reves de todo lo demas: este flujo no sale a buscar nada. n8n te da\nuna direccion, vos se la pasas al otro sistema, y el flujo espera.\n\n**Las tres cosas que confunden, en orden:**\n\n1. **Hay dos direcciones.** La de Test solo escucha mientras apretas\n   \"Listen for test event\". La de Production funciona siempre, pero\n   solo si el workflow esta ACTIVO. Guardar no alcanza.\n\n2. **El IF no es decorativo.** Esa direccion es publica: cualquiera\n   que la conozca puede llamarla, y cada llamada es una ejecucion\n   tuya. Validar que el pedido trae lo que esperas es lo minimo. En la\n   clase 15 lo hacemos bien, con una clave compartida.\n\n3. **Si el otro lado espera respuesta**, hace falta el nodo Respond to\n   Webhook. Si no lo ponen, el sistema que te llamo se queda esperando\n   y te marca error del lado de el, aunque tu flujo haya andado.\n\n**Para probarlo sin tener el otro sistema:** apreta \"Listen for test\nevent\" y despues, desde otra pestana o desde la terminal:\n\n```\ncurl -X POST \"PEGAR_LA_URL_DE_TEST\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{ \"referencia\": \"FC-0001-00012345\", \"monto\": 250000 }'\n```",
+        "height": 720,
+        "width": 500,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -120
+      ],
+      "id": "c820000-0000-4000-8000-000000000001",
+      "name": "Cómo se prueba"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aviso-de-pago",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        200
+      ],
+      "id": "c820000-0000-4000-8000-000000000010",
+      "name": "Tu dirección",
+      "webhookId": "c8200000-aaaa-4aaa-8aaa-000000000010"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c820000-0000-4000-8000-000000000101",
+              "leftValue": "={{ $json.body.referencia }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c820000-0000-4000-8000-000000000102",
+              "leftValue": "={{ $json.body.monto }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        180,
+        200
+      ],
+      "id": "c820000-0000-4000-8000-000000000011",
+      "name": "¿Trae lo que espero?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c820000-0000-4000-8000-000000000201",
+              "name": "referencia",
+              "value": "={{ $json.body.referencia }}",
+              "type": "string"
+            },
+            {
+              "id": "c820000-0000-4000-8000-000000000202",
+              "name": "monto",
+              "value": "={{ Number($json.body.monto) }}",
+              "type": "number"
+            },
+            {
+              "id": "c820000-0000-4000-8000-000000000203",
+              "name": "recibido",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        420,
+        100
+      ],
+      "id": "c820000-0000-4000-8000-000000000012",
+      "name": "Normalizar lo que llegó"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        640,
+        100
+      ],
+      "id": "c820000-0000-4000-8000-000000000013",
+      "name": "Acá va lo que tenga que pasar"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, referencia: $('Normalizar lo que llegó').item.json.referencia }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        860,
+        100
+      ],
+      "id": "c820000-0000-4000-8000-000000000014",
+      "name": "Contestar que sí"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseCode": 400,
+        "responseBody": "={{ JSON.stringify({ ok: false, error: 'Falta referencia o monto' }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        420,
+        320
+      ],
+      "id": "c820000-0000-4000-8000-000000000015",
+      "name": "Contestar qué falta"
+    }
+  ],
+  "connections": {
+    "Tu dirección": {
+      "main": [
+        [
+          {
+            "node": "¿Trae lo que espero?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Trae lo que espero?": {
+      "main": [
+        [
+          {
+            "node": "Normalizar lo que llegó",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contestar qué falta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar lo que llegó": {
+      "main": [
+        [
+          {
+            "node": "Acá va lo que tenga que pasar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Acá va lo que tenga que pasar": {
+      "main": [
+        [
+          {
+            "node": "Contestar que sí",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

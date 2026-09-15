@@ -1,0 +1,535 @@
+{
+  "name": "Caso 07 · Las facturas que llegan por correo",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Caso 07 — Las facturas que llegan por correo\n\nEl relato de Marcela, pasado por los cinco casilleros.\n\n**El algoritmo, antes de los nodos:**\n```\nCUANDO llega un correo al buzon de facturacion:\n    leer { remitente, asunto, adjuntos, fecha }\n\n    SI no trae ningun adjunto:\n        avisar a Marcela que llego algo sin factura\n        FIN\n\n    leer del asunto { proveedor, numero, monto }\n\n    SI el numero de factura ya esta en la planilla:\n        avisar que llego repetida\n        FIN\n\n    SI monto > tope de autorizacion:\n        avisar al socio con el adjunto\n        cargar como \"pendiente de autorizacion\"\n    SI NO:\n        cargar como \"para pagar\"\n\n    archivar el correo con la etiqueta Facturas\nFIN\n```\n\n**De donde salio cada decision.** La del tope estaba en el relato,\ndicha al pasar. Las otras dos —el correo sin adjunto y la factura\nrepetida— salieron de preguntar por las excepciones. El caso feliz\nque Marcela conto primero son cuatro lineas de dieciocho.",
+        "height": 760,
+        "width": 520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1160,
+        -120
+      ],
+      "id": "c7100000-0000-4000-8000-000000000001",
+      "name": "Consigna"
+    },
+    {
+      "parameters": {
+        "content": "## Puesta a punto\n\n**1 - Los datos salen del asunto, no del PDF.** Muchos proveedores\nmandan \"Factura A 0001-00012345 - $ 250.000\" en el asunto, y con eso\nalcanza para este flujo. Leer los datos de adentro de un PDF es otra\ncosa y la vemos en el modulo 4: hoy el adjunto viaja para reenviarlo,\nno para leerlo.\n\nSi tus proveedores no ponen nada util en el asunto, el flujo igual\nsirve: cambia el nodo \"Leer los datos\" por uno que te pregunte a vos.\nUn proceso a medias automatizado que avisa es mejor que uno entero\nque nadie reviso.\n\n**2 - El tope esta en un solo lugar.** El nodo \"Leer los datos\" define\n`tope` una vez. El dia que cambie, se cambia ahi y no en tres nodos.\nNumeros magicos repartidos por el lienzo es como se rompen los flujos\nde otros.\n\n**3 - La planilla hace de memoria.** El control de repetidas busca el\nnumero de factura en la planilla antes de cargar. Funciona, y tiene el\nproblema que vamos a ver en la clase 9: la planilla no fue hecha para\nesto y a las mil filas se nota.\n\n**4 - Que hace falta antes de importarlo.** Credenciales de Gmail y de\nGoogle Sheets, el identificador de la planilla, y el chat de Telegram\ndonde van los avisos. Los tres campos estan marcados con PEGAR_.",
+        "height": 700,
+        "width": 480,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        -120
+      ],
+      "id": "c7100000-0000-4000-8000-000000000002",
+      "name": "Puesta a punto"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ]
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -60,
+        300
+      ],
+      "id": "c7100000-0000-4000-8000-000000000010",
+      "name": "Llega un correo"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c7100000-0000-4000-8000-000000000101",
+              "leftValue": "={{ Object.keys($binary || {}).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        300
+      ],
+      "id": "c7100000-0000-4000-8000-000000000011",
+      "name": "¿Trae adjunto?"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DE_MARCELA",
+        "text": "=Llegó un correo sin factura adjunta.\n\nDe: {{ $('Llega un correo').item.json.from }}\nAsunto: {{ $('Llega un correo').item.json.subject }}\n\nRevisalo a mano: no cargué nada.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        480
+      ],
+      "id": "c7100000-0000-4000-8000-000000000012",
+      "name": "Avisar que vino sin factura",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7100000-0000-4000-8000-000000000201",
+              "name": "proveedor",
+              "value": "={{ $json.from.split('<')[0].trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "c7100000-0000-4000-8000-000000000202",
+              "name": "numero",
+              "value": "={{ ($json.subject.match(/\\d{4}-?\\d{6,8}/) || ['sin número'])[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "c7100000-0000-4000-8000-000000000203",
+              "name": "monto",
+              "value": "={{ Number(($json.subject.match(/\\$\\s?([\\d.]+)/) || ['', '0'])[1].replace(/\\./g, '')) }}",
+              "type": "number"
+            },
+            {
+              "id": "c7100000-0000-4000-8000-000000000204",
+              "name": "tope",
+              "value": "=200000",
+              "type": "number"
+            },
+            {
+              "id": "c7100000-0000-4000-8000-000000000205",
+              "name": "fecha",
+              "value": "={{ $json.date }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        200
+      ],
+      "id": "c7100000-0000-4000-8000-000000000013",
+      "name": "Leer los datos"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "PEGAR_ID_DE_LA_PLANILLA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Facturas",
+          "mode": "name"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "numero",
+              "lookupValue": "={{ $json.numero }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        620,
+        200
+      ],
+      "id": "c7100000-0000-4000-8000-000000000014",
+      "name": "Buscar si ya está",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c7100000-0000-4000-8000-000000000301",
+              "leftValue": "={{ $json.numero }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        840,
+        200
+      ],
+      "id": "c7100000-0000-4000-8000-000000000015",
+      "name": "¿Ya estaba cargada?"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DE_MARCELA",
+        "text": "=Esta factura ya estaba cargada: {{ $('Leer los datos').item.json.numero }} de {{ $('Leer los datos').item.json.proveedor }}.\n\nNo la cargué de nuevo.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1080,
+        40
+      ],
+      "id": "c7100000-0000-4000-8000-000000000016",
+      "name": "Avisar que está repetida",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c7100000-0000-4000-8000-000000000401",
+              "leftValue": "={{ $('Leer los datos').item.json.monto }}",
+              "rightValue": "={{ $('Leer los datos').item.json.tope }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1080,
+        300
+      ],
+      "id": "c7100000-0000-4000-8000-000000000017",
+      "name": "¿Supera el tope?"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DEL_SOCIO",
+        "text": "=Factura para autorizar\n\nProveedor: {{ $('Leer los datos').item.json.proveedor }}\nNúmero: {{ $('Leer los datos').item.json.numero }}\nMonto: ${{ $('Leer los datos').item.json.monto }}\n\nSupera el tope de ${{ $('Leer los datos').item.json.tope }}. Queda en la planilla como pendiente.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1320,
+        180
+      ],
+      "id": "c7100000-0000-4000-8000-000000000018",
+      "name": "Avisar al socio",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7100000-0000-4000-8000-000000000501",
+              "name": "estado",
+              "value": "pendiente de autorización",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1540,
+        180
+      ],
+      "id": "c7100000-0000-4000-8000-000000000019",
+      "name": "Marcar pendiente"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7100000-0000-4000-8000-000000000502",
+              "name": "estado",
+              "value": "para pagar",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1320,
+        420
+      ],
+      "id": "c7100000-0000-4000-8000-000000000020",
+      "name": "Marcar para pagar"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "PEGAR_ID_DE_LA_PLANILLA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Facturas",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1760,
+        300
+      ],
+      "id": "c7100000-0000-4000-8000-000000000021",
+      "name": "Cargar en la planilla"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Llega un correo').item.json.id }}",
+        "labelIds": [
+          "PEGAR_ID_DE_LA_ETIQUETA_FACTURAS"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1980,
+        300
+      ],
+      "id": "c7100000-0000-4000-8000-000000000022",
+      "name": "Archivar con la etiqueta"
+    }
+  ],
+  "connections": {
+    "Llega un correo": {
+      "main": [
+        [
+          {
+            "node": "¿Trae adjunto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Trae adjunto?": {
+      "main": [
+        [
+          {
+            "node": "Leer los datos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Avisar que vino sin factura",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer los datos": {
+      "main": [
+        [
+          {
+            "node": "Buscar si ya está",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar si ya está": {
+      "main": [
+        [
+          {
+            "node": "¿Ya estaba cargada?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Ya estaba cargada?": {
+      "main": [
+        [
+          {
+            "node": "Avisar que está repetida",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Supera el tope?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Supera el tope?": {
+      "main": [
+        [
+          {
+            "node": "Avisar al socio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar para pagar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avisar al socio": {
+      "main": [
+        [
+          {
+            "node": "Marcar pendiente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar pendiente": {
+      "main": [
+        [
+          {
+            "node": "Cargar en la planilla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar para pagar": {
+      "main": [
+        [
+          {
+            "node": "Cargar en la planilla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar en la planilla": {
+      "main": [
+        [
+          {
+            "node": "Archivar con la etiqueta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "PEGAR_ID_DEL_FLUJO_AVISAR_SI_ALGO_FALLA"
+  },
+  "pinData": {}
+}

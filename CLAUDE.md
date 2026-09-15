@@ -105,12 +105,13 @@ Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 6, con lo que cierra el módulo 2. La 6 dejó dos
-cosas anotadas para más adelante: el bot pregunta «¿cuál de las dos?» y no tiene
-memoria entre ejecuciones, que se resuelve con Data Tables en la 9 y con memoria
-de agente en la 10. Y cambia la regla para el módulo 3: la clase 7 arranca con un
-proceso que trae cada participante, no con un caso de cátedra. La actividad de la
-6 es ese material.
+Estado: publicadas las clases 1 a 8. El módulo 3 cambió la regla: desde la 7 el
+caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
+su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
+encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
+alimenta la 9. Quedan dos deudas anotadas: la memoria entre ejecuciones (Data
+Tables, clase 9) y la planilla usada como base de datos en el caso de la 7, que
+la 9 tiene que desarmar.
 
 ## Despliegue
 

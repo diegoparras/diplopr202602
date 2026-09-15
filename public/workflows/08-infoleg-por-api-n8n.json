@@ -1,0 +1,290 @@
+{
+  "name": "Caso 08 · El bot de InfoLeg, por la API",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Caso 08 — El bot de InfoLeg, por la puerta de adelante\n\nEl mismo bot de la clase 5. **Seis nodos en vez de dieciocho.**\n\n```\nCUANDO llega un mensaje al bot:\n    entender que pidio: tipo de norma y numero\n    pedirle a la API abierta las normas con ese tipo y ese numero\n\n    SI no encontro ninguna:\n        decirlo, y aclarar que alcance tiene esta base\n        FIN\n\n    responder con la ficha y el link al texto en InfoLeg\nFIN\n```\n\n**Lo que desaparecio respecto de la clase 5:** el pedido para abrir\nsesion, la cookie, los cinco selectores CSS, el nodo Code que cruzaba\ntres listas y la adivinanza por tamano de pagina. Nada de eso era\nculpa nuestra: era lo que habia que hacer para leer una web pensada\npara personas.\n\n**Lo que se pierde:** el recurso que consultamos es el MUESTREO de la\nbase, mil registros. El scraping de la clase 5 llega a normas que esta\nAPI no tiene. Ninguna de las dos gana en todo.",
+        "height": 700,
+        "width": 520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1160,
+        -120
+      ],
+      "id": "c810000-0000-4000-8000-000000000001",
+      "name": "Consigna"
+    },
+    {
+      "parameters": {
+        "content": "## Lo que aprendimos probando\n\n**El campo `total` no siempre viene.** Cuando la busqueda encuentra\nalgo, la respuesta trae `result.total`. Cuando no encuentra nada, ese\ncampo **no aparece**: solo llega `result.records` vacio. Verificado\ncontra la API el 15 de septiembre de 2026.\n\nPor eso el IF de este flujo pregunta por la cantidad de registros y no\npor `total`. Una expresion que lea `result.total` da vacio, el IF lo\ntoma como falso por casualidad, y el dia que la API cambie ese\ncomportamiento el flujo empieza a mentir sin fallar.\n\nEs la misma leccion de las clases 5 y 6, ahora en una API que esta\nbien hecha: el caso que hay que probar es el que no encuentra nada.\n\n**La API no pide credencial.** Es un dato publico del Estado. Eso no\nsignifica que no tenga limites: un flujo que dispare cientos de\npedidos por minuto va a ser frenado, y con razon.\n\n**Para probarlo sin bot:** cambia el disparador por un Manual Trigger\ny fija los valores en el nodo \"Entender el pedido\". Las corridas\nmanuales no cuentan para el plan, como vimos en la clase 6.",
+        "height": 660,
+        "width": 470,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        -120
+      ],
+      "id": "c810000-0000-4000-8000-000000000002",
+      "name": "Lo que aprendimos probando"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -60,
+        240
+      ],
+      "id": "c810000-0000-4000-8000-000000000010",
+      "name": "Llega el pedido",
+      "webhookId": "c8100000-aaaa-4aaa-8aaa-000000000010"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c810000-0000-4000-8000-000000000101",
+              "name": "chat_id",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "c810000-0000-4000-8000-000000000102",
+              "name": "pedido",
+              "value": "={{ $json.message.text.trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "c810000-0000-4000-8000-000000000103",
+              "name": "tipo_norma",
+              "value": "={{ $json.message.text.toLowerCase().includes('decreto') ? 'Decreto' : ($json.message.text.toLowerCase().includes('resoluc') ? 'Resolución' : 'Ley') }}",
+              "type": "string"
+            },
+            {
+              "id": "c810000-0000-4000-8000-000000000104",
+              "name": "numero_norma",
+              "value": "={{ ($json.message.text.match(/\\d{1,6}/) || [''])[0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        240
+      ],
+      "id": "c810000-0000-4000-8000-000000000011",
+      "name": "Entender el pedido"
+    },
+    {
+      "parameters": {
+        "url": "https://datos.jus.gob.ar/api/3/action/datastore_search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "resource_id",
+              "value": "8b1c2310-564e-41e6-9a84-99cfa9939bbc"
+            },
+            {
+              "name": "filters",
+              "value": "={{ JSON.stringify({ tipo_norma: $json.tipo_norma, numero_norma: $json.numero_norma }) }}"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        380,
+        240
+      ],
+      "id": "c810000-0000-4000-8000-000000000012",
+      "name": "Preguntarle a la API",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c810000-0000-4000-8000-000000000201",
+              "leftValue": "={{ $json.result.records.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        600,
+        240
+      ],
+      "id": "c810000-0000-4000-8000-000000000013",
+      "name": "¿Encontró alguna?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Entender el pedido').item.json.chat_id }}",
+        "text": "={{ $('Entender el pedido').item.json.tipo_norma }} {{ $('Entender el pedido').item.json.numero_norma }}\n\n{{ $json.result.records[0].titulo_sumario }}\n{{ $json.result.records[0].organismo_origen }}\n\nSancionada: {{ $json.result.records[0].fecha_sancion }}\nB.O.: {{ $json.result.records[0].fecha_boletin }} (número {{ $json.result.records[0].numero_boletin }})\n\n{{ $json.result.records[0].texto_resumido || '' }}\n\nTexto en InfoLeg:\n{{ $json.result.records[0].texto_original }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        840,
+        140
+      ],
+      "id": "c810000-0000-4000-8000-000000000014",
+      "name": "Responder con la ficha",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Entender el pedido').item.json.chat_id }}",
+        "text": "=No encontré {{ $('Entender el pedido').item.json.pedido }} en la base abierta.\n\nOjo: esta base publica un muestreo de mil normas, así que puede existir y no estar acá. Para el texto completo siempre queda infoleg.gob.ar.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        840,
+        360
+      ],
+      "id": "c810000-0000-4000-8000-000000000015",
+      "name": "Decir que no está",
+      "retryOnFail": false
+    }
+  ],
+  "connections": {
+    "Llega el pedido": {
+      "main": [
+        [
+          {
+            "node": "Entender el pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Entender el pedido": {
+      "main": [
+        [
+          {
+            "node": "Preguntarle a la API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preguntarle a la API": {
+      "main": [
+        [
+          {
+            "node": "¿Encontró alguna?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Encontró alguna?": {
+      "main": [
+        [
+          {
+            "node": "Responder con la ficha",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Decir que no está",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "PEGAR_ID_DEL_FLUJO_AVISAR_SI_ALGO_FALLA"
+  },
+  "pinData": {
+    "Preguntarle a la API": [
+      {
+        "json": {
+          "help": "https://datos.jus.gob.ar/api/3/action/help_show?name=datastore_search",
+          "success": true,
+          "result": {
+            "resource_id": "8b1c2310-564e-41e6-9a84-99cfa9939bbc",
+            "records": [
+              {
+                "tipo_norma": "Ley",
+                "numero_norma": "27668",
+                "titulo_sumario": "PROGRAMA DE FACILIDADES EXTENDIDAS",
+                "titulo_resumido": "DISPOSICIONES",
+                "organismo_origen": "HONORABLE CONGRESO DE LA NACION ARGENTINA",
+                "fecha_sancion": "2022-03-17",
+                "fecha_boletin": "2022-03-18",
+                "numero_boletin": "34882",
+                "pagina_boletin": "3",
+                "id_norma": "362395",
+                "texto_resumido": "APRUEBANSE, DE ACUERDO A LO ESTIPULADO EN EL ARTICULO 75, INCISO 7, DE LA CONSTITUCION NACIONAL, LAS OPERACIONES DE CREDITO PUBLICO CONTENIDAS EN EL PROGRAMA DE FACILIDADES EXTENDIDAS A CELEBRARSE ENTRE EL PODER EJECUTIVO NACIONAL Y EL FONDO MONETARIO INTERNACIONAL.",
+                "texto_original": "http://servicios.infoleg.gob.ar/infolegInternet/anexos/360000-364999/362395/norma.htm",
+                "modificada_por": "1"
+              }
+            ],
+            "total": 1
+          }
+        }
+      }
+    ]
+  }
+}

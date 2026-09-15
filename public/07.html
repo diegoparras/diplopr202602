@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 7 · Del proceso manual al workflow: primer caso completo · FCE-UBA</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  /* Las mismas tres variables que vienen definiendo las clases 2 a 6. */
+  :root { --acierto: #22C55E; --fallo: #F87171; --alerta: #EAB308; }
+  :root[data-tema="claro"] { --acierto: #15803D; --fallo: #B4231A; --alerta: #A16207; }
+
+  section.bloque { padding: 96px 0; border-top: 1px solid var(--linea); }
+  section.bloque:first-of-type { border-top: 0; }
+  .bloque h2 { max-width: 20ch; margin: 18px 0 22px; }
+  .bloque .intro { max-width: 62ch; font-size: 1.05rem; }
+
+  .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 54px; align-items: start; }
+  .tres-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+  @media (max-width: 900px) {
+    .dos-col, .tres-col { grid-template-columns: 1fr; gap: 26px; }
+    section.bloque { padding: 68px 0; }
+  }
+
+  .portada { padding: 54px 0 20px; }
+  .portada h1 { max-width: 18ch; margin: 20px 0 24px; }
+  .portada .meta {
+    display: flex; gap: 28px; flex-wrap: wrap;
+    font-family: var(--dato); font-size: 0.75rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue);
+    margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--linea);
+  }
+  @media (max-width: 720px) { .portada { padding: 40px 26px 18px; } }
+
+  .ficha { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 24px 22px; box-shadow: var(--sombra); }
+  .ficha h3 { font-size: 1.12rem; margin-bottom: 8px; }
+  .ficha p { font-size: 0.9rem; }
+  .ficha .marca-capa {
+    font-family: var(--dato); font-size: 0.66rem;
+    letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja);
+    display: block; margin-bottom: 8px;
+  }
+  .ficha ul { margin: 12px 0 0 18px; }
+  .ficha li { font-size: 0.88rem; color: var(--tenue); margin-bottom: 6px; }
+
+  .cita {
+    border-left: 2px solid var(--naranja);
+    padding: 8px 0 8px 24px; margin-top: 30px;
+    font-family: var(--display); font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+    font-weight: 600; letter-spacing: -0.02em; line-height: 1.35; color: var(--texto);
+    max-width: 48ch;
+  }
+
+  code, .mono { font-family: var(--dato); font-size: 0.85em; color: var(--naranja); }
+
+  .caso {
+    background: var(--sup); border: 1px solid var(--linea); border-left: 2px solid var(--naranja);
+    border-radius: 16px; padding: 26px; margin-top: 18px; box-shadow: var(--sombra);
+  }
+  .caso .n {
+    font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--naranja);
+  }
+  .caso h3 { margin: 6px 0 10px; }
+  .caso pre {
+    font-family: var(--dato); font-size: 0.78rem; line-height: 1.75;
+    background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px 20px; margin: 16px 0; color: var(--texto);
+    white-space: pre; overflow-x: auto;
+  }
+  .caso .acciones { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+
+  .nota-pie { margin-top: 14px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); line-height: 1.7; }
+
+  /* ── Lo que trajiste ── */
+  .traido {
+    margin-top: 30px; background: var(--sup); border: 1px solid var(--linea);
+    border-left: 2px solid var(--naranja); border-radius: 16px;
+    padding: 24px 26px; box-shadow: var(--sombra);
+  }
+  .traido .rot {
+    font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--naranja);
+  }
+  .traido .linea { margin-top: 14px; }
+  .traido .linea b {
+    display: block; font-size: 0.82rem; color: var(--tenue);
+    font-family: var(--dato); margin-bottom: 4px;
+  }
+  .traido .linea p { color: var(--texto); font-size: 0.98rem; }
+  .traido .vacio { font-size: 0.92rem; }
+
+  /* ── El relato en desorden ── */
+  .relato {
+    margin-top: 30px; background: var(--sup); border: 1px solid var(--linea);
+    border-radius: 18px; padding: 30px 32px; box-shadow: var(--sombra);
+    font-size: 1.05rem; line-height: 1.85;
+  }
+  @media (max-width: 620px) { .relato { padding: 22px; } }
+  .frase {
+    cursor: pointer; border-radius: 6px; padding: 1px 3px;
+    border-bottom: 2px solid var(--linea);
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .frase:hover { background: var(--sup2); }
+  .frase.marcada { background: var(--brasa); }
+  .relato-pie {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--linea);
+  }
+  .etiqueta-tipo {
+    font-family: var(--dato); font-size: 0.7rem; padding: 5px 12px;
+    border-radius: 999px; border: 1px solid var(--linea); color: var(--tenue);
+  }
+  .panel-frase {
+    margin-top: 18px; padding: 16px 18px; border-radius: 13px;
+    background: var(--fondo); border: 1px solid var(--linea); min-height: 92px;
+  }
+  .panel-frase .cual {
+    font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.12em;
+    text-transform: uppercase; margin-bottom: 6px; display: block;
+  }
+  .panel-frase p { color: var(--texto); font-size: 0.95rem; }
+
+  /* ── El descompositor ── */
+  .taller {
+    margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    background: var(--sup); border: 1px solid var(--linea);
+    border-radius: 18px; overflow: hidden; box-shadow: var(--sombra);
+  }
+  @media (max-width: 1000px) { .taller { grid-template-columns: 1fr; } }
+  .taller-campos { padding: 26px 24px; }
+  .taller-salida { padding: 26px 24px; border-left: 1px solid var(--linea); background: var(--sup2); }
+  @media (max-width: 1000px) { .taller-salida { border-left: 0; border-top: 1px solid var(--linea); } }
+  .campo { margin-bottom: 20px; }
+  .campo label { display: block; margin-bottom: 7px; }
+  .campo label b {
+    font-family: var(--display); font-size: 1rem; font-weight: 600;
+    color: var(--naranja); display: block;
+  }
+  .campo label span { font-size: 0.85rem; color: var(--tenue); }
+  .campo input[type="text"], .campo textarea, .campo select {
+    width: 100%; padding: 11px 13px; background: var(--fondo);
+    border: 1px solid var(--linea); border-radius: 11px;
+    color: var(--texto); font-family: var(--cuerpo); font-size: 0.94rem; line-height: 1.5;
+  }
+  .campo textarea { min-height: 76px; resize: vertical; }
+  .campo select { font-family: var(--dato); font-size: 0.88rem; }
+  .campo input:focus, .campo textarea:focus, .campo select:focus { outline: none; border-color: var(--naranja); }
+  .taller-salida h4 { font-size: 1.05rem; margin-bottom: 10px; }
+  pre.pseudo {
+    font-family: var(--dato); font-size: 0.76rem; line-height: 1.8;
+    background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 16px 18px; color: var(--texto);
+    white-space: pre-wrap; word-break: break-word; max-height: 460px; overflow-y: auto;
+  }
+  pre.pseudo .clave { color: var(--naranja); font-weight: 500; }
+  pre.pseudo .falta { color: var(--tenue); font-style: italic; }
+  .taller-acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .taller-acciones .boton { padding: 10px 18px; font-size: 0.88rem; }
+  .taller-aviso { margin-top: 12px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); }
+
+  /* ── Traducción ── */
+  table.traduccion { width: 100%; border-collapse: collapse; margin-top: 30px; font-size: 0.9rem; }
+  table.traduccion th, table.traduccion td {
+    text-align: left; padding: 13px 16px; border-bottom: 1px solid var(--linea); vertical-align: top;
+  }
+  table.traduccion th { color: var(--tenue); font-weight: 500; font-family: var(--dato); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  table.traduccion td.izq { font-family: var(--dato); color: var(--naranja); white-space: nowrap; }
+  table.traduccion td.der b { display: block; font-size: 0.95rem; }
+  table.traduccion td.der span { font-size: 0.86rem; color: var(--tenue); }
+  .tabla-envoltura { overflow-x: auto; }
+
+  /* ── Los cuatro olvidos ── */
+  .olvido { display: grid; gap: 12px; margin-top: 30px; }
+  .olvido-item {
+    background: var(--sup); border: 1px solid var(--linea);
+    border-left: 2px solid var(--alerta); border-radius: 14px;
+    padding: 20px 22px; box-shadow: var(--sombra);
+  }
+  .olvido-item b { font-family: var(--display); font-size: 1.05rem; color: var(--texto); display: block; margin-bottom: 6px; }
+  .olvido-item p { font-size: 0.92rem; }
+  .olvido-item .pregunta-clave {
+    display: block; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--linea);
+    font-size: 0.88rem; color: var(--texto);
+  }
+  .olvido-item .pregunta-clave b { display: inline; color: var(--naranja); font-family: var(--cuerpo); font-size: inherit; }
+
+  /* ── Actividad ── */
+  .actividad { background: var(--sup); border-radius: 20px; padding: 34px; border: 1px solid var(--linea); box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .actividad { padding: 22px; } }
+  .pregunta { margin-top: 24px; }
+  .pregunta label { display: block; margin-bottom: 8px; }
+  .pregunta label b {
+    font-family: var(--display); font-size: 1.08rem; font-weight: 600;
+    color: var(--naranja); display: block;
+  }
+  .pregunta label span { font-size: 0.88rem; color: var(--tenue); }
+  .pregunta textarea {
+    width: 100%; min-height: 84px; resize: vertical;
+    padding: 13px 15px; background: var(--fondo);
+    border: 1px solid var(--linea); border-radius: 12px;
+    color: var(--texto); font-family: var(--cuerpo); font-size: 0.95rem; line-height: 1.55;
+  }
+  .pregunta textarea:focus { outline: none; border-color: var(--naranja); }
+  .guardado { margin-top: 16px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); }
+
+  .cierre { text-align: center; padding: 90px 0 40px; }
+  .cierre h2 { margin: 0 auto 22px; max-width: 24ch; }
+  .cierre .acciones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+  @media (max-width: 720px) { .cierre { padding: 60px 26px 30px; } }
+
+  .revelar { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .revelar.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-int">
+    <a class="marca" href="cronograma.html"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 32 H30 M38 22 H30 M38 42 H30 M30 22 V42" fill="none" stroke="#FB923C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="32" r="5.5" fill="#F97316"/><circle cx="44" cy="21" r="5" fill="#FDBA74"/><circle cx="44" cy="43" r="5" fill="#FDBA74"/></svg>Diplomatura <span>Procesos</span> · FCE-UBA</a>
+    <nav>
+      <a href="cronograma.html">Cronograma</a>
+      <span data-selector-clases><a href="cronograma.html">Clases</a></span>
+      <a href="#" id="salir">Salir</a>
+      <button class="tema" type="button" title="Cambiar tema">
+        <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<div class="envoltura portada">
+  <span class="rotulo">Clase 07 · Módulo 3 · Construir de verdad</span>
+  <h1>Del proceso manual al workflow: primer caso completo</h1>
+  <p class="intro">Hasta hoy los casos los traje yo. Desde hoy, no. Esta clase es un taller: el método para convertir cualquier proceso contado en el pasillo en un flujo que funciona, aplicado en vivo a un caso de cátedra y, al mismo tiempo, al tuyo.</p>
+  <div class="meta">
+    <span>16 de septiembre de 2026</span>
+    <span>Miércoles · 18 a 21:30 h</span>
+    <span>FCE — UBA</span>
+  </div>
+</div>
+
+<!-- ─────────── Lo que trajiste ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Empezamos por vos</span>
+    <h2>El proceso que anotaste la clase pasada</h2>
+    <p class="intro">La actividad de la clase 6 pedía tres cosas: el proceso en una frase, qué pasa hoy cuando falla, y cuál es su peor día. Si las contestaste en este navegador, están acá abajo. Ese es el material de la clase de hoy.</p>
+
+    <div class="traido" id="traido"></div>
+
+    <div class="cita">Un proceso que no sabés contar en una frase todavía no es un proceso: es un conjunto de costumbres.</div>
+  </div>
+</section>
+
+<!-- ─────────── El método ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">El método</span>
+    <h2>Cinco preguntas, siempre las mismas</h2>
+    <p class="intro">Nadie cuenta un proceso en orden. Lo cuenta empezando por lo que le molesta, se acuerda de una excepción en el medio y termina con la parte más obvia. El trabajo no es pedirle que hable ordenado: es tener cinco casilleros y saber en cuál va cada frase.</p>
+
+    <div class="tres-col" style="margin-top:30px">
+      <div class="ficha">
+        <span class="marca-capa">1 · Disparador</span>
+        <h3>¿Qué hace que esto arranque?</h3>
+        <p>Un correo que llega, una fila nueva, un horario, alguien que pregunta. Si la respuesta es «cuando me acuerdo», el proceso todavía no tiene disparador y ese es el primer hallazgo.</p>
+      </div>
+      <div class="ficha">
+        <span class="marca-capa">2 · Datos</span>
+        <h3>¿Qué información viaja?</h3>
+        <p>Los campos concretos, con el nombre que tienen en la vida real. No «los datos del cliente»: nombre, CUIT, correo, monto. Si no los podés nombrar, no los vas a poder mover.</p>
+      </div>
+      <div class="ficha">
+        <span class="marca-capa">3 · Decisiones</span>
+        <h3>¿Dónde cambia el camino?</h3>
+        <p>Cada «depende», cada «salvo que», cada «si es de más de tanto». Son los IF y los Switch, y casi siempre están escondidos en una frase al pasar.</p>
+      </div>
+      <div class="ficha">
+        <span class="marca-capa">4 · Acciones</span>
+        <h3>¿Qué se hace, concretamente?</h3>
+        <p>Cargar, avisar, archivar, responder. Cada acción es un nodo de app y un verbo. Si una acción tiene dos verbos, son dos acciones.</p>
+      </div>
+      <div class="ficha">
+        <span class="marca-capa">5 · Excepciones</span>
+        <h3>¿Qué pasa cuando sale mal?</h3>
+        <p>La pregunta que nadie hace en la primera reunión y que define si el flujo sirve. Viene de la clase 6: qué falla, quién se entera, y qué se hace mientras tanto.</p>
+      </div>
+      <div class="ficha" style="border-left:2px solid var(--naranja)">
+        <span class="marca-capa">El orden importa</span>
+        <h3>Ninguna se saltea</h3>
+        <p>Se puede volver atrás cuantas veces haga falta, pero no se puede abrir n8n sin las cinco contestadas. Esa es toda la disciplina del método, y es la que separa cuatro horas de trabajo de cuatro días.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── El relato ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">El pasillo</span>
+    <h2>Un caso contado como se cuentan los casos</h2>
+    <p class="intro">Marcela administra un estudio contable de doce personas. Le preguntaste qué le gustaría sacarse de encima y contestó esto, de un tirón. Tocá cada frase y fijate en qué casillero cae.</p>
+
+    <div class="relato" id="relato"></div>
+    <div class="panel-frase" id="panelFrase"></div>
+
+    <div class="relato-pie" id="relatoPie"></div>
+
+    <p class="nota-pie">Nueve frases, cinco casilleros y dos frases que no van a ninguno: son contexto, y descartarlas también es parte del trabajo. Fijate que las decisiones aparecen en medio de una queja, no en una lista.</p>
+  </div>
+</section>
+
+<!-- ─────────── El descompositor ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Manos a la obra</span>
+    <h2>Ahora el tuyo</h2>
+    <p class="intro">Completá los cinco casilleros con tu propio proceso. A medida que escribís, a la derecha se arma el pseudocódigo en castellano. Cuando esté completo, el botón te baja un archivo de n8n con el esqueleto de tu flujo, listo para importar. Todo lo que escribas queda guardado en este dispositivo.</p>
+
+    <div class="taller">
+      <div class="taller-campos">
+        <div class="campo">
+          <label for="tNombre"><b>Tu proceso, en una frase</b><span>El nombre con el que lo vas a buscar dentro de seis meses.</span></label>
+          <input type="text" id="tNombre" placeholder="Cargar las facturas de proveedores que llegan por correo">
+        </div>
+        <div class="campo">
+          <label for="tDisparador"><b>1 · Qué lo dispara</b><span>Elegí el tipo y contá cuál es en tu caso.</span></label>
+          <select id="tTipoDisparador">
+            <option value="correo">Llega un correo</option>
+            <option value="planilla">Se carga una fila en una planilla</option>
+            <option value="mensaje">Alguien le escribe a un bot</option>
+            <option value="formulario">Alguien completa un formulario</option>
+            <option value="horario">A una hora fija, todos los días</option>
+            <option value="manual">Alguien aprieta un botón</option>
+          </select>
+          <input type="text" id="tDisparador" style="margin-top:9px" placeholder="…al buzón de facturación, con un PDF adjunto">
+        </div>
+        <div class="campo">
+          <label for="tDatos"><b>2 · Qué datos viajan</b><span>Uno por línea, con el nombre que tienen en la vida real.</span></label>
+          <textarea id="tDatos" placeholder="Proveedor&#10;CUIT&#10;Número de factura&#10;Monto&#10;Fecha de vencimiento"></textarea>
+        </div>
+        <div class="campo">
+          <label for="tDecision"><b>3 · Dónde cambia el camino</b><span>La decisión principal. Escribila como una pregunta de sí o no.</span></label>
+          <input type="text" id="tDecision" placeholder="¿El monto supera los que Marcela puede autorizar sola?">
+        </div>
+        <div class="campo">
+          <label for="tSi"><b>4 · Qué se hace si la respuesta es sí</b><span>Una acción por línea, empezando con un verbo.</span></label>
+          <textarea id="tSi" placeholder="Avisarle al socio con el PDF adjunto&#10;Anotar la factura como pendiente de autorización"></textarea>
+        </div>
+        <div class="campo">
+          <label for="tNo"><b>… y si es que no</b><span>El camino de todos los días, que suele ser el más corto.</span></label>
+          <textarea id="tNo" placeholder="Cargar la factura en la planilla de pagos&#10;Archivar el correo en la etiqueta Facturas"></textarea>
+        </div>
+        <div class="campo">
+          <label for="tExcepcion"><b>5 · Qué pasa cuando sale mal</b><span>Lo que aprendimos la clase 6: qué falla, quién se entera.</span></label>
+          <textarea id="tExcepcion" placeholder="El correo llega sin adjunto, o la misma factura llega dos veces. Avisarle a Marcela y no cargar nada."></textarea>
+        </div>
+      </div>
+      <div class="taller-salida">
+        <h4>Tu algoritmo</h4>
+        <pre class="pseudo" id="pseudoSalida"></pre>
+        <div class="taller-acciones">
+          <button class="boton" type="button" id="bajarWorkflow">Bajar el esqueleto para n8n</button>
+          <button class="boton hueco" type="button" id="copiarPseudo">Copiar el algoritmo</button>
+        </div>
+        <div class="taller-aviso" id="tallerAviso"></div>
+      </div>
+    </div>
+
+    <p class="nota-pie">El archivo que baja no tiene credenciales ni nodos de aplicación: trae el disparador que elegiste, los campos que nombraste, la decisión como un IF y cada acción como un nodo vacío con su nombre. Es un esqueleto para completar en clase, no un flujo terminado. En n8n: Workflows → Import from File.</p>
+  </div>
+</section>
+
+<!-- ─────────── Traducción ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">La traducción</span>
+    <h2>Cada línea del algoritmo es un nodo, y solo una</h2>
+    <p class="intro">Esta tabla es la misma de siempre, ahora completa. Si tu pseudocódigo tiene una línea que no aparece acá, es que todavía está escrita en idioma humano y hay que bajarla un escalón antes de tocar el lienzo.</p>
+
+    <div class="tabla-envoltura">
+      <table class="traduccion">
+        <thead><tr><th>En el algoritmo</th><th>En el lienzo</th></tr></thead>
+        <tbody id="tablaTraduccion"></tbody>
+      </table>
+    </div>
+
+    <p class="nota-pie">La fila de <code>PARA CADA</code> es la que más sorprende y ya la vimos dos veces: en la clase 4 con los ítems y en la 6 con los bucles. En n8n no se escribe: ya está pasando.</p>
+  </div>
+</section>
+
+<!-- ─────────── Los olvidos ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Antes de festejar</span>
+    <h2>Los cuatro olvidos del primer intento</h2>
+    <p class="intro">Todo primer flujo tiene estos cuatro agujeros. No es falta de experiencia: es que las cuatro preguntas no aparecen solas cuando alguien cuenta su proceso. Hay que ir a buscarlas.</p>
+
+    <div class="olvido" id="olvidos"></div>
+
+    <div class="cita">El proceso que te cuentan es el de los días buenos. El que hay que automatizar es el de todos los días.</div>
+  </div>
+</section>
+
+<!-- ─────────── El caso ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Manos al lienzo</span>
+    <h2>El caso de Marcela, construido entero</h2>
+    <p class="intro">Las nueve frases del pasillo, pasadas por los cinco casilleros, convertidas en algoritmo y armadas en el lienzo. Es el mismo recorrido que acabás de hacer con el tuyo.</p>
+
+    <div class="caso">
+      <span class="n">Caso 07 · 11 nodos · una ejecución por correo</span>
+      <h3>Las facturas que llegan por correo</h3>
+      <pre>CUANDO llega un correo al buzón de facturación:
+    leer { remitente, asunto, adjuntos, fecha }
+
+    SI no trae ningún adjunto:
+        avisar a Marcela que llegó algo sin factura
+        FIN
+
+    leer del adjunto { proveedor, CUIT, número, monto, vencimiento }
+
+    SI el número de factura ya está en la planilla:
+        avisar que llegó repetida
+        FIN
+
+    SI monto > tope de autorización:
+        avisar al socio con el adjunto
+        cargar en la planilla como "pendiente de autorización"
+    SI NO:
+        cargar en la planilla como "para pagar"
+
+    archivar el correo con la etiqueta Facturas
+FIN</pre>
+      <p style="font-size:0.9rem">Dos de las tres decisiones no estaban en el relato original: salieron de preguntar por las excepciones. El caso feliz, el que Marcela contó primero, son apenas cuatro líneas de las dieciocho.</p>
+      <div class="acciones">
+        <a class="boton" href="workflows/07-facturas-por-correo-n8n.json" download>Descargar el caso de Marcela</a>
+      </div>
+    </div>
+
+    <p class="nota-pie">El control de repetidas usa la planilla como memoria, que es lo que se puede hacer hoy. En la clase 9 lo vamos a hacer bien, con las Data Tables de n8n, y ahí se va a ver por qué una planilla no es una base de datos.</p>
+  </div>
+</section>
+
+<!-- ─────────── Actividad ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Para el viernes</span>
+    <h2>El primer choque contra la realidad</h2>
+    <p class="intro">La clase 8 es este viernes y es sobre lo que pasa cuando tu proceso toca un sistema que no tiene nodo en n8n. Llegá con estas dos respuestas, que salen de mirar el esqueleto que bajaste.</p>
+
+    <div class="actividad" style="margin-top:30px">
+      <div class="pregunta">
+        <label for="q1"><b>Qué sistema de los tuyos no está en la lista</b><span>Abrí n8n, escribí el nombre de cada sistema que nombraste en tu proceso y fijate cuál no aparece. Ese es el que vamos a conectar el viernes.</span></label>
+        <textarea id="q1" placeholder="Por ejemplo: el sistema de gestión que usamos para facturar no aparece; tiene una web pero no sé si tiene API…"></textarea>
+      </div>
+      <div class="pregunta">
+        <label for="q2"><b>Qué parte de tu proceso depende de que alguien avise</b><span>Un webhook sirve cuando otro sistema te tiene que avisar a vos. ¿Dónde, en tu proceso, alguien está esperando a que le avisen?</span></label>
+        <textarea id="q2" placeholder="Por ejemplo: esperamos que el cliente confirme la transferencia y no hay forma de enterarse sin mirar el banco…"></textarea>
+      </div>
+      <div class="guardado" id="guardado"></div>
+    </div>
+  </div>
+</section>
+
+<div class="envoltura cierre">
+  <h2>Nos vemos el viernes 18 de septiembre</h2>
+  <p class="intro" style="margin:0 auto">Tu proceso ya tiene algoritmo y esqueleto. El viernes lo llevamos al lugar donde siempre se traba: el sistema que no tiene nodo, el que solo habla por su propia interfaz, el que te tiene que avisar a vos. APIs, webhooks y HTTP Request, ahora sobre tu caso y no sobre el mío.</p>
+  <div class="acciones">
+    <a class="boton" href="cronograma.html">Ver el cronograma completo</a>
+    <a class="boton hueco" href="06.html">Volver a la clase 6</a>
+  </div>
+</div>
+
+</main>
+
+<footer class="pie">
+  <div class="envoltura">
+    <span>Facultad de Ciencias Económicas · Universidad de Buenos Aires</span>
+    <span>Clase 7 · Diseño de Procesos de Negocios con Automatización e IA Agéntica</span>
+  </div>
+</footer>
+
+<script src="acceso.js"></script>
+<script src="clases.js"></script>
+<script src="menu.js"></script>
+<script src="clase07.js"></script>
+</body>
+</html>
