@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "content": "### Antes de correrlo\n\n1. Elegi tu planilla y tu hoja en los tres nodos de Google\n   (el disparador y el de marcar).\n2. La hoja necesita estas columnas, con estos nombres exactos:\n   **Pedido, Fecha, Cliente, Email, Cantidad, Producto, Monto,\n   Canal, Pago, Procesado**\n3. **Monto** va sin signo pesos y sin puntos: 18000, no $18.000.\n4. **Pago** se escribe siempre igual: MercadoLibre, Transferencia\n   o Efectivo. Un desplegable en la planilla evita el problema.\n5. Reemplaza los dos identificadores en mayusculas por los chat id\n   que te da BotFather.\n6. Proba con el boton de ejecutar antes de activar: las corridas\n   de prueba no consumen la cuota.",
+        "content": "### Antes de correrlo\n\n1. Elegi tu planilla y tu hoja en los tres nodos de Google\n   (el disparador y el de marcar).\n2. La hoja necesita estas columnas, con estos nombres exactos:\n   **Pedido, Fecha, Cliente, Email, Cantidad, Producto, Monto,\n   Canal, Pago, Procesado**\n3. **Monto** va sin signo pesos y sin puntos: 18000, no $18.000.\n4. **Pago** se escribe siempre igual: MercadoLibre, Transferencia\n   o Efectivo. Un desplegable en la planilla evita el problema.\n5. Reemplaza los dos identificadores en mayusculas por los chat id\n   que te da BotFather.\n6. Proba con el boton de ejecutar antes de publicar: las corridas\n   de prueba no consumen la cuota.",
         "height": 420,
         "width": 520,
         "color": 6

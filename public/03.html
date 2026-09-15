@@ -146,14 +146,17 @@
       <button data-zona="datos"><span>03</span>Entrada y salida</button>
       <button data-zona="expresiones"><span>04</span>Expresiones</button>
       <button data-zona="ejecuciones"><span>05</span>Ejecuciones</button>
-      <button data-zona="activar"><span>06</span>Prueba y activación</button>
+      <button data-zona="activar"><span>06</span>Prueba y publicación</button>
     </div>
     <div class="editor" aria-live="polite">
       <div class="editor-barra"><span>Pedido mínimo · borrador</span><span id="editorEstado">Modo de edición</span></div>
       <div class="editor-cuerpo"><div class="lienzo"><span class="conexion c1"></span><span class="conexion c2"></span><span class="conexion c3"></span><div class="nodo n1 activo" data-nodo="trigger"><b>Manual Trigger</b><small>disparador</small></div><div class="nodo n2" data-nodo="datos"><b>Preparar pedido</b><small>datos</small></div><div class="nodo n3" data-nodo="si"><b>Pedido alto</b><small>verdadero</small></div><div class="nodo n4" data-nodo="no"><b>Pedido normal</b><small>falso</small></div></div><aside class="panel"><span class="rot" id="panelRot">Lienzo</span><h3 id="panelTitulo">El mapa del proceso</h3><p id="panelTexto">Las flechas no significan “después” solamente: llevan los ítems que produjo el nodo anterior.</p><ul id="panelLista"><li>Nombrá cada nodo por su función</li><li>Leé el flujo de izquierda a derecha</li><li>No mezcles ramas sin decidir cómo reunirlas</li></ul></aside></div>
     </div>
   </div>
-</div></section>
+    <p class="nota-pie">Nota de revisión: n8n cambió el nombre de este paso. Donde en clase dijimos «activar», la interfaz hoy dice <b>Publish</b>, y guardar pasó a ser automático: lo que editás queda en borrador hasta que publicás, y producción sigue corriendo la última versión publicada. Verificado en la documentación de n8n el 15 de septiembre de 2026.</p>
+</div>
+
+</section>
 
 <section class="bloque"><div class="envoltura">
   <span class="rotulo">Manos al lienzo</span><h2>Un flujo pequeño que enseña lo importante</h2>
@@ -195,7 +198,7 @@
   <p class="intro">Abrí cada pregunta para ver una técnica concreta.</p>
   <div class="acordeon" id="acordeon">
     <div><button type="button" aria-expanded="false">¿Por dónde empiezo si hay diez nodos?<span>＋</span></button><div class="respuesta"><p>Buscá la primera salida distinta de lo esperado. Ejecutá por partes, de izquierda a derecha, y compará entrada con salida. El primer nodo que transforma mal el dato reduce el problema a una sola configuración.</p></div></div>
-    <div><button type="button" aria-expanded="false">¿Cuándo conviene fijar datos?<span>＋</span></button><div class="respuesta"><p>Cuando el disparador es lento, externo o difícil de repetir. Fijá una muestra representativa, probá los nodos siguientes y soltá los datos antes de activar el workflow.</p></div></div>
+    <div><button type="button" aria-expanded="false">¿Cuándo conviene fijar datos?<span>＋</span></button><div class="respuesta"><p>Cuando el disparador es lento, externo o difícil de repetir. Fijá una muestra representativa, probá los nodos siguientes y soltá los datos antes de publicar el workflow.</p></div></div>
     <div><button type="button" aria-expanded="false">¿Qué le comparto al chatbot?<span>＋</span></button><div class="respuesta"><ol><li>Objetivo del proceso en una frase.</li><li>Nodo que falla y mensaje exacto.</li><li>Entrada mínima y salida observada.</li><li>Configuración relevante o expresión.</li><li>Qué ya probaste y qué cambió.</li></ol></div></div>
     <div><button type="button" aria-expanded="false">¿Qué hago con una respuesta que propone cinco cambios?<span>＋</span></button><div class="respuesta"><p>Pedile que ordene hipótesis por probabilidad y que dé una prueba reversible para la primera. Cambiar muchas cosas juntas borra la evidencia y hace imposible saber cuál era la causa.</p></div></div>
     <div><button type="button" aria-expanded="false">¿Cuándo el chatbot no alcanza?<span>＋</span></button><div class="respuesta"><p>Cuando el problema depende de permisos reales, caídas del servicio, cuotas, credenciales o datos que no podés compartir. Ahí usá el historial de ejecuciones, la documentación oficial y una prueba controlada con una cuenta segura.</p></div></div>
@@ -203,7 +206,7 @@
 </div></section>
 
 <section class="bloque"><div class="envoltura">
-  <span class="rotulo">Cierre operativo</span><h2>Antes de activar, una pausa de sesenta segundos</h2>
+  <span class="rotulo">Cierre operativo</span><h2>Antes de publicar, una pausa de sesenta segundos</h2>
   <div class="tres-col" style="margin-top:30px"><div class="ficha"><span class="marca-capa">Lógica</span><h3>Dos caminos probados</h3><p>Un caso feliz y uno alternativo; condiciones con tipos y mayúsculas reales.</p></div><div class="ficha"><span class="marca-capa">Datos</span><h3>Sin secretos fijados</h3><p>Revisá datos de prueba, nombres de nodos, notas y credenciales elegidas.</p></div><div class="ficha"><span class="marca-capa">Operación</span><h3>Dueño y señal de falla</h3><p>Alguien sabe que el flujo existe, qué hace y dónde mirar si deja de hacerlo.</p></div></div>
   <div class="cita">Un workflow no está terminado cuando corre una vez. Está terminado cuando alguien puede entender qué pasó cuando no corre.</div>
 </div></section>

@@ -118,8 +118,12 @@ Contra la fuente (docs.n8n.io y la grilla de n8n.io), no contra recuerdos:
 
 - **Los flujos no se activan: se publican.** n8n guarda solo cada pocos segundos
   y todo queda en borrador hasta el Publish, que además congela la versión que
-  corre en producción. Las clases 7 y 8 ya usan ese vocabulario; las clases 1, 2
-  y 3 dicen "activar" y habría que repasarlas.
+  corre en producción. Las ocho clases publicadas ya usan ese vocabulario. Las
+  clases 2 y 3, que se dictaron diciendo "activar", llevan además una nota de
+  revisión fechada que explica el cambio, para que nadie crea que la página se
+  contradice con lo que escuchó en el aula. Ese es el patrón cuando la
+  herramienta cambia debajo de una clase ya dictada: corregir el texto y dejar
+  la nota, nunca reescribir en silencio.
 - **n8n 3.0 sale en octubre de 2026**, en pleno módulo 5. Lo que rompe:
   self-hosted pasa a requerir Docker (npm y npx dejan de servir), se eliminan los
   nodos Function, Function Item, Item Lists, LangChain Code y AI Transform, se va
