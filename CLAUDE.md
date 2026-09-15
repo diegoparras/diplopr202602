@@ -109,9 +109,33 @@ Estado: publicadas las clases 1 a 8. El módulo 3 cambió la regla: desde la 7 e
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
-alimenta la 9. Quedan dos deudas anotadas: la memoria entre ejecuciones (Data
-Tables, clase 9) y la planilla usada como base de datos en el caso de la 7, que
-la 9 tiene que desarmar.
+alimenta la 9. Deudas anotadas: la memoria entre ejecuciones (Data Tables, clase
+9) y la planilla usada como base de datos en el caso de la 7, que la 9 desarma.
+
+## El terreno de n8n, verificado el 15 de septiembre de 2026
+
+Contra la fuente (docs.n8n.io y la grilla de n8n.io), no contra recuerdos:
+
+- **Los flujos no se activan: se publican.** n8n guarda solo cada pocos segundos
+  y todo queda en borrador hasta el Publish, que además congela la versión que
+  corre en producción. Las clases 7 y 8 ya usan ese vocabulario; las clases 1, 2
+  y 3 dicen "activar" y habría que repasarlas.
+- **n8n 3.0 sale en octubre de 2026**, en pleno módulo 5. Lo que rompe:
+  self-hosted pasa a requerir Docker (npm y npx dejan de servir), se eliminan los
+  nodos Function, Function Item, Item Lists, LangChain Code y AI Transform, se va
+  el helper `$getPairedItem`, y el nodo AI Agent pierde su versión 1 con los
+  modos viejos (SQL Agent, Conversational, ReAct). Nada de eso lo usa esta
+  cursada: enseñamos Code, Split Out, Aggregate, Summarize, `$('Nodo').item` y
+  Tools Agent. El módulo 5 ya iba por Docker, así que el cambio lo confirma.
+- **Cuotas.** Solo cuentan las ejecuciones de producción y solo en planes pagos.
+  No cuentan: manuales, sub-workflows, **flujos de error**, sondeos que no
+  encuentran datos y pedidos malformados. El Schedule Trigger cuenta siempre;
+  los de sondeo, solo cuando encuentran algo; los webhooks, cada pedido que
+  active el disparador, incluso con cuerpo vacío.
+- **Precios Cloud (grilla, facturación anual).** Starter 20 € y 2.500
+  ejecuciones, Pro 50 € y 10.000, Business 667 € y 40.000. Todos con usuarios y
+  workflows ilimitados. El plan gratuito de 50 ejecuciones no figura en la
+  grilla: sale del panel de la cuenta y conviene reconfirmarlo cada cohorte.
 
 ## Despliegue
 

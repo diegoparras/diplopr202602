@@ -146,6 +146,13 @@
   }
   .mando input[type="number"]:focus { outline: none; border-color: var(--naranja); }
   .mando small { display: block; margin-top: 6px; font-size: 0.8rem; color: var(--tenue); }
+  .atajos { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 9px; }
+  .atajos button {
+    padding: 5px 11px; border-radius: 999px; border: 1px solid var(--linea);
+    background: transparent; color: var(--tenue); cursor: pointer;
+    font-family: var(--dato); font-size: 0.68rem; transition: all 0.15s ease;
+  }
+  .atajos button:hover { color: var(--texto); border-color: var(--naranja); background: var(--brasa); }
 
   .marcador-grande {
     font-family: var(--display); font-weight: 800; letter-spacing: -0.03em;
@@ -318,7 +325,7 @@
 
     <div class="cuenta-rejilla" id="cuentaCasos"></div>
 
-    <p class="nota-pie">Reglas de conteo según la documentación de n8n, consultada el 8 de septiembre de 2026: <a href="https://docs.n8n.io/build/understand-workflows/understand-executions/types-of-executions" target="_blank" rel="noopener">Types of executions</a>. Es la clase de dato que cambia sin aviso: antes de tomar una decisión de plata, verificalo en tu propio panel de facturación.</p>
+    <p class="nota-pie">Reglas de conteo según la documentación de n8n, verificadas contra la fuente el 15 de septiembre de 2026: <a href="https://docs.n8n.io/build/understand-workflows/understand-executions/types-of-executions" target="_blank" rel="noopener">Types of executions</a>. Es la clase de dato que cambia sin aviso: antes de tomar una decisión de plata, verificalo en tu propio panel de facturación.</p>
   </div>
 </section>
 
@@ -348,7 +355,13 @@
         <div class="mando">
           <label for="limite">Tu límite mensual</label>
           <input type="number" id="limite" min="1" max="200000" step="1" value="50">
-          <small>Miralo en tu panel de n8n, no acá: el número que trae por defecto es el del plan gratuito verificado el 12 de agosto de 2026 y puede haber cambiado.</small>
+          <div class="atajos" id="atajosLimite">
+            <button type="button" data-limite="50">Gratuito · 50</button>
+            <button type="button" data-limite="2500">Starter · 2.500</button>
+            <button type="button" data-limite="10000">Pro · 10.000</button>
+            <button type="button" data-limite="40000">Business · 40.000</button>
+          </div>
+          <small>El que manda es el de tu panel. Los tres pagos salen de la grilla de precios de n8n verificada el 15 de septiembre de 2026; el gratuito, del panel de la cuenta el 12 de agosto, y es el que conviene reconfirmar.</small>
         </div>
       </div>
       <div class="calc-panel">
@@ -361,7 +374,7 @@
       </div>
     </div>
 
-    <p class="nota-pie">La cuenta usa un mes de 30 días. Los planes pagos de n8n se cotizan por volumen de ejecuciones y los números cambian seguido: no los copiamos acá para no publicar un dato viejo. Están en la grilla de precios de n8n, y el que manda siempre es el de tu panel.</p>
+    <p class="nota-pie">La cuenta usa un mes de 30 días. Los planes de n8n Cloud, verificados en su grilla de precios el 15 de septiembre de 2026, se cobran por ejecuciones y no por pasos: Starter 20 € por mes con facturación anual y 2.500 ejecuciones, Pro 50 € y 10.000, Business 667 € y 40.000. Todos incluyen usuarios y workflows ilimitados. Es un dato que cambia: antes de decidir nada, miralo en la grilla y sobre todo en tu panel.</p>
   </div>
 </section>
 

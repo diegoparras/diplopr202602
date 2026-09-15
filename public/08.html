@@ -405,7 +405,7 @@
           <h3>Antes de que te trabes</h3>
           <ul>
             <li><b>Hay dos direcciones</b>, una de prueba y una de producción. La de prueba solo escucha mientras apretás «Listen». Si probaste y anduvo pero en la vida real no llega nada, es casi siempre esto.</li>
-            <li><b>El flujo tiene que estar activo</b> para que la de producción funcione. Guardar no alcanza.</li>
+            <li><b>El flujo tiene que estar publicado</b> para que la de producción funcione. Y ojo con esto, que es nuevo y confunde: n8n guarda solo, cada pocos segundos, pero todo lo que editás queda en <b>borrador</b>. Producción sigue corriendo la última versión publicada, no lo que ves en pantalla.</li>
             <li><b>Si el otro sistema espera una respuesta</b>, hace falta el nodo Respond to Webhook. Si no, se queda esperando y te marca error del lado de él.</li>
           </ul>
         </div>
@@ -421,6 +421,8 @@
       <span class="webhook-flecha">→</span>
       <div class="webhook-caja"><b>Respond to Webhook</b><small>solo si esperan respuesta</small></div>
     </div>
+
+    <p class="nota-pie">Publicar, además, congela una versión: los webhooks pasan a su dirección de producción, los horarios empiezan a correr y los eventos de otras apps disparan ese flujo. Mientras tanto podés seguir editando sin miedo, porque lo que toques queda en borrador hasta el próximo Publish. Verificado en la documentación de n8n el 15 de septiembre de 2026.</p>
 
     <p class="nota-pie">Ese IF del segundo lugar no es decorativo. Una dirección de webhook es pública: cualquiera que la conozca puede llamarla, y cada llamada es una ejecución tuya. Validar que el pedido trae lo que esperás es lo mínimo, y en la clase 15 lo vamos a hacer bien, con una clave compartida.</p>
   </div>

@@ -56,7 +56,7 @@ const CASOS_CUENTA = [
   { suma: false, cuanto: '0',
     titulo: 'Probás el flujo desde el editor',
     texto: 'Apretás «Execute workflow» veinte veces mientras lo armás.',
-    porque: 'Las ejecuciones manuales no cuentan. Esto es lo que hace que valga la pena probar cada nodo por separado en vez de activar y rezar.' },
+    porque: 'Las ejecuciones manuales no cuentan. Esto es lo que hace que valga la pena probar cada nodo por separado en vez de publicar y rezar.' },
   { suma: true, cuanto: '1 por disparo',
     titulo: 'Un flujo por horario que corre cada cinco minutos',
     texto: 'Revisa si hay algo nuevo. Casi siempre no hay nada.',
@@ -69,6 +69,10 @@ const CASOS_CUENTA = [
     titulo: 'Alguien llama a tu webhook',
     texto: 'Incluso si el pedido llega vacío.',
     porque: 'Cada pedido entrante que activa el disparador cuenta, aunque el cuerpo venga vacío. Un webhook público es una puerta abierta también para la facturación.' },
+  { suma: false, cuanto: '0',
+    titulo: 'El flujo de errores se dispara y avisa',
+    texto: 'El que armamos en esta misma clase, el que manda el mensaje cuando otro falla.',
+    porque: 'Las corridas de un workflow puesto como error workflow no cuentan para la cuota. O sea: enterarte de que algo se rompió es gratis, y no hay ninguna excusa para no tenerlo.' },
   { suma: false, cuanto: '0',
     titulo: 'Un flujo llama a otro como sub-workflow',
     texto: 'El bot con agente de la clase 5 usaba el flujo determinista como herramienta.',
@@ -174,6 +178,19 @@ const CASOS_CUENTA = [
   }
 
   [$porDia, $pico, $picos, $limite].forEach(el => el.addEventListener('input', calcular));
+
+  // Atajos con los límites de los planes, verificados en la grilla de n8n
+  // el 15 de septiembre de 2026. El del plan gratuito sale del panel de la
+  // cuenta, no de la grilla, y es el que más conviene reconfirmar.
+  const $atajos = document.getElementById('atajosLimite');
+  if ($atajos) {
+    $atajos.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      $limite.value = b.dataset.limite;
+      calcular();
+    });
+  }
   window.addEventListener('cambio-tema', calcular);
   calcular();
 

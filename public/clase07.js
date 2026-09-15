@@ -427,7 +427,7 @@ const OLVIDOS = [
     texto: 'El CUIT a veces con guiones, el monto con signo pesos, la fecha escrita a mano. Lo vimos en la clase 4 con los tipos y vuelve siempre, porque del otro lado hay personas.',
     pregunta: '¿Me mostrás tres ejemplos reales, no uno inventado?' },
   { titulo: 'El flujo no tiene dueño',
-    texto: 'Se arma para alguien, se activa, y a los dos meses falla un martes sin que nadie lo note. La clase 6 le puso nombre: sin aviso y sin dueño, no está en producción.',
+    texto: 'Se arma para alguien, se publica, y a los dos meses falla un martes sin que nadie lo note. La clase 6 le puso nombre: sin aviso y sin dueño, no está en producción.',
     pregunta: '¿Quién se tiene que enterar cuando esto deje de andar?' }
 ];
 
