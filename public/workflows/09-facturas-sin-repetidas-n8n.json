@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "content": "## Tres cosas antes de darle a ejecutar\n\n**1. Crea la tabla.** Pestania `Data tables` del proyecto,\nboton `Create Data table`, nombre `facturas_vistas`, con\nestas columnas:\n\n```\nnumero      texto    (la llave)\nproveedor   texto\nmonto       numero\nestado      texto\nfecha       texto\n```\n\n**2. Elegi la tabla en los tres nodos Data Table.** Vienen\nvacios a proposito: las tablas son de tu proyecto y no viajan\nadentro del JSON, igual que las credenciales. Al abrir cada\nnodo, elegila de la lista.\n\n**3. Cambia los dos `PEGAR_...`** por el chat de Telegram de\nMarcela y el del socio, y elegi tu planilla en el nodo de\nGoogle Sheets.\n\nEl tope de autorizacion esta en el nodo **Leer los datos**,\npuesto en 200000 como en la clase 07.",
+        "content": "## Tres cosas antes de darle a ejecutar\n\n**1. Crea la tabla.** Pestania `Data tables` del proyecto,\nboton `Create Data table`, nombre `facturas_vistas`, con\nestas columnas:\n\n```\nnumero      texto    (la llave)\nproveedor   texto\nmonto       numero\nestado      texto\nfecha       texto\n```\n\n**2. Elegi la tabla en los tres nodos Data Table.** Vienen\nvacios a proposito: las tablas son de tu proyecto y no viajan\nadentro del JSON, igual que las credenciales. Al abrir cada\nnodo, elegila de la lista.\n\n**3. Cambia los dos `PEGAR_...`** por el chat de Telegram de\nMarcela y el del socio, y elegi tu planilla en el nodo de\nGoogle Sheets.\n\nEl tope de autorizacion esta en el nodo **Leer los datos**,\npuesto en 50000, que es el numero que usamos desde la\nclase 01. El flujo de la clase 07 todavia dice 200000: si\nlos corres uno al lado del otro, acordate de emparejarlos.",
         "height": 700,
         "width": 460,
         "color": 3
@@ -146,7 +146,7 @@
             {
               "id": "c9100000-0000-4000-8000-000000000012",
               "name": "tope",
-              "value": "=200000",
+              "value": "=50000",
               "type": "number"
             }
           ]
