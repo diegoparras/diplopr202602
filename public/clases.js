@@ -45,7 +45,7 @@ const CLASES = [
   { n:  8, fecha: '2026-09-18', dia: 'Viernes',   mod: 'M3', pagina: '08.html',
     titulo: 'APIs, webhooks y HTTP Request: conectar lo que no tiene nodo',
     bajada: 'Las cuatro maneras de hablar con un sistema ajeno, leer un JSON sin adivinar, las cuatro puertas de autenticación y el flujo que espera que lo llamen.' },
-  { n:  9, fecha: '2026-09-23', dia: 'Miércoles', mod: 'M3', pagina: null,
+  { n:  9, fecha: '2026-09-23', dia: 'Miércoles', mod: 'M3', pagina: '09.html',
     titulo: 'Datos: Data Tables, expresiones y transformaciones',
     bajada: 'Guardar estado dentro de n8n, escribir expresiones y ordenar datos que vienen sucios.' },
   { n: 10, fecha: '2026-09-30', dia: 'Miércoles', mod: 'M4', pagina: null,

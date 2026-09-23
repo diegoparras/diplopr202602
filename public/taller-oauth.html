@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taller · n8n self-hosted + Google OAuth en producción · FCE-UBA</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  :root { --acierto: #22C55E; --fallo: #F87171; --alerta: #EAB308; }
+  :root[data-tema="claro"] { --acierto: #15803D; --fallo: #B4231A; --alerta: #A16207; }
+
+  section.bloque { padding: 84px 0; border-top: 1px solid var(--linea); }
+  .bloque h2 { max-width: 22ch; margin: 18px 0 22px; }
+  .bloque .intro { max-width: 62ch; font-size: 1.05rem; }
+  .nota-pie { margin-top: 14px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); line-height: 1.7; }
+  code, .mono { font-family: var(--dato); font-size: 0.85em; color: var(--naranja); overflow-wrap: anywhere; }
+  p + p { margin-top: 14px; }
+
+  /* ── Portada ── */
+  .portada { padding: 54px 0 20px; }
+  .portada h1 { max-width: 20ch; margin: 20px 0 20px; }
+  .portada .sub {
+    font-family: var(--display); font-weight: 600;
+    font-size: clamp(1.05rem, 2.2vw, 1.4rem); letter-spacing: -0.018em;
+    color: var(--naranja); max-width: 44ch; margin-bottom: 22px;
+  }
+  .portada .meta {
+    display: flex; gap: 28px; flex-wrap: wrap;
+    font-family: var(--dato); font-size: 0.75rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue);
+    margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--linea);
+  }
+  @media (max-width: 720px) { .portada { padding: 40px 0 18px; } }
+
+  /* ── Avisos ── */
+  .aviso {
+    border: 1px solid var(--linea); border-left: 3px solid var(--naranja);
+    border-radius: 0 12px 12px 0; background: var(--sup);
+    padding: 18px 22px; margin-top: 26px; max-width: 74ch;
+  }
+  .aviso p { font-size: 0.92rem; }
+  .aviso .titulo-aviso {
+    display: block; font-family: var(--dato); font-size: 0.68rem;
+    letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--naranja); margin-bottom: 8px;
+  }
+  .aviso.cuidado { border-left-color: var(--alerta); }
+  .aviso.cuidado .titulo-aviso { color: var(--alerta); }
+  .aviso.peligro { border-left-color: var(--fallo); }
+  .aviso.peligro .titulo-aviso { color: var(--fallo); }
+  .aviso.bien { border-left-color: var(--acierto); }
+  .aviso.bien .titulo-aviso { color: var(--acierto); }
+
+  /* ── Diagrama de dependencias ── */
+  .grafo-caja { margin-top: 34px; background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 22px; box-shadow: var(--sombra); overflow-x: auto; }
+  .grafo-caja svg { display: block; width: 100%; min-width: 660px; height: auto; }
+
+  /* ── Panel de variables ── */
+  .panel-vars { background: var(--sup); border: 1px solid var(--linea); border-radius: 18px; padding: 26px; box-shadow: var(--sombra); }
+  .panel-vars h3 { margin-bottom: 6px; }
+  .rejilla-vars { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
+  @media (max-width: 760px) { .rejilla-vars { grid-template-columns: 1fr; } }
+  .campo-var { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .campo-var label {
+    font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--naranja);
+  }
+  .campo-var input {
+    width: 100%; min-width: 0; padding: 10px 13px;
+    background: var(--fondo); color: var(--texto);
+    border: 1px solid var(--linea); border-radius: 9px;
+    font-family: var(--dato); font-size: 0.83rem;
+  }
+  .campo-var input:focus { outline: 2px solid var(--naranja); outline-offset: 1px; }
+  .campo-var .ayuda { font-size: 0.76rem; color: var(--tenue); line-height: 1.55; }
+  .acciones-vars { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; align-items: center; }
+  .derivadas { margin-top: 24px; border-top: 1px solid var(--linea); padding-top: 20px; }
+  .derivadas h4 { font-size: 0.95rem; margin-bottom: 4px; }
+  .lista-derivadas { margin-top: 14px; display: grid; gap: 8px; }
+  .lista-derivadas div { display: flex; gap: 12px; flex-wrap: wrap; font-family: var(--dato); font-size: 0.78rem; }
+  .lista-derivadas b { color: var(--tenue); font-weight: 400; min-width: 20ch; }
+  .lista-derivadas span { color: var(--texto); overflow-wrap: anywhere; }
+
+  /* ── Estructura del taller ── */
+  /* minmax(0, 1fr) y no 1fr: el minimo automatico de una pista es su
+     min-content, y los <pre> de codigo son anchos. Sin esto la grilla se
+     estira mas alla del viewport en telefono. */
+  .taller { display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: 48px; align-items: start; padding: 54px 0 0; }
+  .indice, .cuerpo-taller { min-width: 0; }
+  @media (max-width: 980px) { .taller { grid-template-columns: minmax(0, 1fr); gap: 0; padding-top: 34px; } }
+
+  .indice { position: sticky; top: 86px; max-height: calc(100vh - 116px); display: flex; flex-direction: column; }
+  @media (max-width: 980px) {
+    .indice { position: static; max-height: none; margin-bottom: 34px; }
+    /* En telefono el indice va arriba del contenido: si se despliega entero
+       son 800px de enlaces antes de la primera etapa. Se vuelve una caja. */
+    .indice ol { max-height: 228px; border: 1px solid var(--linea); border-radius: 11px; padding: 7px; }
+  }
+  .indice .rot-indice {
+    font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--tenue); margin-bottom: 12px;
+  }
+  .avance { height: 4px; border-radius: 999px; background: var(--sup2); overflow: hidden; margin-bottom: 8px; }
+  .avance i { display: block; height: 100%; width: 0; background: var(--naranja); transition: width 0.3s ease; }
+  .avance-txt { font-family: var(--dato); font-size: 0.68rem; color: var(--tenue); margin-bottom: 16px; display: block; }
+  .indice ol { list-style: none; overflow-y: auto; padding-right: 6px; }
+  .indice li { margin-bottom: 1px; }
+  .indice a {
+    display: flex; gap: 9px; align-items: baseline;
+    padding: 5px 9px; border-radius: 7px;
+    font-size: 0.8rem; line-height: 1.35; color: var(--tenue);
+  }
+  .indice a:hover { background: var(--sup); color: var(--texto); text-decoration: none; }
+  .indice a.aqui { background: var(--brasa); color: var(--texto); }
+  .indice a em { font-family: var(--dato); font-style: normal; font-size: 0.72rem; color: var(--naranja); flex-shrink: 0; }
+  .indice .aparte { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--linea); }
+
+  /* ── Etapas ── */
+  .etapa { border-top: 1px solid var(--linea); padding: 40px 0; scroll-margin-top: 92px; min-width: 0; }
+  .etapa:first-child { border-top: 0; padding-top: 0; }
+  .etapa > .num {
+    font-family: var(--dato); font-size: 0.7rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--naranja); display: block; margin-bottom: 10px;
+  }
+  .etapa h3 { margin-bottom: 12px; }
+  .etapa p { font-size: 0.95rem; }
+  .etapa ol.pasos, .etapa ul.puntos { margin: 16px 0 0 20px; }
+  .etapa ol.pasos li, .etapa ul.puntos li { font-size: 0.93rem; color: var(--tenue); margin-bottom: 8px; }
+  .etapa h4 { font-size: 0.98rem; margin: 24px 0 8px; }
+
+  /* ── Bloques de código con copiar ── */
+  .cod { position: relative; margin-top: 16px; min-width: 0; }
+  .cod pre {
+    min-width: 0;
+    background: #0E0E11; border: 1px solid var(--linea); border-radius: 11px;
+    padding: 16px 92px 16px 18px; overflow-x: auto;
+    font-family: var(--dato); font-size: 0.8rem; line-height: 1.75;
+    color: #E6E3DD; white-space: pre; tab-size: 2;
+  }
+  :root[data-tema="claro"] .cod pre { background: #1A1A1F; color: #EDEBE5; border-color: transparent; }
+  .cod .copiar {
+    position: absolute; top: 9px; right: 9px;
+    padding: 5px 11px; border: 1px solid rgba(255,255,255,0.16); border-radius: 7px;
+    background: rgba(255,255,255,0.06); color: #E6E3DD;
+    font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.06em;
+    text-transform: uppercase; cursor: pointer;
+  }
+  .cod .copiar:hover { border-color: var(--naranja); color: var(--naranja); }
+  .cod .copiar.hecho { color: var(--acierto); border-color: var(--acierto); }
+  .cod .rot-cod {
+    font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--tenue); display: block; margin-bottom: 7px;
+  }
+
+  /* ── Tabla de DNS y de scopes ── */
+  .tabla-caja { margin-top: 18px; overflow-x: auto; min-width: 0; }
+  table.datos { width: 100%; min-width: 440px; border-collapse: collapse; font-size: 0.85rem; }
+  table.datos th, table.datos td {
+    text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--linea); vertical-align: top;
+  }
+  table.datos th {
+    font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--naranja); font-weight: 400; white-space: nowrap;
+  }
+  table.datos td { color: var(--tenue); }
+  table.datos td.m { font-family: var(--dato); font-size: 0.78rem; color: var(--texto); overflow-wrap: anywhere; }
+  table.datos tr:last-child td { border-bottom: 0; }
+
+  /* ── Los tres archivos ── */
+  .pestanas { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+  .pestanas button {
+    padding: 7px 15px; border: 1px solid var(--linea); border-radius: 999px;
+    background: transparent; color: var(--tenue);
+    font-family: var(--dato); font-size: 0.75rem; cursor: pointer;
+  }
+  .pestanas button:hover { color: var(--texto); border-color: var(--naranja); }
+  .pestanas button[aria-selected="true"] { background: var(--brasa); color: var(--texto); border-color: var(--naranja); }
+  .acciones-arch { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* ── Troubleshooting ── */
+  .lio { border: 1px solid var(--linea); border-radius: 12px; background: var(--sup); margin-top: 12px; overflow: hidden; }
+  .lio summary {
+    padding: 15px 20px; cursor: pointer; list-style: none;
+    font-family: var(--dato); font-size: 0.82rem; color: var(--texto);
+    display: flex; gap: 12px; align-items: center;
+  }
+  .lio summary::-webkit-details-marker { display: none; }
+  .lio summary::before { content: '+'; color: var(--naranja); font-size: 1rem; flex-shrink: 0; }
+  .lio[open] summary::before { content: '\2212'; }
+  .lio summary:hover { color: var(--naranja); }
+  .lio .adentro { padding: 0 20px 20px; border-top: 1px solid var(--linea); padding-top: 16px; }
+  .lio .adentro p { font-size: 0.9rem; }
+
+  /* ── Checklist ── */
+  .lista-chk { margin-top: 22px; display: grid; gap: 2px; }
+  .lista-chk label {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 9px 13px; border-radius: 9px; cursor: pointer;
+    font-size: 0.9rem; color: var(--tenue);
+  }
+  .lista-chk label:hover { background: var(--sup); }
+  .lista-chk input { margin-top: 5px; accent-color: var(--naranja); flex-shrink: 0; width: 15px; height: 15px; }
+  .lista-chk input:checked + span { color: var(--texto); }
+  .lista-chk span { min-width: 0; overflow-wrap: anywhere; }
+  .resumen-chk {
+    margin-top: 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    font-family: var(--dato); font-size: 0.78rem; color: var(--tenue);
+  }
+
+  /* ── Fuentes ── */
+  .fuentes { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  @media (max-width: 800px) { .fuentes { grid-template-columns: 1fr; } }
+  .fuentes h4 { font-size: 0.95rem; margin-bottom: 10px; }
+  .fuentes ul { list-style: none; }
+  .fuentes li { margin-bottom: 9px; font-size: 0.85rem; line-height: 1.5; }
+  .fuentes li .verif {
+    font-family: var(--dato); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 1px 7px; border-radius: 999px; border: 1px solid var(--acierto); color: var(--acierto);
+    margin-left: 7px; white-space: nowrap;
+  }
+  .fuentes li .verif.no { border-color: var(--tenue); color: var(--tenue); }
+  .fuentes a { overflow-wrap: anywhere; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .avance i, .boton { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-int">
+    <a class="marca" href="cronograma.html"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 32 H30 M38 22 H30 M38 42 H30 M30 22 V42" fill="none" stroke="#FB923C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="32" r="5.5" fill="#F97316"/><circle cx="44" cy="21" r="5" fill="#FDBA74"/><circle cx="44" cy="43" r="5" fill="#FDBA74"/></svg>Diplomatura <span>Procesos</span> · FCE-UBA</a>
+    <nav>
+      <a href="cronograma.html">Cronograma</a>
+      <span data-selector-clases><a href="cronograma.html">Clases</a></span>
+      <a href="#" id="salir">Salir</a>
+      <button class="tema" type="button" title="Cambiar tema">
+        <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<div class="envoltura portada">
+  <span class="rotulo">Taller de apoyo · Módulo 5 · Orquestar y alojar</span>
+  <h1>n8n propio + Google OAuth en producción</h1>
+  <p class="sub">Un pod en PikaPods, un dominio gratuito, GitHub Pages para las páginas que Google exige, y la app de Google Cloud pasada a producción.</p>
+  <p class="intro">Este taller no es una clase: es un procedimiento que vas a seguir con el navegador abierto en cinco pestañas. Aparece acá porque es la pieza que separa un n8n de juguete de un n8n que sirve, y porque el 90&nbsp;% de la gente que abandona el self-hosting abandona exactamente en este paso. Las veinte etapas están en el orden que evita hacer el trabajo dos veces.</p>
+  <div class="aviso bien">
+    <span class="titulo-aviso">Antes de empezar: puede que no lo necesites</span>
+    <p>Si lo único que querés es probar Gmail o Sheets desde un n8n que corre en tu propia máquina, <b>nada de esto hace falta</b>. La documentación de n8n es explícita: para desarrollo local no necesitás dominio público, ni certificado, ni abrir puertos, porque Google acepta <code>localhost</code> como URI de redirección. El callback es <code data-plantilla>http://localhost:5678/rest/oauth2-credential/callback</code> y se termina ahí.</p>
+    <p>Las veinte etapas de abajo son para el otro caso: una instancia que vive en internet, que tiene que seguir funcionando la semana que viene sin que vuelvas a autorizar nada. Leé la etapa&nbsp;0 y decidí en cuál de los dos casos estás antes de invertir la tarde.</p>
+    <p class="nota-pie">El dato de <code>localhost</code>, verificado en <code>docs.n8n.io/integrations/builtin/credentials/google/oauth-single-service</code> el 23 de septiembre de 2026.</p>
+  </div>
+  <div class="aviso cuidado">
+    <span class="titulo-aviso">Validez de esta guía</span>
+    <p>Guía validada con la interfaz disponible al <b>23 de septiembre de 2026</b>. Google, GitHub, PikaPods y ClouDNS pueden modificar nombres de menús o requisitos. Si un botón no se llama como acá, buscá el que hace lo mismo antes de suponer que el paso desapareció.</p>
+  </div>
+  <div class="meta">
+    <span>Veinte etapas</span>
+    <span>Entre 40 y 90 minutos, más esperas de DNS</span>
+    <span>Se usa en las clases 14 y 15</span>
+  </div>
+</div>
+
+<section class="bloque" id="orden">
+  <div class="envoltura">
+    <span class="rotulo">Etapa 0</span>
+    <h2>Por qué el orden no es negociable</h2>
+    <p class="intro">Acá también vale lo que venimos haciendo toda la cursada: antes de tocar la herramienta, el proceso. Este procedimiento tiene una sola propiedad interesante, y es que casi todo depende de algo anterior. Si lo hacés en el orden intuitivo —abrir Google Cloud primero, porque es lo que querés— vas a cargar el callback equivocado, y después vas a tener que volver a pasar por la autorización entera.</p>
+    <p>La dependencia que arruina la tarde es una sola: <b>el callback de OAuth lleva adentro el nombre del dominio</b>. Si registrás el callback antes de tener el dominio andando, registrás el host <code>pikapod.net</code> que te dieron al crear el pod, y cuando después pongas el dominio propio el callback cambia y Google te contesta <code>redirect_uri_mismatch</code>. De ahí sale todo el orden: primero el DNS, después el certificado, después el callback, y recién al final Google.</p>
+    <div class="grafo-caja">
+      <div id="grafo" role="img" aria-label="Diagrama de dependencias entre las etapas: la zona DNS habilita tres ramas paralelas (el subdominio de n8n, las páginas públicas y la verificación del dominio), y las tres desembocan en la app de Google Cloud."></div>
+    </div>
+    <p class="nota-pie">Las tres ramas del medio son independientes entre sí: mientras esperás que PikaPods emita el certificado podés estar armando el repositorio, y mientras GitHub verifica el DNS podés estar habilitando las APIs. Lo único que no se puede adelantar es la columna de la derecha.</p>
+  </div>
+</section>
+
+<div class="envoltura marco-taller">
+<div class="taller">
+
+  <aside class="indice">
+    <span class="rot-indice">Las etapas</span>
+    <div class="avance"><i id="avanceBarra"></i></div>
+    <span class="avance-txt" id="avanceTxt">0 de 20 marcadas</span>
+    <ol id="indiceLista"></ol>
+  </aside>
+
+  <div class="cuerpo-taller">
+
+    <div class="panel-vars" id="variables">
+      <span class="rotulo">Tus datos</span>
+      <h3>Variables del taller</h3>
+      <p style="font-size:0.92rem;margin-top:8px;">Completá esto una vez y toda la guía queda escrita con tus valores: los registros de DNS, el callback, las URLs de las páginas públicas y los tres archivos HTML. Se guarda en tu navegador, así que si cerrás la pestaña y volvés mañana sigue estando.</p>
+      <div class="aviso peligro" style="margin-top:18px;">
+        <span class="titulo-aviso">Acá no se pega ningún secreto</span>
+        <p>Este formulario pide sólo datos que después van a ser públicos de todos modos: un dominio, un usuario de GitHub, un correo de contacto. <b>El Client Secret de Google no se pega acá, ni en ningún formulario web, ni en un repositorio, ni en una captura.</b> Su único lugar es el campo de la credencial de n8n, que lo guarda cifrado y no lo exporta con el workflow. Esta página no tiene ningún campo donde pegarlo, y es a propósito.</p>
+      </div>
+      <div class="rejilla-vars" id="rejillaVars"></div>
+      <div class="acciones-vars">
+        <button class="boton" type="button" id="aplicarVars">Aplicar variables</button>
+        <button class="boton hueco" type="button" id="resetVars">Volver a los ejemplos</button>
+        <span class="mono" id="estadoVars" style="color:var(--tenue);"></span>
+      </div>
+      <div class="derivadas">
+        <h4>Lo que se calcula solo</h4>
+        <p style="font-size:0.88rem;">De esos ocho campos salen los ocho valores que vas a estar copiando y pegando el resto de la tarde. No los escribas a mano: copialos de acá, porque la mitad de los errores de este procedimiento son una barra final de más o de menos.</p>
+        <div class="lista-derivadas" id="listaDerivadas"></div>
+      </div>
+      <p class="nota-pie">Los valores que vienen cargados son de ejemplo y no existen: <code>ejemplo-dns.com</code> no es un sufijo real. El sufijo gratuito te lo va a ofrecer el proveedor de DNS en una lista, y esa lista cambia con el tiempo.</p>
+    </div>
+
+    <div id="etapas"></div>
+
+    <section class="etapa" id="paginas">
+      <span class="num">Anexo del paso 5</span>
+      <h3>Los tres archivos que pide Google</h3>
+      <p>Google no te va a dejar completar el Branding sin una página de inicio, una política de privacidad y unos términos, y las tres tienen que estar publicadas en el dominio que vas a declarar. Son tres archivos HTML sin nada raro adentro. Están escritos con tus variables ya aplicadas: copiá o descargá cada uno y subilo al repositorio en la ruta que dice el rótulo.</p>
+      <div class="aviso cuidado">
+        <span class="titulo-aviso">Sobre el texto de la política de privacidad</span>
+        <p>Este texto describe lo que realmente pasa, y por eso <b>no dice que los datos nunca se transfieren a terceros</b>. No lo dice porque sería falso: un workflow tuyo de n8n puede perfectamente mandar el contenido de un correo a otro servicio, y de hecho es lo que vamos a hacer en varias clases. Lo que dice es que esa transferencia ocurre solamente como consecuencia de una configuración explícita del dueño de la cuenta, que es la verdad. Si cambiás lo que hace tu instancia, revisá si este texto sigue siendo cierto.</p>
+      </div>
+      <div class="pestanas" id="pestanasArch" role="tablist"></div>
+      <div class="cod" id="codArch">
+        <span class="rot-cod" id="rotArch"></span>
+        <button class="copiar" type="button" data-copia-arch>Copiar</button>
+        <pre id="preArch"></pre>
+      </div>
+      <div class="acciones-arch">
+        <button class="boton hueco" type="button" id="bajarArch">Descargar este archivo</button>
+        <button class="boton hueco" type="button" id="bajarTodos">Descargar los tres</button>
+      </div>
+      <p class="nota-pie">Los tres archivos salen del texto de la guía con <code>CONTACT_EMAIL</code> y <code>APP_NAME</code> reemplazados. Si editás las variables arriba y volvés a aplicar, el código de acá cambia en el momento. No hay ningún secreto adentro de estos archivos, y no puede haberlo: van a un repositorio público.</p>
+    </section>
+
+    <section class="etapa" id="scopes">
+      <span class="num">Anexo del paso 14</span>
+      <h3>Los permisos que pide n8n, uno por uno</h3>
+      <p>Acá hay una decisión que conviene tomar con los ojos abiertos. La regla general de OAuth es pedir el permiso más chico que alcance, y las credenciales de Google en n8n no siguen esa regla: piden bastante más de lo que la mayoría de los flujos necesita. No es una trampa, es que un mismo nodo de Gmail tiene que poder leer, escribir, etiquetar y borrar según cómo lo configures, y los permisos se declaran una vez para toda la credencial.</p>
+      <p>Lo que sigue son los permisos que la credencial trae puestos por defecto, leídos del código fuente de n8n, no de la memoria de nadie:</p>
+      <div id="tablasScopes"></div>
+      <h4>Los tres niveles, y quién te dice en cuál está cada permiso</h4>
+      <p>Google clasifica cada permiso en tres categorías —<b>no sensible</b>, <b>sensible</b> y <b>restringido</b>— y de esa categoría depende si algún día vas a necesitar pasar por la verificación: una app que pide sólo permisos no sensibles no está obligada a verificarse nunca.</p>
+      <p>Acá no te vamos a decir en qué categoría cae cada uno de los doce de arriba, porque esa lista la mueve Google y copiarla sería exactamente lo que esta cursada no hace. No hace falta igual: <b>cuando agregás un permiso en la consola de Google Cloud, la consola te marca sola la categoría al lado</b>. Miralas ahí, en el momento, que es la única fuente que está siempre al día.</p>
+      <p class="nota-pie">Los tres niveles y el hecho de que la consola los marque automáticamente, verificados el 23 de septiembre de 2026 en <code>support.google.com/cloud/answer/9110914</code>. La tabla completa de permisos de Gmail y su categoría está en <a href="https://developers.google.com/workspace/gmail/api/auth/scopes" target="_blank" rel="noopener noreferrer">la documentación de Gmail</a>.</p>
+      <div class="aviso peligro">
+        <span class="titulo-aviso"><code>https://mail.google.com/</code> es un permiso restringido</span>
+        <p>Es el permiso más amplio que existe sobre una casilla: incluye borrar mensajes de forma permanente. Viene activado por defecto en la credencial de Gmail de n8n, y Google lo clasifica como <b>Restricted</b>, su categoría más alta. Confirmalo vos mismo cuando lo agregues: la consola te lo va a marcar.</p>
+        <p>Dos consecuencias prácticas. La primera: si tus flujos sólo leen y mandan correos, no necesitás ese permiso, y la credencial te deja desactivar los scopes por defecto para declarar los tuyos. La segunda: mientras la app sea de uso personal la excepción de Google te alcanza igual, pero si algún día querés que la use gente que no sos vos, los permisos restringidos traen requisitos adicionales de verificación que no son un trámite de diez minutos. Vale saberlo antes, no después.</p>
+      </div>
+      <p class="nota-pie">Permisos leídos el 23 de septiembre de 2026 de <code>packages/nodes-base/credentials/</code> en la rama <code>master</code> del repositorio de n8n: <code>GmailOAuth2Api</code>, <code>GoogleSheetsOAuth2Api</code> y <code>GoogleDriveOAuth2Api</code>. Son listas que cambian entre versiones: si tu n8n es más nuevo, la fuente es tu propia credencial, que muestra los permisos en pantalla.</p>
+    </section>
+
+    <section class="etapa" id="produccion">
+      <span class="num">Anexo del paso 16</span>
+      <h3>Testing, In production, Verified: tres cosas distintas</h3>
+      <p>Esta es la parte donde más gente se confunde, y la confusión cuesta una semana de trabajo perdido. Son tres estados que no significan lo mismo y no se implican entre sí.</p>
+      <div class="tabla-caja">
+        <table class="datos">
+          <thead><tr><th>Estado</th><th>Qué significa</th><th>Qué te pasa</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="m">Testing</td>
+              <td>La app existe pero sólo la pueden usar las cuentas que cargaste a mano en la lista de usuarios de prueba.</td>
+              <td>La autorización <b>se vence a los siete días</b>. Cuando se vence, n8n empieza a contestar <code>invalid_grant</code> y hay que reconectar.</td>
+            </tr>
+            <tr>
+              <td class="m">In production</td>
+              <td>La app está publicada. Cualquier cuenta de Google puede autorizarla, dentro del límite de usuarios que aplique.</td>
+              <td>La autorización deja de vencerse a los siete días. <b>Sigue apareciendo la pantalla de app no verificada.</b></td>
+            </tr>
+            <tr>
+              <td class="m">Verified</td>
+              <td>Google revisó la marca y, si corresponde, los permisos. Es un trámite aparte que se pide expresamente.</td>
+              <td>Desaparece la pantalla de advertencia y se levanta el límite de usuarios. <b>No hace falta para uso personal.</b></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="aviso peligro">
+        <span class="titulo-aviso">Los siete días, con las palabras de Google</span>
+        <p>La documentación de Google dice que las autorizaciones hechas por un usuario de prueba <b>vencen siete días después del consentimiento</b>, y que si el cliente de OAuth pidió acceso de tipo <i>offline</i> y recibió un refresh token, ese token también vence. Hay una sola excepción: las apps que piden únicamente nombre, correo y perfil básico. Las credenciales de Google en n8n piden mucho más que eso, así que <b>la excepción no aplica</b>.</p>
+        <p>Ese es el motivo entero por el que este taller existe. No pasamos la app a producción por prolijidad: la pasamos para que el flujo siga andando el octavo día.</p>
+        <p class="nota-pie">Verificado el 23 de septiembre de 2026 en <code>support.google.com/cloud/answer/15549945</code>.</p>
+      </div>
+      <div class="aviso cuidado">
+        <span class="titulo-aviso">Producción no es lo mismo que verificada, y los tokens tampoco son eternos</span>
+        <p>Pasar a <code>In production</code> no convierte la app en verificada. Una app personal puede quedarse indefinidamente en <b>In production + Unverified</b>, con la pantalla de advertencia incluida, y eso está bien: es el escenario que contempla la excepción de uso personal.</p>
+        <p>Y tampoco creas que el refresh token ya no expira nunca. Sale de la lista de los siete días, nada más. Google puede revocarlo igual por otras causas: si cambiás la contraseña de la cuenta, si el dueño revoca el acceso desde la configuración de seguridad, si la app queda seis meses sin usarse, si cambiás los permisos que pide la credencial, o si superás el tope de tokens vivos por cliente. Un flujo que depende de OAuth necesita que alguien se entere cuando la autorización se cae. Eso es exactamente el flujo de error de la clase 6, y acá tiene su mejor caso de uso.</p>
+      </div>
+      <div class="aviso bien">
+        <span class="titulo-aviso">La excepción de uso personal, textual</span>
+        <p>Google documenta que las apps de uso personal, con <b>menos de 100 usuarios</b>, no están obligadas a completar la verificación de OAuth: el dueño y su puñado de usuarios conocidos pueden seguir adelante desde la pantalla de advertencia. Si algún día querés pasar de 100, ahí sí hay que verificar. La app sigue sujeta a las políticas de datos de Google en los dos casos.</p>
+        <p class="nota-pie">Verificado el 23 de septiembre de 2026 en <code>support.google.com/cloud/answer/13464323</code>.</p>
+      </div>
+    </section>
+
+    <section class="etapa" id="lios">
+      <span class="num">Cuando algo no anda</span>
+      <h3>Los seis líos de siempre</h3>
+      <p>Ninguno de estos es tu culpa: son las seis maneras en que este procedimiento falla, y las seis tienen un síntoma reconocible. Buscá el síntoma, no la causa.</p>
+      <div id="listaLios"></div>
+      <p class="nota-pie">Los comandos de comprobación están en dos versiones porque el aula está mitad en Windows y mitad en Mac. Hacen exactamente lo mismo: preguntarle a un servidor de DNS de Google, y no al de tu proveedor de internet, qué sabe de tu dominio. Preguntarle al de Google importa: el tuyo puede tener cacheada la respuesta vieja durante horas.</p>
+    </section>
+
+    <section class="etapa" id="checklist">
+      <span class="num">Al final</span>
+      <h3>Checklist</h3>
+      <p>Una casilla por etapa, más dos que se olvidan siempre. Se guardan en tu navegador, así que podés dejar el taller a medias y volver. Si algo se rompe dentro de tres semanas, esta lista es el primer lugar donde mirar: casi siempre lo que se rompió es la única casilla que quedó sin marcar.</p>
+      <div class="lista-chk" id="listaChk"></div>
+      <div class="resumen-chk">
+        <button class="boton hueco" type="button" id="limpiarChk">Destildar todo</button>
+        <span id="resumenChk"></span>
+      </div>
+    </section>
+
+    <section class="etapa" id="fuentes">
+      <span class="num">De dónde sale cada cosa</span>
+      <h3>Las fuentes, y cuáles pude comprobar</h3>
+      <p>Regla de la cursada: cada dato con su fecha de corte y su origen. Acá hay una distinción que corresponde hacer. Los datos marcados <b>verificado</b> los leí contra la fuente el 23 de septiembre de 2026. Los marcados <b>del recorrido</b> salen de haber hecho el procedimiento completo ese mismo día, pero no pude releer su documentación oficial al preparar esta página. Son igual de útiles y bastante más frágiles: si uno de esos pasos no te coincide, la documentación oficial manda sobre esta guía.</p>
+      <div class="fuentes" id="listaFuentes"></div>
+    </section>
+
+  </div>
+</div>
+</div>
+
+</main>
+
+<footer class="pie">
+  <div class="envoltura">
+    <span>Facultad de Ciencias Económicas · Universidad de Buenos Aires</span>
+    <span>Taller de apoyo · Diseño de Procesos de Negocios con Automatización e IA Agéntica</span>
+  </div>
+</footer>
+
+<script src="acceso.js"></script>
+<script src="clases.js"></script>
+<script src="menu.js"></script>
+<script src="taller-oauth.js"></script>
+</body>
+</html>

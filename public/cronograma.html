@@ -99,6 +99,27 @@
     color: var(--tenue);
     margin-bottom: 16px;
   }
+  .lateral .talleres { margin-top: 34px; }
+  .taller-enlace {
+    display: block;
+    padding: 13px 15px;
+    border: 1px solid var(--linea);
+    border-radius: 12px;
+    background: var(--sup);
+    color: var(--texto);
+    font-size: 0.86rem;
+    line-height: 1.35;
+  }
+  .taller-enlace:hover { border-color: var(--naranja); background: var(--brasa); text-decoration: none; }
+  .taller-enlace span {
+    display: block;
+    margin-top: 5px;
+    font-family: var(--dato);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--naranja);
+  }
   .modulo-item {
     display: flex;
     align-items: baseline;
@@ -242,6 +263,10 @@
     <aside class="lateral">
       <h3>Módulos</h3>
       <div id="listaModulos"></div>
+      <section class="talleres">
+        <h3>Talleres</h3>
+        <a class="taller-enlace" href="taller-oauth.html">n8n propio + Google&nbsp;OAuth en producción<span>Módulo 5 · 20 etapas</span></a>
+      </section>
     </aside>
     <section id="listaClases"></section>
   </div>

@@ -1,0 +1,677 @@
+{
+  "name": "Clase 09 — Las facturas, sin repetidas",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Caso 09 — Las facturas, sin repetidas\n\nEl mismo caso de la clase 07, con la memoria en su lugar.\n\n**Lo que cambio respecto de la 07:**\n\n1. Aparecio un nodo **Normalizar** antes de preguntar nada.\n   Sin el, `A-0001-00012345` y `0001-12345` son dos facturas\n   distintas y la repetida entra igual.\n\n2. El `SI el numero ya esta en la planilla` se partio en dos\n   nodos Data Table: **If Row Does Not Exist** para la rama de\n   lo nuevo, **If Row Exists** para la rama de la repetida.\n   Estas operaciones filtran, no ramifican: cada una deja\n   pasar los items que cumplen y descarta el resto. Por eso\n   son dos nodos y no uno con dos salidas.\n\n3. La planilla **sigue ahi**, al final. No es la memoria del\n   flujo: es la salida que mira Marcela todos los dias.\n\n4. Se guarda con **Upsert** y no con Insert. Si la fila existe\n   la actualiza y si no existe la crea, en una sola operacion.\n   Ese paso unico es lo que evita que dos ejecuciones\n   simultaneas carguen la misma factura dos veces.",
+        "height": 700,
+        "width": 520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1240,
+        -160
+      ],
+      "id": "c9100000-0000-4000-8000-000000000001",
+      "name": "Consigna"
+    },
+    {
+      "parameters": {
+        "content": "## Tres cosas antes de darle a ejecutar\n\n**1. Crea la tabla.** Pestania `Data tables` del proyecto,\nboton `Create Data table`, nombre `facturas_vistas`, con\nestas columnas:\n\n```\nnumero      texto    (la llave)\nproveedor   texto\nmonto       numero\nestado      texto\nfecha       texto\n```\n\n**2. Elegi la tabla en los tres nodos Data Table.** Vienen\nvacios a proposito: las tablas son de tu proyecto y no viajan\nadentro del JSON, igual que las credenciales. Al abrir cada\nnodo, elegila de la lista.\n\n**3. Cambia los dos `PEGAR_...`** por el chat de Telegram de\nMarcela y el del socio, y elegi tu planilla en el nodo de\nGoogle Sheets.\n\nEl tope de autorizacion esta en el nodo **Leer los datos**,\npuesto en 200000 como en la clase 07.",
+        "height": 700,
+        "width": 460,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -680,
+        -160
+      ],
+      "id": "c9100000-0000-4000-8000-000000000002",
+      "name": "Antes de correr esto"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "has:attachment"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        300
+      ],
+      "id": "c9100000-0000-4000-8000-000000000003",
+      "name": "Llega un correo"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c9100000-0000-4000-8000-000000000004",
+              "leftValue": "={{ $json.attachments ? $json.attachments.length : 0 }}",
+              "rightValue": "=0",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        40,
+        300
+      ],
+      "id": "c9100000-0000-4000-8000-000000000005",
+      "name": "¿Trae adjunto?"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DE_MARCELA",
+        "text": "=Llego un correo al buzon de facturacion sin ningun adjunto.\n\nDe: {{ $('Llega un correo').item.json.from }}\nAsunto: {{ $('Llega un correo').item.json.subject }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        280,
+        460
+      ],
+      "id": "c9100000-0000-4000-8000-000000000006",
+      "name": "Avisar que vino sin factura",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9100000-0000-4000-8000-000000000007",
+              "name": "proveedorBruto",
+              "value": "={{ $json.from.split('<')[0].trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "c9100000-0000-4000-8000-000000000008",
+              "name": "numeroBruto",
+              "value": "={{ ($json.subject.match(/[A-Z]?-?\\d{1,4}-?\\d{4,8}/) || ['sin número'])[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "c9100000-0000-4000-8000-000000000009",
+              "name": "cuitBruto",
+              "value": "={{ ($json.snippet.match(/\\d{2}[-.]?\\d{8}[-.]?\\d/) || [''])[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "c9100000-0000-4000-8000-000000000010",
+              "name": "montoBruto",
+              "value": "={{ ($json.subject.match(/\\$\\s?[\\d.,]+/) || ['0'])[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "c9100000-0000-4000-8000-000000000011",
+              "name": "fechaBruta",
+              "value": "={{ ($json.snippet.match(/\\d{1,2}\\/\\d{1,2}\\/\\d{4}/) || [''])[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "c9100000-0000-4000-8000-000000000012",
+              "name": "tope",
+              "value": "=200000",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        280,
+        220
+      ],
+      "id": "c9100000-0000-4000-8000-000000000013",
+      "name": "Leer los datos"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9100000-0000-4000-8000-000000000014",
+              "name": "numero",
+              "value": "={{ $json.numeroBruto.replace(/[^0-9-]/g, '').split('-').filter(p => p).map(p => Number(p)).join('-') }}",
+              "type": "string"
+            },
+            {
+              "id": "c9100000-0000-4000-8000-000000000015",
+              "name": "cuit",
+              "value": "={{ $json.cuitBruto.replace(/\\D/g, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "c9100000-0000-4000-8000-000000000016",
+              "name": "monto",
+              "value": "={{ Number($json.montoBruto.replace(/[^\\d,.-]/g, '').replace(/\\./g, '').replace(',', '.')) }}",
+              "type": "number"
+            },
+            {
+              "id": "c9100000-0000-4000-8000-000000000017",
+              "name": "fecha",
+              "value": "={{ DateTime.fromFormat($json.fechaBruta, 'dd/MM/yyyy').toISODate() }}",
+              "type": "string"
+            },
+            {
+              "id": "c9100000-0000-4000-8000-000000000018",
+              "name": "proveedor",
+              "value": "={{ $json.proveedorBruto.trim().replace(/\\s+/g, ' ').toUpperCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "c9100000-0000-4000-8000-000000000019",
+              "name": "tope",
+              "value": "={{ $json.tope }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        500,
+        220
+      ],
+      "id": "c9100000-0000-4000-8000-000000000020",
+      "name": "Normalizar"
+    },
+    {
+      "parameters": {
+        "content": "### Normalizar\n\nCinco expresiones, una por campo. Las mismas del\nlaboratorio de la pagina de la clase.\n\nDos avisos que cuestan una tarde cada uno:\n\n- `.toNumber()` **explota** con `$ 1.234,56`. Por eso\n  el monto se limpia a mano: primero el simbolo,\n  despues los puntos de miles, y recien ahi la coma\n  pasa a punto. Si invertis ese orden, 45.200,00\n  termina siendo 45.2.\n\n- `.toDateTime()` **no entiende** `15/03/2026`. Solo\n  acepta ISO 8601, HTTP, RFC2822, SQL y timestamp\n  Unix. Para el formato argentino hay que decirle el\n  formato con `DateTime.fromFormat()`, que es lo que\n  hace la expresion de la fecha.",
+        "height": 460,
+        "width": 420,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        440,
+        -160
+      ],
+      "id": "c9100000-0000-4000-8000-000000000021",
+      "name": "El nodo que no estaba en la 07"
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "facturas_vistas"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "numero",
+              "condition": "eq",
+              "keyValue": "={{ $json.numero }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        140
+      ],
+      "id": "c9100000-0000-4000-8000-000000000022",
+      "name": "¿Es nueva?"
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "rowExists",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "facturas_vistas"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "numero",
+              "condition": "eq",
+              "keyValue": "={{ $json.numero }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        420
+      ],
+      "id": "c9100000-0000-4000-8000-000000000023",
+      "name": "¿Ya la vimos?"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DE_MARCELA",
+        "text": "=Llego una factura que ya estaba cargada.\n\nProveedor: {{ $json.proveedor }}\nNumero normalizado: {{ $json.numero }}\nMonto: {{ $json.monto }}\n\nNo se hizo nada. Si esto no es un duplicado real, mira como quedo escrito el numero en la tabla.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        420
+      ],
+      "id": "c9100000-0000-4000-8000-000000000024",
+      "name": "Avisar que esta repetida",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c9100000-0000-4000-8000-000000000025",
+              "leftValue": "={{ $json.monto }}",
+              "rightValue": "={{ $json.tope }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        140
+      ],
+      "id": "c9100000-0000-4000-8000-000000000026",
+      "name": "¿Supera el tope?"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DEL_SOCIO",
+        "text": "=Factura para autorizar\n\nProveedor: {{ $json.proveedor }}\nNumero: {{ $json.numero }}\nMonto: {{ $json.monto }}\n\nSupera el tope de {{ $json.tope }}. Queda como pendiente de autorizacion.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1180,
+        20
+      ],
+      "id": "c9100000-0000-4000-8000-000000000027",
+      "name": "Avisar al socio",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9100000-0000-4000-8000-000000000028",
+              "name": "estado",
+              "value": "=pendiente de autorización",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1400,
+        20
+      ],
+      "id": "c9100000-0000-4000-8000-000000000029",
+      "name": "Marcar pendiente"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9100000-0000-4000-8000-000000000030",
+              "name": "estado",
+              "value": "=para pagar",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1180,
+        260
+      ],
+      "id": "c9100000-0000-4000-8000-000000000031",
+      "name": "Marcar para pagar"
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "facturas_vistas"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "numero",
+              "condition": "eq",
+              "keyValue": "={{ $json.numero }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "numero"
+          ],
+          "value": {
+            "numero": "={{ $json.numero }}",
+            "proveedor": "={{ $json.proveedor }}",
+            "monto": "={{ $json.monto }}",
+            "estado": "={{ $json.estado }}",
+            "fecha": "={{ $json.fecha }}"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1620,
+        140
+      ],
+      "id": "c9100000-0000-4000-8000-000000000032",
+      "name": "Guardar en la tabla"
+    },
+    {
+      "parameters": {
+        "content": "### Guardar en la tabla\n\n**Upsert**, no Insert.\n\nInsert siempre crea. Si por lo que sea el flujo vuelve\na pasar por aca con la misma factura, Insert la carga\ndos veces y la tabla deja de servir como memoria.\n\nUpsert resuelve \"si esta actualizala, si no creala\"\nen **una sola operacion**. Ese paso unico es lo que\nevita la carrera: dos ejecuciones simultaneas que\nmiran y despues escriben se pisan; dos que hacen\nupsert, no.\n\nLa columna que hace de llave es `numero`, la\nnormalizada. Nunca el numero tal como vino.",
+        "height": 380,
+        "width": 400,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        -260
+      ],
+      "id": "c9100000-0000-4000-8000-000000000033",
+      "name": "Por que Upsert y no Insert"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1840,
+        140
+      ],
+      "id": "c9100000-0000-4000-8000-000000000034",
+      "name": "Cargar en la planilla"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Llega un correo').item.json.id }}",
+        "labelIds": []
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2060,
+        140
+      ],
+      "id": "c9100000-0000-4000-8000-000000000035",
+      "name": "Archivar con la etiqueta"
+    }
+  ],
+  "connections": {
+    "Llega un correo": {
+      "main": [
+        [
+          {
+            "node": "¿Trae adjunto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Trae adjunto?": {
+      "main": [
+        [
+          {
+            "node": "Leer los datos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Avisar que vino sin factura",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer los datos": {
+      "main": [
+        [
+          {
+            "node": "Normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar": {
+      "main": [
+        [
+          {
+            "node": "¿Es nueva?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "¿Ya la vimos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Ya la vimos?": {
+      "main": [
+        [
+          {
+            "node": "Avisar que esta repetida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Es nueva?": {
+      "main": [
+        [
+          {
+            "node": "¿Supera el tope?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Supera el tope?": {
+      "main": [
+        [
+          {
+            "node": "Avisar al socio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar para pagar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avisar al socio": {
+      "main": [
+        [
+          {
+            "node": "Marcar pendiente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar pendiente": {
+      "main": [
+        [
+          {
+            "node": "Guardar en la tabla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar para pagar": {
+      "main": [
+        [
+          {
+            "node": "Guardar en la tabla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en la tabla": {
+      "main": [
+        [
+          {
+            "node": "Cargar en la planilla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar en la planilla": {
+      "main": [
+        [
+          {
+            "node": "Archivar con la etiqueta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "PEGAR_ID_DEL_FLUJO_AVISAR_SI_ALGO_FALLA"
+  },
+  "pinData": {}
+}
