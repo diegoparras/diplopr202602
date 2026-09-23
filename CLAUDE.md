@@ -43,6 +43,8 @@ public/
   acceso.js            validación de la clave
   clases.js            datos del cronograma
   menu.js              selector de clases publicadas de la barra superior
+  taller-oauth.html    taller de apoyo: n8n propio + Google OAuth en producción
+  taller-oauth.js      sus variables, plantillas, checklist y diagrama
   workflows/           los JSON importables a n8n
 vercel.json
 ```
@@ -105,12 +107,20 @@ Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 8. El módulo 3 cambió la regla: desde la 7 el
+Estado: publicadas las clases 1 a 8, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
 alimenta la 9. Deudas anotadas: la memoria entre ejecuciones (Data Tables, clase
 9) y la planilla usada como base de datos en el caso de la 7, que la 9 desarma.
+
+El taller `taller-oauth.html` es aparte: no es una clase, no lleva número y no
+entra en `clases.js`. Se llega desde el bloque «Talleres» del cronograma, y la
+clase 9 lo usa como primera parte. Veinte etapas para poner un n8n propio
+detrás de un dominio con Google OAuth en producción. Vuelve en el módulo 5.
+Regla suya: el formulario maneja sólo valores no secretos, no hay ningún campo
+donde pegar el Client Secret, y no se guarda ni Client ID ni Client Secret en
+`localStorage`. Si alguna vez se agrega algo ahí, esa regla manda.
 
 ## El terreno de n8n, verificado el 15 de septiembre de 2026
 
