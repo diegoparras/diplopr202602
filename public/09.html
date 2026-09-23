@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 9 · Datos: Data Tables, expresiones y transformaciones · FCE-UBA</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  :root { --acierto: #22C55E; --fallo: #F87171; --alerta: #EAB308; }
+  :root[data-tema="claro"] { --acierto: #15803D; --fallo: #B4231A; --alerta: #A16207; }
+
+  section.bloque { padding: 96px 0; border-top: 1px solid var(--linea); }
+  section.bloque:first-of-type { border-top: 0; }
+  .bloque h2 { max-width: 20ch; margin: 18px 0 22px; }
+  .bloque .intro { max-width: 62ch; font-size: 1.05rem; }
+
+  .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 54px; align-items: start; }
+  @media (max-width: 900px) {
+    .dos-col { grid-template-columns: 1fr; gap: 26px; }
+    section.bloque { padding: 68px 0; }
+  }
+
+  .portada { padding: 54px 0 20px; }
+  .portada h1 { max-width: 19ch; margin: 20px 0 24px; }
+  .portada .meta {
+    display: flex; gap: 28px; flex-wrap: wrap;
+    font-family: var(--dato); font-size: 0.75rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue);
+    margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--linea);
+  }
+  @media (max-width: 720px) { .portada { padding: 40px 0 18px; } }
+
+  code, .mono { font-family: var(--dato); font-size: 0.85em; color: var(--naranja); overflow-wrap: anywhere; }
+  .nota-pie { margin-top: 14px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); line-height: 1.7; }
+
+  .cita {
+    border-left: 2px solid var(--naranja);
+    padding: 8px 0 8px 24px; margin-top: 30px;
+    font-family: var(--display); font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+    font-weight: 600; letter-spacing: -0.02em; line-height: 1.35; color: var(--texto);
+    max-width: 48ch;
+  }
+
+  .ficha { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 24px 22px; box-shadow: var(--sombra); }
+  .ficha h3 { font-size: 1.12rem; margin-bottom: 8px; }
+  .ficha p { font-size: 0.9rem; }
+
+  .caso {
+    background: var(--sup); border: 1px solid var(--linea); border-left: 2px solid var(--naranja);
+    border-radius: 16px; padding: 26px; margin-top: 18px; box-shadow: var(--sombra);
+  }
+  .caso .n { font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--naranja); }
+  .caso h3 { margin: 6px 0 10px; }
+  .caso pre {
+    font-family: var(--dato); font-size: 0.78rem; line-height: 1.75;
+    background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px 20px; margin: 16px 0; color: var(--texto);
+    white-space: pre; overflow-x: auto; min-width: 0;
+  }
+  .caso .acciones { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+
+  .traido {
+    margin-top: 30px; background: var(--sup); border: 1px solid var(--linea);
+    border-left: 2px solid var(--naranja); border-radius: 16px;
+    padding: 24px 26px; box-shadow: var(--sombra);
+  }
+  .traido .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja); }
+  .traido .linea { margin-top: 14px; }
+  .traido .linea b { display: block; font-size: 0.82rem; color: var(--tenue); font-family: var(--dato); margin-bottom: 4px; }
+  .traido .linea p { color: var(--texto); font-size: 0.98rem; }
+  .traido .vacio { font-size: 0.92rem; }
+
+  /* ── El taller, primera parte ── */
+  .taller-caja {
+    margin-top: 30px; background: var(--sup); border: 1px solid var(--linea);
+    border-radius: 20px; padding: 32px; box-shadow: var(--sombra);
+    display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center;
+  }
+  @media (max-width: 760px) { .taller-caja { grid-template-columns: 1fr; padding: 24px; } }
+  .taller-caja h3 { font-size: 1.3rem; margin-bottom: 8px; }
+  .taller-caja p { font-size: 0.94rem; }
+  .taller-caja .etapas {
+    display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px;
+    font-family: var(--dato); font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--tenue);
+  }
+
+  /* ── Comparación planilla / tabla ── */
+  .comparo { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+  @media (max-width: 760px) { .comparo { grid-template-columns: 1fr; } }
+  .comparo-lado {
+    background: var(--sup); border: 1px solid var(--linea); border-radius: 16px;
+    padding: 24px; box-shadow: var(--sombra); min-width: 0;
+  }
+  .comparo-lado.antes { border-left: 2px solid var(--alerta); }
+  .comparo-lado.despues { border-left: 2px solid var(--acierto); }
+  .comparo-lado .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--tenue); }
+  .comparo-lado h4 { margin: 6px 0 12px; font-size: 1.05rem; }
+  .comparo-lado ul { margin: 0 0 0 18px; }
+  .comparo-lado li { font-size: 0.89rem; color: var(--tenue); margin-bottom: 8px; }
+  .comparo-lado li b { color: var(--texto); }
+
+  /* ── El decisor ── */
+  .decisor { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 30px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .decisor { padding: 22px; } }
+  .decisor-p { margin-bottom: 20px; }
+  .decisor-p > b { display: block; font-family: var(--display); font-size: 1.02rem; margin-bottom: 10px; color: var(--texto); }
+  .opciones { display: flex; gap: 9px; flex-wrap: wrap; }
+  .opciones button {
+    padding: 9px 16px; border: 1px solid var(--linea); border-radius: 999px;
+    background: transparent; color: var(--tenue);
+    font-family: var(--cuerpo); font-size: 0.88rem; cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .opciones button:hover { color: var(--texto); border-color: var(--naranja); }
+  .opciones button[aria-pressed="true"] { background: var(--brasa); color: var(--texto); border-color: var(--naranja); }
+  .veredicto {
+    margin-top: 8px; padding: 22px; border-radius: 14px;
+    background: var(--fondo); border: 1px solid var(--linea); border-left: 2px solid var(--naranja);
+  }
+  .veredicto .cual { font-family: var(--display); font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .veredicto p { font-size: 0.92rem; }
+
+  /* ── Las operaciones ── */
+  .ops { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 12px; margin-top: 28px; }
+  .op {
+    background: var(--sup); border: 1px solid var(--linea); border-radius: 14px;
+    padding: 18px 20px; box-shadow: var(--sombra); min-width: 0;
+  }
+  .op.destacada { border-left: 2px solid var(--acierto); }
+  .op b { display: block; font-family: var(--dato); font-size: 0.86rem; color: var(--naranja); margin-bottom: 7px; }
+  .op p { font-size: 0.87rem; }
+  .op small { display: block; margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--linea); font-size: 0.8rem; color: var(--tenue); }
+
+  /* ── El simulador ── */
+  .sim { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .sim { grid-template-columns: 1fr; } }
+  .sim-panel { background: var(--sup); border: 1px solid var(--linea); border-radius: 18px; padding: 24px; box-shadow: var(--sombra); min-width: 0; }
+  .sim-panel > .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja); display: block; margin-bottom: 14px; }
+  .sim-entrante {
+    padding: 16px 18px; border-radius: 12px; background: var(--fondo);
+    border: 1px solid var(--linea); margin-bottom: 16px;
+  }
+  .sim-entrante b { display: block; font-size: 1rem; margin-bottom: 5px; }
+  .sim-entrante dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; margin-top: 8px; }
+  .sim-entrante dt { font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); }
+  .sim-entrante dd { font-family: var(--dato); font-size: 0.76rem; color: var(--texto); overflow-wrap: anywhere; }
+  .sim-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+  .sim-tabla { width: 100%; border-collapse: collapse; font-family: var(--dato); font-size: 0.74rem; }
+  .sim-tabla th, .sim-tabla td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--linea); }
+  .sim-tabla th { color: var(--naranja); font-weight: 400; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .sim-tabla td { color: var(--texto); }
+  .sim-tabla tr.nueva td { background: var(--brasa); }
+  .sim-vacia { font-size: 0.86rem; color: var(--tenue); font-family: var(--cuerpo); }
+  .sim-envoltura { overflow-x: auto; min-width: 0; }
+  .bitacora { margin-top: 18px; display: grid; gap: 6px; max-height: 260px; overflow-y: auto; }
+  .bit {
+    display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: baseline;
+    font-size: 0.85rem; padding: 7px 10px; border-radius: 9px; background: var(--fondo);
+    border: 1px solid var(--linea);
+  }
+  .bit i { font-style: normal; font-family: var(--dato); font-size: 0.72rem; }
+  .bit.ok i { color: var(--acierto); }
+  .bit.rep i { color: var(--alerta); }
+  .bit.mal i { color: var(--fallo); }
+  .bit span { color: var(--tenue); min-width: 0; overflow-wrap: anywhere; }
+  .bit span b { color: var(--texto); font-weight: 600; }
+
+  /* ── Expresiones ── */
+  .tabla-caja { margin-top: 24px; overflow-x: auto; min-width: 0; }
+  table.datos { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 0.87rem; }
+  table.datos th, table.datos td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.datos th { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--naranja); font-weight: 400; }
+  table.datos td { color: var(--tenue); }
+  table.datos td.m { font-family: var(--dato); font-size: 0.79rem; color: var(--texto); overflow-wrap: anywhere; }
+  table.datos tr:last-child td { border-bottom: 0; }
+
+  /* ── El laboratorio de datos sucios ── */
+  .lab { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 30px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .lab { padding: 22px; } }
+  .lab-pestanas { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+  .lab-pestanas button {
+    padding: 7px 15px; border: 1px solid var(--linea); border-radius: 999px;
+    background: transparent; color: var(--tenue);
+    font-family: var(--dato); font-size: 0.75rem; cursor: pointer;
+  }
+  .lab-pestanas button:hover { color: var(--texto); border-color: var(--naranja); }
+  .lab-pestanas button[aria-selected="true"] { background: var(--brasa); color: var(--texto); border-color: var(--naranja); }
+  .lab-campo { display: flex; flex-direction: column; gap: 7px; }
+  .lab-campo label { font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); }
+  .lab-campo input {
+    width: 100%; min-width: 0; padding: 12px 15px; background: var(--fondo); color: var(--texto);
+    border: 1px solid var(--linea); border-radius: 11px;
+    font-family: var(--dato); font-size: 0.86rem;
+  }
+  .lab-campo input:focus { outline: none; border-color: var(--naranja); }
+  .lab-muestras { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+  .lab-muestras button {
+    padding: 5px 11px; border: 1px solid var(--linea); border-radius: 8px;
+    background: transparent; color: var(--tenue);
+    font-family: var(--dato); font-size: 0.72rem; cursor: pointer;
+  }
+  .lab-muestras button:hover { color: var(--naranja); border-color: var(--naranja); }
+  .lab-salida { margin-top: 22px; display: grid; gap: 14px; }
+  .lab-fila { padding: 16px 18px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); min-width: 0; }
+  .lab-fila .rot { font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tenue); display: block; margin-bottom: 7px; }
+  .lab-fila code { display: block; font-size: 0.82rem; color: var(--texto); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .lab-fila.resultado { border-left: 2px solid var(--acierto); }
+  .lab-fila.resultado code { color: var(--acierto); font-size: 0.95rem; }
+  .lab-fila.error { border-left: 2px solid var(--fallo); }
+  .lab-fila.error code { color: var(--fallo); }
+  .lab-fila .expl { font-size: 0.85rem; color: var(--tenue); margin-top: 9px; }
+
+  /* ── Trampa ── */
+  .trampa {
+    margin-top: 22px; border: 1px solid var(--linea); border-left: 3px solid var(--alerta);
+    border-radius: 0 12px 12px 0; background: var(--sup); padding: 18px 22px;
+  }
+  .trampa .rot { display: block; font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--alerta); margin-bottom: 8px; }
+  .trampa p { font-size: 0.92rem; }
+  .trampa p + p { margin-top: 10px; }
+
+  /* ── Actividad ── */
+  .actividad { background: var(--sup); border-radius: 20px; padding: 34px; border: 1px solid var(--linea); box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .actividad { padding: 22px; } }
+  .pregunta { margin-top: 24px; }
+  .pregunta label { display: block; margin-bottom: 8px; }
+  .pregunta label b { font-family: var(--display); font-size: 1.08rem; font-weight: 600; color: var(--naranja); display: block; }
+  .pregunta label span { font-size: 0.88rem; color: var(--tenue); }
+  .pregunta textarea {
+    width: 100%; min-height: 84px; resize: vertical;
+    padding: 13px 15px; background: var(--fondo);
+    border: 1px solid var(--linea); border-radius: 12px;
+    color: var(--texto); font-family: var(--cuerpo); font-size: 0.95rem; line-height: 1.55;
+  }
+  .pregunta textarea:focus { outline: none; border-color: var(--naranja); }
+  .guardado { margin-top: 16px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); }
+
+  .cierre { text-align: center; padding: 90px 0 40px; }
+  .cierre h2 { margin: 0 auto 22px; max-width: 24ch; }
+  .cierre .acciones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+  @media (max-width: 720px) { .cierre { padding: 60px 26px 30px; } }
+
+  .revelar { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .revelar.visible { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .revelar { opacity: 1; transform: none; transition: none; }
+    .opciones button { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-int">
+    <a class="marca" href="cronograma.html"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 32 H30 M38 22 H30 M38 42 H30 M30 22 V42" fill="none" stroke="#FB923C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="32" r="5.5" fill="#F97316"/><circle cx="44" cy="21" r="5" fill="#FDBA74"/><circle cx="44" cy="43" r="5" fill="#FDBA74"/></svg>Diplomatura <span>Procesos</span> · FCE-UBA</a>
+    <nav>
+      <a href="cronograma.html">Cronograma</a>
+      <span data-selector-clases><a href="cronograma.html">Clases</a></span>
+      <a href="#" id="salir">Salir</a>
+      <button class="tema" type="button" title="Cambiar tema">
+        <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<div class="envoltura portada">
+  <span class="rotulo">Clase 09 · Módulo 3 · Construir de verdad</span>
+  <h1>Datos: Data Tables, expresiones y transformaciones</h1>
+  <p class="intro">Sabés traer datos de cualquier lado y recibirlos cuando te avisan. Falta lo del medio: dónde queda lo que el flujo junta y cómo se acuerda de lo que ya hizo. Hoy pagamos la deuda más vieja del módulo —la planilla que venimos usando como si fuera una base de datos— y de paso descubrimos por qué la mitad de los errores de un flujo no son del flujo: son del dato que llegó sucio.</p>
+  <div class="meta">
+    <span>23 de septiembre de 2026</span>
+    <span>Miércoles · 18 a 21:30 h</span>
+    <span>FCE — UBA</span>
+  </div>
+</div>
+
+<!-- ─────────── Lo que trajiste ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Empezamos por vos</span>
+    <h2>Lo que anotaste el viernes</h2>
+    <p class="intro">La segunda pregunta de la clase 8 era, palabra por palabra, el tema de hoy: qué necesita recordar tu flujo entre una corrida y la siguiente. No fue una pregunta de calentamiento. Lo que escribiste ahí es lo que vas a guardar en una tabla en la segunda mitad de la clase.</p>
+
+    <div class="traido" id="traido"></div>
+  </div>
+</section>
+
+<!-- ─────────── Primera parte: el taller ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Primera parte · las dos horas</span>
+    <h2>El taller, y por qué va primero</h2>
+    <p class="intro">Arrancamos con algo que no es del módulo 3: poner un n8n propio detrás de un dominio y dejar la app de Google en producción. Va al principio por una razón práctica y una conceptual, y la práctica es la que manda.</p>
+
+    <div class="dos-col" style="margin-top:34px">
+      <div class="ficha">
+        <h3>La razón práctica</h3>
+        <p>Medio taller es esperar. Esperar que propague un registro de DNS, que PikaPods emita un certificado, que GitHub verifique un dominio. Si lo hacemos al final, la clase termina con quince personas mirando una pantalla que dice «pending». Si lo arrancamos ahora, las esperas transcurren mientras trabajamos con Data Tables, y al final de la clase volvemos a mirar si salió.</p>
+        <p style="margin-top:12px"><b>Andá y empezá ahora.</b> Las primeras cuatro etapas son las que tienen espera. Volvé acá cuando hayas cargado los registros.</p>
+      </div>
+      <div class="ficha">
+        <h3>La razón conceptual</h3>
+        <p>Las dos mitades de hoy son el mismo problema con dos caras: <b>qué sobrevive entre una ejecución y la siguiente</b>.</p>
+        <p style="margin-top:12px">Una tabla guarda los datos que el flujo junta. Un <i>refresh token</i> guarda el permiso de entrar. Las dos cosas viven fuera de la ejecución, las dos se pueden perder, y las dos tienen un modo de fallar que no se ve el primer día.</p>
+        <p style="margin-top:12px">El del token tiene nombre propio: si dejaste la app de Google en <code>Testing</code>, la autorización vence a los siete días y el flujo empieza a contestar <code>invalid_grant</code> sin que hayas tocado nada. Eso no es un error de programación. Es memoria que se venció.</p>
+      </div>
+    </div>
+
+    <div class="taller-caja">
+      <div>
+        <h3>n8n propio + Google OAuth en producción</h3>
+        <p>Veinte etapas, en el orden que evita configurar OAuth dos veces. Trae un panel donde cargás tus datos una vez y la guía entera se reescribe con ellos: los registros de DNS, el callback, las URLs y los tres archivos HTML que Google pide.</p>
+        <div class="etapas">
+          <span>20 etapas</span>
+          <span>Checklist que se guarda</span>
+          <span>Vuelve en el módulo 5</span>
+        </div>
+      </div>
+      <a class="boton" href="taller-oauth.html">Abrir el taller</a>
+    </div>
+
+    <p class="nota-pie">El taller queda publicado como material de consulta: no es una clase, no lleva número y lo vas a volver a necesitar en el módulo 5, cuando montemos la instancia propia en serio. Si tu n8n corre en tu máquina y sólo querés probar Gmail, leé el aviso de arriba de todo del taller antes de empezar: probablemente no necesites nada de esto.</p>
+  </div>
+</section>
+
+<!-- ─────────── La planilla ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Segunda parte · la deuda</span>
+    <h2>La planilla nunca fue una base de datos</h2>
+    <p class="intro">En la clase 7 armamos el caso de Marcela y dejamos una nota al pie que decía: «el control de repetidas usa la planilla como memoria, que es lo que se puede hacer hoy». Hoy es el día. Y antes de mostrar con qué la reemplazamos, conviene entender qué estaba mal, porque el problema no es que la planilla sea mala.</p>
+
+    <p style="margin-top:20px">Una planilla es excelente en lo suyo: que una persona mire números, los ordene, los pinte de amarillo y le mande el archivo a otra. Todo eso lo hace mejor que cualquier base de datos. El problema aparece cuando el que la usa no es una persona sino un programa, y aparece de cuatro maneras.</p>
+
+    <div class="comparo">
+      <div class="comparo-lado antes">
+        <span class="rot">Lo que pasa con la planilla</span>
+        <h4>Cuatro problemas que no se ven hasta que muerden</h4>
+        <ul>
+          <li><b>Buscar cuesta una llamada entera.</b> Para saber si la factura A-0001-12345 ya está, hay que traer las filas y recorrerlas. Con 200 filas no se nota. Con 20.000 el flujo tarda, consume y a veces se cae por tamaño.</li>
+          <li><b>Dos ejecuciones a la vez se pisan.</b> Si llegan dos correos juntos, los dos leen la planilla, los dos ven que la factura no está, y los dos la cargan. Terminás con la repetida que justamente querías evitar.</li>
+          <li><b>No hay tipos.</b> Una celda con <code>0001-00012345</code> puede volver como número, como texto o como fecha, según cómo la interprete la planilla. El famoso número de factura que se convirtió solo en una fecha de 1905.</li>
+          <li><b>Alguien la va a tocar.</b> Es un archivo compartido: alguien ordena una columna, inserta una fila, renombra un encabezado. Tu flujo se rompe y no hay nada en el log que lo explique.</li>
+        </ul>
+      </div>
+      <div class="comparo-lado despues">
+        <span class="rot">Lo que hace una tabla de verdad</span>
+        <h4>Las mismas cuatro, resueltas</h4>
+        <ul>
+          <li><b>Preguntar si existe es una operación.</b> No traés las filas: preguntás. La tabla contesta sí o no y el flujo sigue por la rama que corresponde.</li>
+          <li><b>La operación es una sola cosa.</b> «Si no existe, insertalo» se resuelve en un paso y no en dos, que es lo que evita que dos ejecuciones se pisen.</li>
+          <li><b>Las columnas tienen tipo.</b> Un texto es un texto y un número es un número, y nadie lo reinterpreta a mitad de camino.</li>
+          <li><b>Vive adentro de n8n.</b> Nadie la abre para ordenar una columna. Y si hay que mirarla o corregirla a mano, se puede: tiene su propia pestaña.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="cita">Una planilla es para que una persona mire datos. Una tabla es para que un programa los recuerde. Usar una donde va la otra funciona hasta que deja de funcionar, y nunca avisa.</p>
+
+    <div class="trampa">
+      <span class="rot">Y sin embargo, no la tires</span>
+      <p>Nada de esto significa que Google Sheets salga de tus flujos. El caso de Marcela <b>sigue cargando la planilla de pagos</b>, porque esa planilla la mira ella todos los días y la comparte con el estudio contable. Eso es exactamente para lo que sirve.</p>
+      <p>Lo que cambia es quién se acuerda de qué. La planilla deja de ser la memoria del flujo y pasa a ser lo que siempre fue: la salida que mira una persona. La memoria se muda a una tabla que nadie abre.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Dos maneras de acordarse ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Honestidad</span>
+    <h2>Dos maneras de acordarse, y no siempre gana la misma</h2>
+    <p class="intro">Acá hay algo que sería fácil no contarte. n8n ya tiene un nodo que resuelve el problema de las repetidas sin que armes ninguna tabla: <b>Remove Duplicates</b>, con la operación «Remove Items Processed in Previous Executions». Le decís qué campo mirar y él se acuerda solo de todo lo que pasó antes.</p>
+    <p style="margin-top:14px">Si te enseñara Data Tables sin mencionarlo, te estaría haciendo armar a mano algo que ya está hecho. Así que veamos los dos y cuándo gana cada uno, que es la única parte que importa.</p>
+
+    <div class="comparo">
+      <div class="comparo-lado">
+        <span class="rot">Nodo Remove Duplicates</span>
+        <h4>n8n se acuerda por vos</h4>
+        <ul>
+          <li><b>Cero configuración.</b> Elegís el campo y listo. No creás nada.</li>
+          <li><b>No lo podés ver.</b> La memoria es interna: no hay pantalla donde mirar qué guardó ni corregir una entrada mal cargada.</li>
+          <li><b>Guarda la llave, nada más.</b> Sabe que vio la factura A-0001-12345. No sabe de cuánto era ni en qué estado quedó.</li>
+          <li><b>Tiene tope.</b> Por defecto recuerda <b>10.000 ítems</b>. Cuando se llena, lo viejo deja de estar.</li>
+          <li><b>Se limpia entero o nada.</b> La operación «Clear Deduplication History» borra todo lo guardado; no hay manera de borrar una sola entrada.</li>
+        </ul>
+      </div>
+      <div class="comparo-lado">
+        <span class="rot">Data Table</span>
+        <h4>Te acordás vos, y podés mirarlo</h4>
+        <ul>
+          <li><b>Hay que crearla.</b> Definís columnas antes de usarla. Es trabajo que el otro no pide.</li>
+          <li><b>Se ve y se toca.</b> Tiene su pestaña: mirás las filas, corregís una, borrás la que cargaste mal.</li>
+          <li><b>Guarda lo que quieras al lado.</b> La llave, el monto, el estado, la fecha, quién la autorizó.</li>
+          <li><b>La comparten los flujos del proyecto.</b> Otro flujo puede leer la misma tabla.</li>
+          <li><b>Tiene otro tope.</b> 200 MiB entre todas las tablas de la instancia, con aviso al 80&nbsp;%.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="cita">Si sólo necesitás saber «¿esto ya lo vi?», usá Remove Duplicates. Si además necesitás saber algo <i>sobre</i> lo que viste, necesitás una tabla.</p>
+
+    <p style="margin-top:22px">El caso de Marcela cae del segundo lado, y no por gusto. El pseudocódigo de la clase 7 no solamente pregunta si la factura ya está: según el monto, la carga como «pendiente de autorización» o como «para pagar». O sea que necesita recordar <b>en qué estado quedó cada factura</b>, no sólo que existió. Con Remove Duplicates eso no se puede. Por eso vamos con tabla.</p>
+
+    <div class="decisor" id="decisor"></div>
+
+    <p class="nota-pie">Nodo Remove Duplicates: operaciones «Remove Items Repeated Within Current Input», «Remove Items Processed in Previous Executions» y «Clear Deduplication History»; alcance <code>Node</code> o <code>Workflow</code>; <code>History Size</code> de 10.000 ítems por defecto. Verificado en la documentación de n8n el 23 de septiembre de 2026.</p>
+  </div>
+</section>
+
+<!-- ─────────── Data Tables ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">La herramienta</span>
+    <h2>Data Tables: siete operaciones sobre filas</h2>
+    <p class="intro">Una Data Table es una tabla que vive adentro de n8n, en tu proyecto. Se crea desde la pestaña <b>Data tables</b> —a mano o importando un CSV— y se usa desde el nodo <b>Data Table</b>. Hay siete operaciones sobre filas y dos de ellas hacen casi todo el trabajo.</p>
+
+    <div class="ops" id="ops"></div>
+
+    <div class="trampa">
+      <span class="rot">Las dos que resuelven el caso</span>
+      <p><b>If Row Does Not Exist</b> es el nodo que reemplaza al «SI el número de factura ya está en la planilla» del pseudocódigo de la clase 7. Le das las condiciones, y deja pasar los ítems que <i>no</i> están en la tabla. El resto se detiene ahí.</p>
+      <p><b>Upsert</b> es la que evita el paso doble: si la fila existe la actualiza, y si no existe la crea. Una sola operación en lugar de «fijate si está, y después decidí». Ese paso doble es exactamente donde dos ejecuciones simultáneas se pisan.</p>
+    </div>
+
+    <h3 style="margin-top:44px">Lo que conviene saber antes de apoyarse en esto</h3>
+    <div class="dos-col" style="margin-top:20px">
+      <div class="ficha">
+        <h3>Los límites</h3>
+        <p>Por defecto, <b>200 MiB entre todas las tablas de la instancia</b>. n8n avisa al llegar al 80&nbsp;% y vuelve a avisar al tope. Pasado el tope no podés agregar filas a mano y los flujos que intenten insertar o actualizar <b>fallan la ejecución</b>.</p>
+        <p style="margin-top:12px">En una instancia propia ese límite se cambia con la variable <code>N8N_DATA_TABLES_MAX_SIZE_BYTES</code>. En la nube no: es el que es. Otra cosa que el módulo 5 va a poder y hoy no.</p>
+      </div>
+      <div class="ficha">
+        <h3>Desde el nodo Code, no</h3>
+        <p>No se puede leer ni escribir una Data Table desde un nodo Code. No hay método ni variable que las exponga: se usan con el nodo Data Table y nada más.</p>
+        <p style="margin-top:12px">Vale anotarlo porque es la primera idea que se le ocurre a cualquiera que sepa programar, y se pierde media hora buscando la función que no existe.</p>
+      </div>
+    </div>
+
+    <p class="nota-pie">Operaciones sobre filas: Delete, Get, If Row Exists, If Row Does Not Exist, Insert, Update y Upsert. Sobre tablas: Create, Delete, List y Update. Límite de 200 MiB por instancia, avisos al 80&nbsp;% y al tope, variable <code>N8N_DATA_TABLES_MAX_SIZE_BYTES</code> sólo en instancia propia, y sin acceso desde el nodo Code. Todo verificado en <code>docs.n8n.io</code> el 23 de septiembre de 2026. Las tablas quedan dentro del proyecto y las ve todo el equipo que tenga acceso a ese proyecto: no las uses para guardar nada que no compartirías con ellos.</p>
+  </div>
+</section>
+
+<!-- ─────────── El simulador ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Manos al lienzo</span>
+    <h2>El buzón de Marcela, corriendo contra una tabla</h2>
+    <p class="intro">Once correos entran al buzón de facturación, en el orden en que llegaron un martes cualquiera. Dale a «Llega el siguiente» y mirá dos cosas: qué decide el flujo con cada uno, y cómo va quedando la tabla. Hay repetidas, hay una que llega dos veces escrita distinto, y hay una sin adjunto.</p>
+
+    <div class="sim">
+      <div class="sim-panel">
+        <span class="rot">Lo que está entrando</span>
+        <div id="simEntrante"></div>
+        <div class="sim-acciones">
+          <button class="boton" type="button" id="simPaso">Llega el siguiente</button>
+          <button class="boton hueco" type="button" id="simTodo">Correr los once</button>
+          <button class="boton hueco" type="button" id="simReset">Vaciar la tabla</button>
+        </div>
+        <div class="bitacora" id="simBitacora"></div>
+      </div>
+      <div class="sim-panel">
+        <span class="rot">Data Table · facturas_vistas</span>
+        <div class="sim-envoltura"><table class="sim-tabla" id="simTabla"></table></div>
+        <p class="nota-pie" id="simPie"></p>
+      </div>
+    </div>
+
+    <div class="trampa">
+      <span class="rot">Lo que pasó con la número 12345</span>
+      <p>Llegó dos veces, escrita de dos maneras: <code>A-0001-00012345</code> y <code>0001-12345</code>. Para una persona es obviamente la misma factura. Para la tabla, si guardás el texto tal como vino, son dos llaves distintas y la repetida entra igual.</p>
+      <p>Por eso el flujo no guarda el número tal como llegó: guarda una versión normalizada. Y eso ya no es un problema de tablas: es el tema de la última parte de la clase.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Expresiones ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Tercera parte</span>
+    <h2>Expresiones: el lugar donde se acomoda el dato</h2>
+    <p class="intro">Una expresión es un pedacito de código que se escribe adentro de un campo de un nodo, entre llaves dobles. No es programar: es decir «acá no va un valor fijo, va esto de acá».</p>
+
+    <div class="caso">
+      <span class="n">La sintaxis, entera</span>
+      <h3>Todo lo que hay que saber para empezar</h3>
+      <pre>{{ $json.numero }}                    el campo numero del ítem actual
+{{ $json.body.cliente.cuit }}          un campo anidado
+{{ $('Leer el correo').item.json.de }} un campo de otro nodo, del ítem ligado
+{{ $now }}                             ahora
+{{ $now.toFormat('yyyy-MM-dd') }}      ahora, con formato
+{{ $if($json.monto > 50000, 'socio', 'pagar') }}   una decisión
+{{ $ifEmpty($json.proveedor, 'sin dato') }}        un valor por defecto</pre>
+      <p style="font-size:0.9rem">Adentro de las llaves va JavaScript, pero el 90&nbsp;% de lo que vas a escribir en toda la cursada está en esas siete líneas.</p>
+    </div>
+
+    <h3 style="margin-top:44px">Cuatro maneras de transformar un dato, y cuál elegir</h3>
+    <p style="margin-top:12px;max-width:62ch">n8n ofrece cuatro caminos para lo mismo. La documentación es directa sobre el orden de preferencia: usá expresiones siempre que puedas, porque te muestran el resultado calculado mientras escribís y eso hace que los errores aparezcan al toque.</p>
+
+    <div class="tabla-caja">
+      <table class="datos">
+        <thead><tr><th>Camino</th><th>Cuándo</th><th>Dónde corre</th></tr></thead>
+        <tbody>
+          <tr><td class="m">Expresiones</td><td>Poner un valor en un campo usando datos que ya tenés. Sacar un campo, formatear una fecha, una cuenta simple.</td><td>Nube e instancia propia</td></tr>
+          <tr><td class="m">Nodos de transformación</td><td>Operaciones comunes con interfaz: agregar, separar arrays, ordenar, quitar repetidos.</td><td>Nube e instancia propia</td></tr>
+          <tr><td class="m">Nodo Code</td><td>JavaScript o Python de verdad: reestructurar, recorrer ítems, usar librerías.</td><td>Nube e instancia propia</td></tr>
+          <tr><td class="m">Nodo AI Transform</td><td>Generar el código de transformación describiéndolo en castellano.</td><td><b>Sólo en la nube</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trampa">
+      <span class="rot">Sobre el AI Transform, dos advertencias</span>
+      <p>La primera: funciona <b>sólo en n8n Cloud</b>. Si armás un flujo con ese nodo y después lo mudás a tu instancia propia —que es a donde vamos en el módulo 5— el flujo no corre.</p>
+      <p>La segunda: <b>n8n 3.0 lo elimina</b>, y sale en octubre, o sea el mes que viene. Junto con él se van los nodos Function, Function Item, Item Lists y LangChain Code. Nada de eso lo usamos en esta cursada, y ahora sabés por qué. Cuando una herramienta te tienta con el atajo, mirá primero cuánto le queda de vida.</p>
+      <p class="nota-pie" style="margin-top:12px">Los cuatro caminos y su disponibilidad, verificados en <code>docs.n8n.io</code> el 23 de septiembre de 2026. La lista de nodos que elimina n8n 3.0, verificada el 15 de septiembre de 2026.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Datos sucios ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Cuarta parte</span>
+    <h2>El dato nunca llega como lo pediste</h2>
+    <p class="intro">Este es el bloque que más horas te va a ahorrar en el resto de tu vida con n8n. Un flujo bien armado que falla tres de cada diez veces casi nunca está mal armado: está recibiendo el mismo dato escrito de tres maneras distintas.</p>
+    <p style="margin-top:14px">Escribí un valor sucio, o tocá una de las muestras, y mirá la expresión que lo arregla y el resultado. Las expresiones son reales: podés copiarlas a un nodo tal cual están.</p>
+
+    <div class="lab" id="lab"></div>
+
+    <div class="trampa">
+      <span class="rot">Dos ayudantes que parecen servir y no sirven</span>
+      <p><code>.toNumber()</code> convierte un texto a número, pero <b>falla con error si el texto no empieza con un número válido</b>. Con <code>$ 1.234,56</code> no funciona: hay que limpiarlo antes. Y ojo con el orden argentino de los separadores, que es el contrario del que asume JavaScript.</p>
+      <p><code>.toDateTime()</code> convierte un texto a fecha, pero sólo entiende los formatos ISO&nbsp;8601, HTTP, RFC2822, SQL y timestamp Unix. <b>No entiende <code>15/03/2026</code></b>, que es como escribimos las fechas acá. Para eso hay que decirle el formato con <code>DateTime.fromFormat()</code>.</p>
+      <p>Las dos parecen la solución obvia y las dos fallan justo con nuestros datos. Es un buen recordatorio de que la documentación se lee entera, sobre todo la parte que dice qué formatos acepta.</p>
+      <p class="nota-pie" style="margin-top:12px">Comportamiento de <code>.toNumber()</code> y de <code>.toDateTime()</code>, y la lista de formatos que acepta, verificados en la referencia de expresiones de <code>docs.n8n.io</code> el 23 de septiembre de 2026.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── El pseudocódigo pagado ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">La deuda, saldada</span>
+    <h2>El mismo algoritmo, con la memoria en su lugar</h2>
+    <p class="intro">Este es el pseudocódigo de la clase 7, con dos cambios. La línea de la planilla ahora dice tabla, y apareció una línea nueva arriba de todo: normalizar antes de comparar. Esa línea nueva es la que evita que la 12345 entre dos veces.</p>
+
+    <div class="caso">
+      <span class="n">Caso de Marcela · versión 9</span>
+      <h3>Las facturas que llegan por correo</h3>
+      <pre>CUANDO llega un correo al buzón de facturación:
+    leer { remitente, asunto, adjuntos, fecha }
+
+    SI no trae ningún adjunto:
+        avisar a Marcela que llegó algo sin factura
+        FIN
+
+    leer del adjunto { proveedor, CUIT, número, monto, vencimiento }
+
+    normalizar { CUIT sin guiones, número canónico,
+                 monto como number, fecha ISO, proveedor sin espacios }
+
+    SI el número normalizado YA ESTÁ en facturas_vistas:
+        avisar que llegó repetida
+        FIN
+
+    SI monto > tope de autorización:
+        avisar al socio con el adjunto
+        estado = "pendiente de autorización"
+    SI NO:
+        estado = "para pagar"
+
+    guardar en facturas_vistas { número, proveedor, monto, estado, fecha }
+    cargar la fila en la planilla de pagos con ese estado
+    archivar el correo con la etiqueta Facturas
+FIN</pre>
+      <p style="font-size:0.9rem">La planilla sigue ahí, en la penúltima línea, y ahora se entiende para qué: es la salida que mira Marcela. La memoria está una línea más arriba, en la tabla que no abre nadie.</p>
+      <div class="acciones">
+        <a class="boton" href="workflows/09-facturas-sin-repetidas-n8n.json" download>Descargar el flujo con la tabla</a>
+        <a class="boton hueco" href="workflows/09-limpieza-de-datos-n8n.json" download>Descargar el limpiador</a>
+      </div>
+    </div>
+
+    <p class="nota-pie">Los dos flujos vienen con la tabla <code>facturas_vistas</code> referenciada por nombre: al importarlos, n8n te va a pedir que elijas la Data Table, porque las tablas son de tu proyecto y no viajan adentro del JSON. Creala primero desde la pestaña <b>Data tables</b> con las cinco columnas del pseudocódigo. Es el mismo motivo por el que las credenciales tampoco viajan, que vimos en la clase 8.</p>
+  </div>
+</section>
+
+<!-- ─────────── Actividad ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Para el miércoles</span>
+    <h2>Dos preguntas antes de la clase 10</h2>
+    <p class="intro">La clase 10 mete un modelo de IA adentro del flujo: el nodo AI Agent, que razona, decide y usa herramientas. Para que eso no sea magia, hay que llegar con dos cosas pensadas.</p>
+
+    <div class="actividad" style="margin-top:30px">
+      <div class="pregunta">
+        <label for="q1"><b>Qué decisión de tu proceso no se puede escribir como un SI</b><span>Hasta hoy todo lo que automatizamos cabe en una condición: si el monto supera tanto, si el campo está vacío. Buscá una decisión de tu proceso que no entre ahí: «depende de lo que diga el correo», «según de qué se trate el reclamo». Esa es la que va a necesitar un modelo.</span></label>
+        <textarea id="q1" placeholder="Por ejemplo: hay que darse cuenta de si el correo es un reclamo, una consulta o una factura, y eso no está en ningún campo…"></textarea>
+      </div>
+      <div class="pregunta">
+        <label for="q2"><b>Qué tendría que poder consultar para decidir bien</b><span>Si esa decisión la tomara alguien nuevo en tu oficina, ¿qué necesitaría tener a mano? Una tabla de precios, el historial del cliente, un instructivo. Eso, en la clase 10, se convierte en las herramientas del agente.</span></label>
+        <textarea id="q2" placeholder="Por ejemplo: la lista de clientes con su condición de IVA, y las últimas tres compras de cada uno…"></textarea>
+      </div>
+      <div class="guardado" id="guardado"></div>
+    </div>
+
+    <p class="nota-pie">Y la tarea de verdad: terminá el taller. Si la app te quedó en <code>Testing</code>, anotate el día de hoy en algún lado y probá el flujo dentro de diez días. Si falla con <code>invalid_grant</code>, ya sabés qué pasó y cómo se arregla.</p>
+  </div>
+</section>
+
+<div class="envoltura cierre">
+  <h2>Nos vemos el miércoles 30 de septiembre</h2>
+  <p class="intro" style="margin:0 auto">Con esto cierra el módulo 3. Sabés descomponer un proceso, conectarte con lo que no tiene nodo, recibir avisos, guardar lo que hay que recordar y limpiar lo que llega sucio. Todo lo que automatizaste hasta acá lo decidiste vos de antemano, con condiciones que escribiste a mano. La clase que viene empieza el módulo 4, y es sobre lo que pasa cuando la decisión no la podés escribir.</p>
+  <div class="acciones">
+    <a class="boton" href="cronograma.html">Ver el cronograma completo</a>
+    <a class="boton hueco" href="08.html">Volver a la clase 8</a>
+  </div>
+</div>
+
+</main>
+
+<footer class="pie">
+  <div class="envoltura">
+    <span>Facultad de Ciencias Económicas · Universidad de Buenos Aires</span>
+    <span>Clase 9 · Diseño de Procesos de Negocios con Automatización e IA Agéntica</span>
+  </div>
+</footer>
+
+<script src="acceso.js"></script>
+<script src="clases.js"></script>
+<script src="menu.js"></script>
+<script src="clase09.js"></script>
+</body>
+</html>

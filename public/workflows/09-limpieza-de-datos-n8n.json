@@ -1,0 +1,299 @@
+{
+  "name": "Clase 09 — El limpiador de datos sucios",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Clase 09 — El limpiador\n\nUn banco de pruebas, no un flujo de produccion.\n\nCorrelo a mano. Los seis renglones de **Las seis que\nllegaron** son casos reales de un buzon de facturacion:\nel mismo dato escrito de maneras distintas, mas dos que\nvienen rotos a proposito.\n\nMira la salida de **Normalizar** y compara con la\nentrada. Despues cambia los valores de prueba por los\ntuyos y fijate cuales de las cinco expresiones te\nsirven tal cual y cuales hay que ajustar.\n\nLas expresiones son las mismas que usa el flujo\n`09-facturas-sin-repetidas`. Si las cambias aca,\ncambialas alla.",
+        "height": 440,
+        "width": 420,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -820,
+        -60
+      ],
+      "id": "c9200000-0000-4000-8000-000000000001",
+      "name": "Para que sirve esto"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        180
+      ],
+      "id": "c9200000-0000-4000-8000-000000000002",
+      "name": "Correr a mano"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Seis facturas como llegan de verdad. Las dos ultimas vienen rotas\n// a proposito: un CUIT de 10 digitos, una fecha en otro formato,\n// un monto que no es un numero y campos vacios.\nreturn [\n  {\n    \"proveedorBruto\": \"ACME S.A.\",\n    \"cuitBruto\": \"30-71234567-8\",\n    \"numeroBruto\": \"A-0001-00012345\",\n    \"montoBruto\": \"$ 45.200,00\",\n    \"fechaBruta\": \"14/09/2026\"\n  },\n  {\n    \"proveedorBruto\": \"  acme  s.a. \",\n    \"cuitBruto\": \"30.712.345.67-8\",\n    \"numeroBruto\": \"0001-12345\",\n    \"montoBruto\": \"$45200,00\",\n    \"fechaBruta\": \"15/09/2026\"\n  },\n  {\n    \"proveedorBruto\": \"Distribuidora Sur\",\n    \"cuitBruto\": \"30712345678\",\n    \"numeroBruto\": \"B-0003-00000871\",\n    \"montoBruto\": \"$ 128.400,50\",\n    \"fechaBruta\": \"16/09/2026\"\n  },\n  {\n    \"proveedorBruto\": \"Papelera del Norte\",\n    \"cuitBruto\": \"27-30123456-4\",\n    \"numeroBruto\": \"A-0007-00004410\",\n    \"montoBruto\": \"$ 12.900,00\",\n    \"fechaBruta\": \"01/12/2026\"\n  },\n  {\n    \"proveedorBruto\": \"Servicios SRL\",\n    \"cuitBruto\": \"3071234567\",\n    \"numeroBruto\": \"C-0002-00000156\",\n    \"montoBruto\": \"$ 89.000,00\",\n    \"fechaBruta\": \"2026-03-15\"\n  },\n  {\n    \"proveedorBruto\": \"\",\n    \"cuitBruto\": \"\",\n    \"numeroBruto\": \"\",\n    \"montoBruto\": \"a convenir\",\n    \"fechaBruta\": \"sin fecha\"\n  }\n].map(json => ({ json }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        180
+      ],
+      "id": "c9200000-0000-4000-8000-000000000003",
+      "name": "Las seis que llegaron"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9200000-0000-4000-8000-000000000004",
+              "name": "numero",
+              "value": "={{ $json.numeroBruto.replace(/[^0-9-]/g, '').split('-').filter(p => p).map(p => Number(p)).join('-') }}",
+              "type": "string"
+            },
+            {
+              "id": "c9200000-0000-4000-8000-000000000005",
+              "name": "cuit",
+              "value": "={{ $json.cuitBruto.replace(/\\D/g, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "c9200000-0000-4000-8000-000000000006",
+              "name": "monto",
+              "value": "={{ Number($json.montoBruto.replace(/[^\\d,.-]/g, '').replace(/\\./g, '').replace(',', '.')) }}",
+              "type": "number"
+            },
+            {
+              "id": "c9200000-0000-4000-8000-000000000007",
+              "name": "fecha",
+              "value": "={{ DateTime.fromFormat($json.fechaBruta, 'dd/MM/yyyy').toISODate() }}",
+              "type": "string"
+            },
+            {
+              "id": "c9200000-0000-4000-8000-000000000008",
+              "name": "proveedor",
+              "value": "={{ $json.proveedorBruto.trim().replace(/\\s+/g, ' ').toUpperCase() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        120,
+        180
+      ],
+      "id": "c9200000-0000-4000-8000-000000000009",
+      "name": "Normalizar"
+    },
+    {
+      "parameters": {
+        "content": "### Las cinco, una por campo\n\n```\nnumero\n{{ $json.numeroBruto\n     .replace(/[^0-9-]/g, '')\n     .split('-').filter(p => p)\n     .map(p => Number(p)).join('-') }}\n```\nTira la letra y los ceros a la izquierda de cada tramo.\n`A-0001-00012345` y `0001-12345` terminan los dos en\n`1-12345`, que es lo que hace que la repetida se\nencuentre.\n\n```\ncuit\n{{ $json.cuitBruto.replace(/\\D/g, '') }}\n```\nSolo digitos. Limpiar no es validar: el de 10 digitos\nsale limpio y sigue estando mal. Eso lo agarra el IF.\n\n```\nmonto\n{{ Number($json.montoBruto\n     .replace(/[^\\d,.-]/g, '')\n     .replace(/\\./g, '')\n     .replace(',', '.')) }}\n```\nEl orden importa. Primero el simbolo, despues los\npuntos de miles, y al final la coma decimal. Al reves,\n45.200,00 da 45.2.\n\n```\nfecha\n{{ DateTime.fromFormat(\n     $json.fechaBruta, 'dd/MM/yyyy').toISODate() }}\n```\n`.toDateTime()` no sirve aca: no acepta el formato\nargentino. Lo que no coincide devuelve\n`Invalid DateTime`, y eso se ve en la salida.\n\n```\nproveedor\n{{ $json.proveedorBruto.trim()\n     .replace(/\\s+/g, ' ').toUpperCase() }}\n```\nExtremos, espacios del medio y mayusculas. Es la\ndiferencia entre tres proveedores y uno.",
+        "height": 660,
+        "width": 460,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        60,
+        -500
+      ],
+      "id": "c9200000-0000-4000-8000-000000000010",
+      "name": "Las cinco expresiones"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c9200000-0000-4000-8000-000000000011",
+              "leftValue": "={{ $json.cuit.length }}",
+              "rightValue": "=11",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "c9200000-0000-4000-8000-000000000012",
+              "leftValue": "={{ $json.monto }}",
+              "rightValue": "=0",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "c9200000-0000-4000-8000-000000000013",
+              "leftValue": "={{ $json.fecha }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c9200000-0000-4000-8000-000000000014",
+              "leftValue": "={{ $json.numero }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        360,
+        180
+      ],
+      "id": "c9200000-0000-4000-8000-000000000015",
+      "name": "¿Quedo usable?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9200000-0000-4000-8000-000000000016",
+              "name": "revision",
+              "value": "=no",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        600,
+        80
+      ],
+      "id": "c9200000-0000-4000-8000-000000000017",
+      "name": "Sigue el flujo"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9200000-0000-4000-8000-000000000018",
+              "name": "revision",
+              "value": "=si",
+              "type": "string"
+            },
+            {
+              "id": "c9200000-0000-4000-8000-000000000019",
+              "name": "porque",
+              "value": "={{ [ $json.cuit.length !== 11 ? 'CUIT de ' + $json.cuit.length + ' digitos' : null, !($json.monto > 0) ? 'monto no numerico o en cero' : null, !$json.fecha ? 'fecha en otro formato' : null, !$json.numero ? 'sin numero de factura' : null ].filter(x => x).join(', ') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        600,
+        300
+      ],
+      "id": "c9200000-0000-4000-8000-000000000020",
+      "name": "A revision humana"
+    },
+    {
+      "parameters": {
+        "content": "### ¿Quedo usable?\n\nCuatro condiciones, todas juntas:\n\n- el CUIT tiene 11 digitos\n- el monto es un numero **mayor que cero**\n- la fecha se pudo convertir\n- hay numero de factura\n\n**Esto es lo que separa un flujo que anda de uno que\nanda siempre.** Y fijate por que dice \"mayor que cero\"\ny no \"existe\": si el monto llego como `a convenir`, la\nlimpieza deja un texto vacio, y en JavaScript\n`Number('')` **da cero**, no da error. Un monto que\npreguntes si existe, existe: vale cero. Nunca supera el\ntope, se carga sola como \"para pagar\", y nadie se\nentera nunca.\n\nLa rama de abajo no tira nada: arma un campo `porque`\nque dice cual de las cuatro fallo, y manda el item a\nrevision. Un humano mira diez por semana en lugar de\ndescubrir el problema tres meses despues.",
+        "height": 420,
+        "width": 420,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -260
+      ],
+      "id": "c9200000-0000-4000-8000-000000000021",
+      "name": "El IF que falta en casi todos los flujos"
+    }
+  ],
+  "connections": {
+    "Correr a mano": {
+      "main": [
+        [
+          {
+            "node": "Las seis que llegaron",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Las seis que llegaron": {
+      "main": [
+        [
+          {
+            "node": "Normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar": {
+      "main": [
+        [
+          {
+            "node": "¿Quedo usable?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Quedo usable?": {
+      "main": [
+        [
+          {
+            "node": "Sigue el flujo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "A revision humana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
