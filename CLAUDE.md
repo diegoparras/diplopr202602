@@ -45,6 +45,8 @@ public/
   menu.js              selector de clases publicadas de la barra superior
   taller-oauth.html    taller de apoyo: n8n propio + Google OAuth en producción
   taller-oauth.js      sus variables, plantillas, checklist y diagrama
+  n8n-google-oauth.html  el mismo taller, suelto: un archivo, sin clave, sin
+                       mención de la cursada. Para compartir afuera.
   workflows/           los JSON importables a n8n
 vercel.json
 ```
@@ -124,6 +126,18 @@ detrás de un dominio con Google OAuth en producción. Vuelve en el módulo 5.
 Regla suya: el formulario maneja sólo valores no secretos, no hay ningún campo
 donde pegar el Client Secret, y no se guarda ni Client ID ni Client Secret en
 `localStorage`. Si alguna vez se agrega algo ahí, esa regla manda.
+
+De ese taller hay **dos copias y hay que tocar las dos**. `taller-oauth.html`
+es la de la cursada: detrás de la cortina de acceso, con el selector de clases
+y las referencias a los módulos. `n8n-google-oauth.html` es la suelta, para
+compartir con gente de afuera: un solo archivo con todo adentro —el CSS, el
+tema y el JavaScript—, sin `exigirSesion()`, sin `estilo.css`, sin `menu.js` y
+sin una sola mención de la diplomatura. Abre igual servida que con doble clic
+sobre el archivo. Se regenera con el script del commit que la creó, que aplica
+los reemplazos uno por uno y falla si alguno no encuentra su texto: si editás
+la de la cursada, volvé a generarla en vez de editar las dos a mano. Ojo con
+una cosa que ya mordió: el CSS que hace envolver la barra superior en teléfono
+lo inyecta `menu.js`, así que la versión suelta lo lleva escrito aparte.
 
 ## El terreno de n8n, verificado el 15 de septiembre de 2026
 
