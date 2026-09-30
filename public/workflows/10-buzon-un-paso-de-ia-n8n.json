@@ -1,0 +1,372 @@
+{
+  "name": "Clase 10 — El buzón, con un paso de IA",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Clase 10 - El buzon, con un paso de IA\n\n```\nCUANDO llega un correo al buzon de facturacion:\n    SI trae adjunto:\n        es una factura -> sigue el flujo de la clase 9\n        FIN\n    el modelo lee el correo y decide que es:\n        consulta por un pago / reclamo / otra cosa\n    SI es consulta por un pago:\n        buscar la factura en facturas_vistas\n        redactar la respuesta con el estado\n        Marcela aprueba el envio\n        responder al proveedor\n    SI es reclamo:\n        avisar a Marcela con un resumen\n    SI es otra cosa:\n        no hacer nada\nFIN\n```\n\n**Un solo nodo necesita un modelo:** `Que es este correo?`,\nun Text Classifier con tres salidas. Todo lo demas son\nnodos comunes: el numero sale con una expresion, se\nnormaliza con la de la clase 9 y se busca en la tabla.\n\n**Nada sale del estudio sin una persona.** El borrador le\nllega a Marcela por Telegram y ella contesta a mano.\nEs el escalon 2 de la clase: una llamada al modelo por\ncorreo y un camino que siempre es el mismo.",
+        "height": 760,
+        "width": 560,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1300,
+        -200
+      ],
+      "name": "Consigna",
+      "id": "c10a0000-0000-4000-8000-000000000001"
+    },
+    {
+      "parameters": {
+        "content": "## Tres cosas antes de ejecutar\n\n**1. Credencial de Anthropic.** En el sub-nodo\n`Claude` elegi tu credencial. Viene con Claude Opus 5.5\ny esfuerzo bajo, que para clasificar alcanza. Cambiar de\nmodelo o de proveedor es cambiar solo ese sub-nodo.\n\n**2. La tabla de la clase 9.** En `Buscar en la tabla`\nelegi `facturas_vistas` de la lista: las tablas son de tu\nproyecto y no viajan en el JSON.\n\n**3. Telegram.** Cambia `PEGAR_CHAT_ID_DE_MARCELA` en\nlos dos avisos. Es el bot de la clase 5.\n\nProbalo primero con el boton de ejecutar a mano: no\nconsume cuota de ejecuciones.",
+        "height": 520,
+        "width": 440,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        -200
+      ],
+      "name": "Antes de correr esto",
+      "id": "c10a0000-0000-4000-8000-000000000002"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -240,
+        300
+      ],
+      "name": "Llega un correo",
+      "id": "c10a0000-0000-4000-8000-000000000003"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c10a0000-0000-4000-8000-000000000004",
+              "leftValue": "={{ $json.attachments ? $json.attachments.length : 0 }}",
+              "rightValue": "=0",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -20,
+        300
+      ],
+      "name": "¿Trae adjunto?",
+      "id": "c10a0000-0000-4000-8000-000000000005"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        220,
+        160
+      ],
+      "name": "Es una factura: sigue la clase 9",
+      "id": "c10a0000-0000-4000-8000-000000000006"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ 'De: ' + $json.from + '\\nAsunto: ' + $json.subject + '\\n\\n' + ($json.text || $json.snippet || '') }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "consulta de pago",
+              "description": "El remitente pregunta si una factura ya se pago, cuando se va a pagar o en que estado esta."
+            },
+            {
+              "category": "reclamo",
+              "description": "El remitente se queja: un pago que no llego, un monto equivocado, una factura rechazada, un maltrato."
+            },
+            {
+              "category": "otra cosa",
+              "description": "Cualquier otro correo: publicidad, saludos, avisos automaticos, consultas que no son sobre pagos."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        400
+      ],
+      "name": "¿Qué es este correo?",
+      "id": "c10a0000-0000-4000-8000-000000000007"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-opus-5-5",
+          "cachedResultName": "Claude Opus 5.5"
+        },
+        "options": {
+          "thinkingMode": "adaptive",
+          "effort": "low"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        240,
+        620
+      ],
+      "name": "Claude",
+      "credentials": {
+        "anthropicApi": {
+          "id": "",
+          "name": "PEGAR_TU_CREDENCIAL_DE_ANTHROPIC"
+        }
+      },
+      "id": "c10a0000-0000-4000-8000-000000000008"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c10a0000-0000-4000-8000-000000000009",
+              "name": "numero",
+              "value": "={{ (($json.subject + ' ' + ($json.text || $json.snippet || '')).match(/[A-Z]?-?\\d{1,4}-\\d{4,8}/) || [''])[0].replace(/[^0-9-]/g, '').split('-').filter(p => p).map(p => Number(p)).join('-') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        220
+      ],
+      "name": "Sacar el número",
+      "id": "c10a0000-0000-4000-8000-000000000010"
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "facturas_vistas"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "numero",
+              "condition": "eq",
+              "keyValue": "={{ $json.numero }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        740,
+        220
+      ],
+      "name": "Buscar en la tabla",
+      "alwaysOutputData": true,
+      "id": "c10a0000-0000-4000-8000-000000000011"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DE_MARCELA",
+        "text": "={{ $json.estado\n  ? 'Consulta por un pago de ' + $('Sacar el número').item.json.from + '\\n\\nLa factura ' + $json.numero + ' esta: ' + $json.estado + '.\\n\\nBorrador:\\nHola, la factura ' + $json.numero + ' esta recibida y ' + ($json.estado === 'para pagar' ? 'en cola para pagar' : 'pendiente de autorizacion') + '. Saludos.'\n  : 'Consulta por un pago de ' + $('Sacar el número').item.json.from + ', pero no pude identificar la factura' + ($('Sacar el número').item.json.numero ? ' (' + $('Sacar el número').item.json.numero + ' no esta en la tabla)' : ' (no trae numero)') + '. Contestale vos.\\n\\nAsunto: ' + $('Sacar el número').item.json.subject }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        220
+      ],
+      "name": "Pasarle el borrador a Marcela",
+      "id": "c10a0000-0000-4000-8000-000000000012"
+    },
+    {
+      "parameters": {
+        "chatId": "PEGAR_CHAT_ID_DE_MARCELA",
+        "text": "=Llego un reclamo al buzon de facturacion.\n\nDe: {{ $json.from }}\nAsunto: {{ $json.subject }}\n\n{{ $json.snippet }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        520,
+        420
+      ],
+      "name": "Avisar el reclamo a Marcela",
+      "id": "c10a0000-0000-4000-8000-000000000013"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        520,
+        600
+      ],
+      "name": "No hacer nada",
+      "id": "c10a0000-0000-4000-8000-000000000014"
+    },
+    {
+      "parameters": {
+        "content": "### Sacar el numero\n\nNo hace falta un modelo para esto: la expresion busca\nalgo con forma de numero de factura en el asunto y el\ncuerpo, y lo normaliza con la misma regla de la clase 9.\n\nSi el correo no trae numero, el campo queda vacio, la\ntabla no encuentra nada y el aviso a Marcela lo dice.\nEse es justamente el caso que el flujo con agente\nresuelve mejor: `las dos que les mande el martes`.\n\n`Buscar en la tabla` tiene **Always Output Data**\nprendido, para que el flujo siga aunque no encuentre la\nfactura y Marcela se entere igual.",
+        "height": 360,
+        "width": 420,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        460,
+        -160
+      ],
+      "name": "Por que el numero sale con una expresion",
+      "id": "c10a0000-0000-4000-8000-000000000015"
+    }
+  ],
+  "connections": {
+    "Llega un correo": {
+      "main": [
+        [
+          {
+            "node": "¿Trae adjunto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Trae adjunto?": {
+      "main": [
+        [
+          {
+            "node": "Es una factura: sigue la clase 9",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Qué es este correo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "¿Qué es este correo?",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Qué es este correo?": {
+      "main": [
+        [
+          {
+            "node": "Sacar el número",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Avisar el reclamo a Marcela",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No hacer nada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sacar el número": {
+      "main": [
+        [
+          {
+            "node": "Buscar en la tabla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar en la tabla": {
+      "main": [
+        [
+          {
+            "node": "Pasarle el borrador a Marcela",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "PEGAR_ID_DEL_FLUJO_AVISAR_SI_ALGO_FALLA"
+  },
+  "pinData": {}
+}

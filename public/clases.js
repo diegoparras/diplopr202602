@@ -48,7 +48,7 @@ const CLASES = [
   { n:  9, fecha: '2026-09-23', dia: 'Miércoles', mod: 'M3', pagina: '09.html',
     titulo: 'Datos: Data Tables, expresiones y transformaciones',
     bajada: 'Guardar estado dentro de n8n, escribir expresiones y ordenar datos que vienen sucios.' },
-  { n: 10, fecha: '2026-09-30', dia: 'Miércoles', mod: 'M4', pagina: null,
+  { n: 10, fecha: '2026-09-30', dia: 'Miércoles', mod: 'M4', pagina: '10.html',
     titulo: 'n8n + IA: el nodo AI Agent',
     bajada: 'Un modelo que razona, decide y usa herramientas adentro de un flujo. Memoria y tools.' },
   { n: 11, fecha: '2026-10-07', dia: 'Miércoles', mod: 'M4', pagina: null,

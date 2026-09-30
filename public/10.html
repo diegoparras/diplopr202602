@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 10 · n8n + IA: el nodo AI Agent · FCE-UBA</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  :root { --acierto: #22C55E; --fallo: #F87171; --alerta: #EAB308; }
+  :root[data-tema="claro"] { --acierto: #15803D; --fallo: #B4231A; --alerta: #A16207; }
+
+  section.bloque { padding: 96px 0; border-top: 1px solid var(--linea); }
+  section.bloque:first-of-type { border-top: 0; }
+  .bloque h2 { max-width: 20ch; margin: 18px 0 22px; }
+  .bloque .intro { max-width: 62ch; font-size: 1.05rem; }
+
+  .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 54px; align-items: start; }
+  @media (max-width: 900px) {
+    .dos-col { grid-template-columns: 1fr; gap: 26px; }
+    section.bloque { padding: 68px 0; }
+  }
+
+  .portada { padding: 54px 0 20px; }
+  .portada h1 { max-width: 19ch; margin: 20px 0 24px; }
+  .portada .meta {
+    display: flex; gap: 28px; flex-wrap: wrap;
+    font-family: var(--dato); font-size: 0.75rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue);
+    margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--linea);
+  }
+  @media (max-width: 720px) { .portada { padding: 40px 0 18px; } }
+
+  code, .mono { font-family: var(--dato); font-size: 0.85em; color: var(--naranja); overflow-wrap: anywhere; }
+  .nota-pie { margin-top: 14px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); line-height: 1.7; }
+
+  .cita {
+    border-left: 2px solid var(--naranja);
+    padding: 8px 0 8px 24px; margin-top: 30px;
+    font-family: var(--display); font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+    font-weight: 600; letter-spacing: -0.02em; line-height: 1.35; color: var(--texto);
+    max-width: 48ch;
+  }
+
+  .ficha { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 24px 22px; box-shadow: var(--sombra); }
+  .ficha h3 { font-size: 1.12rem; margin-bottom: 8px; }
+  .ficha p { font-size: 0.9rem; }
+
+  .caso {
+    background: var(--sup); border: 1px solid var(--linea); border-left: 2px solid var(--naranja);
+    border-radius: 16px; padding: 26px; margin-top: 18px; box-shadow: var(--sombra);
+  }
+  .caso .n { font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--naranja); }
+  .caso h3 { margin: 6px 0 10px; }
+  .caso pre {
+    font-family: var(--dato); font-size: 0.78rem; line-height: 1.75;
+    background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px 20px; margin: 16px 0; color: var(--texto);
+    white-space: pre; overflow-x: auto; min-width: 0;
+  }
+  .caso .acciones { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+
+  .traido {
+    margin-top: 30px; background: var(--sup); border: 1px solid var(--linea);
+    border-left: 2px solid var(--naranja); border-radius: 16px;
+    padding: 24px 26px; box-shadow: var(--sombra);
+  }
+  .traido .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja); }
+  .traido .linea { margin-top: 14px; }
+  .traido .linea b { display: block; font-size: 0.82rem; color: var(--tenue); font-family: var(--dato); margin-bottom: 4px; }
+  .traido .linea p { color: var(--texto); font-size: 0.98rem; }
+  .traido .vacio { font-size: 0.92rem; }
+
+  /* ── El taller, primera parte ── */
+  .taller-caja {
+    margin-top: 30px; background: var(--sup); border: 1px solid var(--linea);
+    border-radius: 20px; padding: 32px; box-shadow: var(--sombra);
+    display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center;
+  }
+  @media (max-width: 760px) { .taller-caja { grid-template-columns: 1fr; padding: 24px; } }
+  .taller-caja h3 { font-size: 1.3rem; margin-bottom: 8px; }
+  .taller-caja p { font-size: 0.94rem; }
+  .taller-caja .etapas {
+    display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px;
+    font-family: var(--dato); font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--tenue);
+  }
+
+  /* ── Comparación planilla / tabla ── */
+  .comparo { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+  @media (max-width: 760px) { .comparo { grid-template-columns: 1fr; } }
+  .comparo-lado {
+    background: var(--sup); border: 1px solid var(--linea); border-radius: 16px;
+    padding: 24px; box-shadow: var(--sombra); min-width: 0;
+  }
+  .comparo-lado.antes { border-left: 2px solid var(--alerta); }
+  .comparo-lado.despues { border-left: 2px solid var(--acierto); }
+  .comparo-lado .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--tenue); }
+  .comparo-lado h4 { margin: 6px 0 12px; font-size: 1.05rem; }
+  .comparo-lado ul { margin: 0 0 0 18px; }
+  .comparo-lado li { font-size: 0.89rem; color: var(--tenue); margin-bottom: 8px; }
+  .comparo-lado li b { color: var(--texto); }
+
+  /* ── El decisor ── */
+  .decisor { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 30px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .decisor { padding: 22px; } }
+  .decisor-p { margin-bottom: 20px; }
+  .decisor-p > b { display: block; font-family: var(--display); font-size: 1.02rem; margin-bottom: 10px; color: var(--texto); }
+  .opciones { display: flex; gap: 9px; flex-wrap: wrap; }
+  .opciones button {
+    padding: 9px 16px; border: 1px solid var(--linea); border-radius: 999px;
+    background: transparent; color: var(--tenue);
+    font-family: var(--cuerpo); font-size: 0.88rem; cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .opciones button:hover { color: var(--texto); border-color: var(--naranja); }
+  .opciones button[aria-pressed="true"] { background: var(--brasa); color: var(--texto); border-color: var(--naranja); }
+  .veredicto {
+    margin-top: 8px; padding: 22px; border-radius: 14px;
+    background: var(--fondo); border: 1px solid var(--linea); border-left: 2px solid var(--naranja);
+  }
+  .veredicto .cual { font-family: var(--display); font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .veredicto p { font-size: 0.92rem; }
+
+  /* ── Las operaciones ── */
+  .ops { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 12px; margin-top: 28px; }
+  .op {
+    background: var(--sup); border: 1px solid var(--linea); border-radius: 14px;
+    padding: 18px 20px; box-shadow: var(--sombra); min-width: 0;
+  }
+  .op.destacada { border-left: 2px solid var(--acierto); }
+  .op b { display: block; font-family: var(--dato); font-size: 0.86rem; color: var(--naranja); margin-bottom: 7px; }
+  .op p { font-size: 0.87rem; }
+  .op small { display: block; margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--linea); font-size: 0.8rem; color: var(--tenue); }
+
+  /* ── El simulador ── */
+  .sim { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .sim { grid-template-columns: 1fr; } }
+  .sim-panel { background: var(--sup); border: 1px solid var(--linea); border-radius: 18px; padding: 24px; box-shadow: var(--sombra); min-width: 0; }
+  .sim-panel > .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja); display: block; margin-bottom: 14px; }
+  .sim-entrante {
+    padding: 16px 18px; border-radius: 12px; background: var(--fondo);
+    border: 1px solid var(--linea); margin-bottom: 16px;
+  }
+  .sim-entrante b { display: block; font-size: 1rem; margin-bottom: 5px; }
+  .sim-entrante dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; margin-top: 8px; }
+  .sim-entrante dt { font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); }
+  .sim-entrante dd { font-family: var(--dato); font-size: 0.76rem; color: var(--texto); overflow-wrap: anywhere; }
+  .sim-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+  .sim-tabla { width: 100%; border-collapse: collapse; font-family: var(--dato); font-size: 0.74rem; }
+  .sim-tabla th, .sim-tabla td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--linea); }
+  .sim-tabla th { color: var(--naranja); font-weight: 400; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .sim-tabla td { color: var(--texto); }
+  .sim-tabla tr.nueva td { background: var(--brasa); }
+  .sim-vacia { font-size: 0.86rem; color: var(--tenue); font-family: var(--cuerpo); }
+  .sim-envoltura { overflow-x: auto; min-width: 0; }
+  .bitacora { margin-top: 18px; display: grid; gap: 6px; max-height: 260px; overflow-y: auto; }
+  .bit {
+    display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: baseline;
+    font-size: 0.85rem; padding: 7px 10px; border-radius: 9px; background: var(--fondo);
+    border: 1px solid var(--linea);
+  }
+  .bit i { font-style: normal; font-family: var(--dato); font-size: 0.72rem; }
+  .bit.ok i { color: var(--acierto); }
+  .bit.rep i { color: var(--alerta); }
+  .bit.mal i { color: var(--fallo); }
+  .bit span { color: var(--tenue); min-width: 0; overflow-wrap: anywhere; }
+  .bit span b { color: var(--texto); font-weight: 600; }
+
+  /* ── Expresiones ── */
+  .tabla-caja { margin-top: 24px; overflow-x: auto; min-width: 0; }
+  table.datos { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 0.87rem; }
+  table.datos th, table.datos td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.datos th { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--naranja); font-weight: 400; }
+  table.datos td { color: var(--tenue); }
+  table.datos td.m { font-family: var(--dato); font-size: 0.79rem; color: var(--texto); overflow-wrap: anywhere; }
+  table.datos tr:last-child td { border-bottom: 0; }
+
+  /* ── El laboratorio de datos sucios ── */
+  .lab { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 30px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .lab { padding: 22px; } }
+  .lab-pestanas { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+  .lab-pestanas button {
+    padding: 7px 15px; border: 1px solid var(--linea); border-radius: 999px;
+    background: transparent; color: var(--tenue);
+    font-family: var(--dato); font-size: 0.75rem; cursor: pointer;
+  }
+  .lab-pestanas button:hover { color: var(--texto); border-color: var(--naranja); }
+  .lab-pestanas button[aria-selected="true"] { background: var(--brasa); color: var(--texto); border-color: var(--naranja); }
+  .lab-campo { display: flex; flex-direction: column; gap: 7px; }
+  .lab-campo label { font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); }
+  .lab-campo input {
+    width: 100%; min-width: 0; padding: 12px 15px; background: var(--fondo); color: var(--texto);
+    border: 1px solid var(--linea); border-radius: 11px;
+    font-family: var(--dato); font-size: 0.86rem;
+  }
+  .lab-campo input:focus { outline: none; border-color: var(--naranja); }
+  .lab-muestras { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+  .lab-muestras button {
+    padding: 5px 11px; border: 1px solid var(--linea); border-radius: 8px;
+    background: transparent; color: var(--tenue);
+    font-family: var(--dato); font-size: 0.72rem; cursor: pointer;
+  }
+  .lab-muestras button:hover { color: var(--naranja); border-color: var(--naranja); }
+  .lab-salida { margin-top: 22px; display: grid; gap: 14px; }
+  .lab-fila { padding: 16px 18px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); min-width: 0; }
+  .lab-fila .rot { font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tenue); display: block; margin-bottom: 7px; }
+  .lab-fila code { display: block; font-size: 0.82rem; color: var(--texto); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .lab-fila.resultado { border-left: 2px solid var(--acierto); }
+  .lab-fila.resultado code { color: var(--acierto); font-size: 0.95rem; }
+  .lab-fila.error { border-left: 2px solid var(--fallo); }
+  .lab-fila.error code { color: var(--fallo); }
+  .lab-fila .expl { font-size: 0.85rem; color: var(--tenue); margin-top: 9px; }
+
+  /* ── Trampa ── */
+  .trampa {
+    margin-top: 22px; border: 1px solid var(--linea); border-left: 3px solid var(--alerta);
+    border-radius: 0 12px 12px 0; background: var(--sup); padding: 18px 22px;
+  }
+  .trampa .rot { display: block; font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--alerta); margin-bottom: 8px; }
+  .trampa p { font-size: 0.92rem; }
+  .trampa p + p { margin-top: 10px; }
+
+  /* ── Actividad ── */
+  .actividad { background: var(--sup); border-radius: 20px; padding: 34px; border: 1px solid var(--linea); box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .actividad { padding: 22px; } }
+  .pregunta { margin-top: 24px; }
+  .pregunta label { display: block; margin-bottom: 8px; }
+  .pregunta label b { font-family: var(--display); font-size: 1.08rem; font-weight: 600; color: var(--naranja); display: block; }
+  .pregunta label span { font-size: 0.88rem; color: var(--tenue); }
+  .pregunta textarea {
+    width: 100%; min-height: 84px; resize: vertical;
+    padding: 13px 15px; background: var(--fondo);
+    border: 1px solid var(--linea); border-radius: 12px;
+    color: var(--texto); font-family: var(--cuerpo); font-size: 0.95rem; line-height: 1.55;
+  }
+  .pregunta textarea:focus { outline: none; border-color: var(--naranja); }
+  .guardado { margin-top: 16px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); }
+
+  .cierre { text-align: center; padding: 90px 0 40px; }
+  .cierre h2 { margin: 0 auto 22px; max-width: 24ch; }
+  .cierre .acciones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+  @media (max-width: 720px) { .cierre { padding: 60px 26px 30px; } }
+
+  .revelar { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .revelar.visible { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .revelar { opacity: 1; transform: none; transition: none; }
+    .opciones button { transition: none; }
+  }
+
+  /* ══ Clase 10 ══ */
+
+  /* El esqueleto con el agente en el medio */
+  .esqueleto { display: grid; grid-template-columns: 1fr auto 1.25fr auto 1fr; gap: 14px; align-items: stretch; margin-top: 30px; }
+  @media (max-width: 820px) { .esqueleto { grid-template-columns: 1fr; } .esq-flecha { transform: rotate(90deg); justify-self: center; } }
+  .esq-caja { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 20px; box-shadow: var(--sombra); min-width: 0; }
+  .esq-caja .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--tenue); display: block; margin-bottom: 8px; }
+  .esq-caja b { display: block; font-family: var(--display); font-size: 1.05rem; margin-bottom: 6px; }
+  .esq-caja p { font-size: 0.87rem; }
+  .esq-caja code { display: block; margin-top: 10px; white-space: pre-wrap; }
+  .esq-caja.medio { border: 1px solid var(--naranja); background: var(--brasa); }
+  .esq-flecha { align-self: center; font-family: var(--dato); color: var(--naranja); font-size: 1.2rem; }
+  .conmutar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+
+  /* Los tres escalones */
+  .escalones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 30px; }
+  @media (max-width: 900px) { .escalones { grid-template-columns: 1fr; } }
+  .escalon { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 22px; box-shadow: var(--sombra); min-width: 0; }
+  .escalon .n { font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1; color: var(--naranja); }
+  .escalon h3 { font-size: 1.08rem; margin: 10px 0 8px; }
+  .escalon p { font-size: 0.88rem; }
+  .escalon small { display: block; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--linea); font-size: 0.8rem; color: var(--tenue); }
+
+  .ejercicio { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 28px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .ejercicio { padding: 20px; } }
+  .correo-caso { padding: 16px 18px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); margin: 14px 0; }
+  .correo-caso b { display: block; font-size: 0.8rem; font-family: var(--dato); color: var(--tenue); margin-bottom: 6px; }
+  .correo-caso p { color: var(--texto); font-size: 0.95rem; }
+  .ej-pie { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 18px; font-family: var(--dato); font-size: 0.75rem; color: var(--tenue); }
+
+  /* El bucle */
+  .contadores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .contador { padding: 12px 14px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); }
+  .contador b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.5rem; line-height: 1.1; }
+  .contador span { font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tenue); }
+  .escenarios { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .paso-bucle { padding: 12px 14px; border-radius: 11px; background: var(--fondo); border: 1px solid var(--linea); font-size: 0.86rem; color: var(--tenue); }
+  .paso-bucle .quien { display: block; font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; }
+  .paso-bucle.modelo .quien { color: var(--naranja); }
+  .paso-bucle.herramienta .quien { color: var(--acierto); }
+  .paso-bucle.humano { border-left: 2px solid var(--alerta); }
+  .paso-bucle.humano .quien { color: var(--alerta); }
+  .paso-bucle.fin { border-left: 2px solid var(--acierto); }
+  .paso-bucle.freno { border-left: 2px solid var(--fallo); }
+  .paso-bucle.freno .quien { color: var(--fallo); }
+  .paso-bucle code { white-space: pre-wrap; }
+  .paso-bucle p { color: var(--texto); font-size: 0.88rem; }
+  .aprobar { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .aprobar button { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--linea); background: transparent; color: var(--texto); font-family: var(--cuerpo); font-size: 0.84rem; cursor: pointer; }
+  .aprobar button.si { border-color: var(--acierto); color: var(--acierto); }
+  .aprobar button.no { border-color: var(--fallo); color: var(--fallo); }
+  .lista-pasos { display: grid; gap: 8px; max-height: 520px; overflow-y: auto; }
+
+  /* La calculadora */
+  .calc { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 28px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .calc { padding: 20px; } }
+  .calc-campos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 700px) { .calc-campos { grid-template-columns: 1fr; } }
+  .calc-campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .calc-campo label { font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); }
+  .calc-campo select, .calc-campo input {
+    width: 100%; min-width: 0; padding: 10px 13px; background: var(--fondo); color: var(--texto);
+    border: 1px solid var(--linea); border-radius: 10px; font-family: var(--dato); font-size: 0.84rem;
+  }
+  .calc-campo small { font-size: 0.76rem; color: var(--tenue); }
+  .calc-atajos { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 20px; }
+  .calc-res { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+  @media (max-width: 700px) { .calc-res { grid-template-columns: 1fr; } }
+  .calc-tile { padding: 16px 18px; border-radius: 14px; background: var(--fondo); border: 1px solid var(--linea); }
+  .calc-tile b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.6rem; letter-spacing: -0.02em; }
+  .calc-tile span { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tenue); }
+  .calc-tile p { font-size: 0.8rem; margin-top: 6px; }
+  .calc-aviso { font-size: 0.9rem; color: var(--tenue); }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-int">
+    <a class="marca" href="cronograma.html"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 32 H30 M38 22 H30 M38 42 H30 M30 22 V42" fill="none" stroke="#FB923C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="32" r="5.5" fill="#F97316"/><circle cx="44" cy="21" r="5" fill="#FDBA74"/><circle cx="44" cy="43" r="5" fill="#FDBA74"/></svg>Diplomatura <span>Procesos</span> · FCE-UBA</a>
+    <nav>
+      <a href="cronograma.html">Cronograma</a>
+      <span data-selector-clases><a href="cronograma.html">Clases</a></span>
+      <a href="#" id="salir">Salir</a>
+      <button class="tema" type="button" title="Cambiar tema">
+        <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<div class="envoltura portada">
+  <span class="rotulo">Clase 10 · Módulo 4 · Contexto e inteligencia</span>
+  <h1>n8n + IA: el nodo AI Agent</h1>
+  <p class="intro">Hasta la clase 9, cada decisión de tus flujos la escribiste vos de antemano: si el monto supera tanto, si el campo está vacío, si la factura ya está en la tabla. Hoy aparece la primera decisión que no se puede escribir así. Un modelo de lenguaje la toma adentro del flujo, con las herramientas que le des y con los frenos que le pongas.</p>
+  <div class="meta">
+    <span>30 de septiembre de 2026</span>
+    <span>Miércoles · 18 a 21:30 h</span>
+    <span>FCE — UBA</span>
+  </div>
+</div>
+
+<!-- ─────────── Lo que trajiste ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Empezamos por vos</span>
+    <h2>Las dos preguntas del miércoles pasado</h2>
+    <p class="intro">La tarea de la clase 9 pedía una decisión de tu proceso que no entrara en un SI, y qué necesitaría tener a mano alguien nuevo para tomarla bien. No eran preguntas de calentamiento: la primera es lo que va a hacer el modelo, la segunda son sus herramientas.</p>
+    <div class="traido" id="traido"></div>
+  </div>
+</section>
+
+<!-- ─────────── La deuda de la clase 5 ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">La deuda de la clase 5</span>
+    <h2>El agente elige, los nodos hacen</h2>
+    <p class="intro">En la clase 5 armamos el bot de InfoLeg y, al final, le pusimos un agente adelante. Dijimos una frase y prometimos volver: «el agente elige, los nodos hacen». Hoy es el día. Y la manera más clara de entender qué hace un agente es ponerlo en el esqueleto que venimos usando desde la clase 2.</p>
+
+    <div class="esqueleto" id="esqueleto">
+      <div class="esq-caja">
+        <span class="rot">Disparador</span>
+        <b>Llega un correo</b>
+        <p>Al buzón de facturación. Igual que en la clase 7: esto no cambia.</p>
+      </div>
+      <div class="esq-flecha" aria-hidden="true">→</div>
+      <div class="esq-caja medio">
+        <span class="rot">Condición</span>
+        <b id="esqTitulo"></b>
+        <p id="esqTexto"></p>
+        <code id="esqCodigo"></code>
+      </div>
+      <div class="esq-flecha" aria-hidden="true">→</div>
+      <div class="esq-caja">
+        <span class="rot">Acción</span>
+        <b>Responder, avisar, cargar</b>
+        <p>Nodos de siempre: Gmail, Telegram, la tabla de la clase 9. Tampoco cambia.</p>
+      </div>
+    </div>
+    <div class="conmutar opciones" id="conmutar" role="group" aria-label="Qué hay en la condición">
+      <button type="button" data-v="si" aria-pressed="true">Con un SI</button>
+      <button type="button" data-v="ia" aria-pressed="false">Con un modelo</button>
+    </div>
+
+    <p class="cita">El agente no reemplaza al flujo. Reemplaza una sola pieza del esqueleto: la condición que no se puede escribir como SI. El disparador y las acciones siguen siendo nodos, con sus reglas, sus reintentos y su flujo de error.</p>
+  </div>
+</section>
+
+<!-- ─────────── Los tres escalones ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Antes de agregar un agente</span>
+    <h2>Tres escalones, y casi siempre alcanza con el del medio</h2>
+    <p class="intro">La documentación de n8n distingue tres maneras de resolver un trabajo, y conviene aprendérselas en orden, porque cada escalón cuesta más que el anterior y es menos predecible.</p>
+
+    <div class="escalones">
+      <div class="escalon">
+        <span class="n">1</span>
+        <h3>Flujo fijo</h3>
+        <p>Todas las decisiones son condiciones que escribiste vos. Es lo que hicimos de la clase 2 a la 9.</p>
+        <small>Gratis por ejecución, predecible, auditable. Siempre que se pueda, este.</small>
+      </div>
+      <div class="escalon">
+        <span class="n">2</span>
+        <h3>Flujo con un paso de IA</h3>
+        <p>El flujo es fijo, pero en un lugar un modelo hace una sola cosa: clasificar, resumir, extraer un dato. Después el flujo sigue por la rama que corresponde.</p>
+        <small>Una llamada al modelo por ejecución. El camino lo seguís decidiendo vos.</small>
+      </div>
+      <div class="escalon">
+        <span class="n">3</span>
+        <h3>Agente</h3>
+        <p>El modelo decide qué hacer, en qué orden y con qué herramienta, vuelta tras vuelta, hasta que termina. El camino no está dibujado de antemano.</p>
+        <small>Varias llamadas por ejecución y un camino que puede variar. Se justifica cuando no sabés de antemano qué hay que consultar.</small>
+      </div>
+    </div>
+
+    <div class="ejercicio" id="ejercicio"></div>
+
+    <p class="nota-pie">La distinción entre flujos fijos, flujos con pasos de IA y agentes está en la documentación de n8n («Build and manage agents» y «Agents vs chains»), consultada el 30 de septiembre de 2026.</p>
+  </div>
+</section>
+
+<!-- ─────────── Anatomía del nodo ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">La herramienta</span>
+    <h2>Anatomía del nodo AI Agent</h2>
+    <p class="intro">El nodo AI Agent es un nodo raíz: tiene enchufes abajo donde se conectan otras piezas. Una es obligatoria, una es necesaria y las otras son opcionales. Esto es lo que hay que configurar y para qué sirve cada cosa.</p>
+
+    <div class="tabla-caja">
+      <table class="datos">
+        <thead><tr><th>Pieza</th><th>Qué es</th><th>Lo que conviene saber</th></tr></thead>
+        <tbody>
+          <tr><td class="m">Modelo</td><td>El modelo de lenguaje que razona. Se conecta como sub-nodo: Anthropic, OpenAI, Mistral, Groq y otros.</td><td>Cambiar de proveedor es cambiar ese sub-nodo y nada más. El resto del flujo no se entera.</td></tr>
+          <tr><td class="m">Prompt</td><td>Lo que se le pide. Sale del Chat Trigger (el campo <code>chatInput</code>) o lo definís vos con una expresión.</td><td>En el caso de Marcela no hay chat: el prompt es el correo, armado con una expresión.</td></tr>
+          <tr><td class="m">System message</td><td>Las instrucciones: quién es, qué puede hacer, qué no, cómo contestar.</td><td>Es el lugar donde se juega casi todo. Es el tema entero de la clase que viene.</td></tr>
+          <tr><td class="m">Herramientas</td><td>Lo que el agente puede hacer. <b>Hace falta al menos una</b>: un nodo de n8n usado como herramienta, otro workflow, una API, un servidor MCP.</td><td>El agente no puede hacer nada que sus herramientas no le permitan. Esa es tu primera línea de control.</td></tr>
+          <tr><td class="m">Memoria</td><td>Lo que recuerda de los mensajes anteriores de la misma conversación.</td><td>Sirve en un chat. En un buzón de correo cada mensaje es un caso nuevo, y el flujo de hoy no la usa, a propósito.</td></tr>
+          <tr><td class="m">Max iterations</td><td>Cuántas vueltas puede dar el bucle antes de cortar.</td><td>Por defecto, <b>10</b>. Es un techo de costo, no sólo de tiempo.</td></tr>
+          <tr><td class="m">Formato de salida</td><td>Obligar a que la respuesta venga con una estructura: campos fijos, un JSON con forma conocida.</td><td>Si lo que sigue es otro nodo y no una persona, casi siempre conviene.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trampa">
+      <span class="rot">Qué versión estás usando</span>
+      <p>La versión por defecto del nodo es la <b>3.1</b>. La versión 1, la que tenía un selector de «tipo de agente» (Conversational, ReAct, SQL Agent, Plan and Execute), <b>desaparece con n8n 3.0</b>, que sale este mes. Si copiás un template viejo de internet y ves ese selector, reconstruilo en la versión nueva antes de apoyarte en él. El flujo de la clase 5 ya usa una versión posterior y no se ve afectado.</p>
+      <p class="nota-pie" style="margin-top:10px">Versión por defecto, parámetros del nodo y máximo de 10 vueltas leídos del código del paquete <code>@n8n/n8n-nodes-langchain</code> 2.41.3, el que trae la versión estable de n8n (2.41.4) al 30 de septiembre de 2026. La eliminación de la versión 1 figura en la página de cambios de n8n 3.0, consultada ese mismo día.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── El bucle ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Por adentro</span>
+    <h2>El bucle, vuelta por vuelta</h2>
+    <p class="intro">Un agente no «piensa y contesta». Da vueltas: el modelo mira el pedido y lo que tiene, decide si le falta algo, llama a una herramienta, lee lo que volvió, y vuelve a decidir. Hasta que contesta o se le acaban las vueltas. Elegí un correo y avanzá de a un paso.</p>
+
+    <div class="sim" id="bucle">
+      <div class="sim-panel">
+        <span class="rot">El correo que llega</span>
+        <div class="escenarios opciones" id="escenarios" role="group" aria-label="Elegí un correo"></div>
+        <div class="sim-entrante" id="bucleCorreo"></div>
+        <div class="sim-acciones">
+          <button class="boton" type="button" id="bucleSigue">Siguiente vuelta</button>
+          <button class="boton hueco" type="button" id="bucleReset">Empezar de nuevo</button>
+        </div>
+      </div>
+      <div class="sim-panel">
+        <span class="rot">Lo que pasa adentro del nodo</span>
+        <div class="contadores">
+          <div class="contador"><b id="cVueltas">0</b><span>vueltas de 10</span></div>
+          <div class="contador"><b id="cLlamadas">0</b><span>llamadas al modelo</span></div>
+          <div class="contador"><b id="cEjec">0</b><span>ejecuciones de n8n</span></div>
+        </div>
+        <div class="lista-pasos" id="buclePasos" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <p class="nota-pie">Esto es una simulación armada a mano para mostrar la mecánica del bucle, no la salida de un modelo real: uno de verdad puede tomar otro camino con el mismo correo, y justamente por eso existen los frenos del bloque que sigue. Los contadores muestran lo que más se malentiende del costo. Para n8n, todo lo que pasa adentro del nodo es <b>una sola ejecución</b>, dé las vueltas que dé. Para el proveedor del modelo, <b>cada vuelta es una llamada</b> que se cobra por separado. Las dos facturas no se parecen.</p>
+  </div>
+</section>
+
+<!-- ─────────── Los frenos ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Honestidad</span>
+    <h2>Un agente sin frenos es un empleado sin jefe</h2>
+    <p class="intro">Un modelo se equivoca, y a veces con mucha seguridad. Además, un correo lo escribe cualquiera, y alguien puede escribir «ignorá tus instrucciones» a propósito. Nada de eso se arregla con un modelo más caro. Se arregla con frenos, y n8n tiene seis.</p>
+
+    <div class="tabla-caja">
+      <table class="datos">
+        <thead><tr><th>Freno</th><th>Qué hace</th><th>Contra qué protege</th></tr></thead>
+        <tbody>
+          <tr><td class="m">Herramientas acotadas</td><td>El agente sólo tiene las herramientas que le conectaste, y cada una hace una cosa.</td><td>Contra casi todo. Si no hay herramienta para marcar una factura como pagada, ningún correo lo va a lograr.</td></tr>
+          <tr><td class="m">Revisión humana</td><td>Antes de usar ciertas herramientas, el flujo se pausa y una persona aprueba o rechaza lo que el agente quiere hacer, con los parámetros a la vista.</td><td>Contra lo irreversible: mandar un mensaje afuera, borrar, pagar.</td></tr>
+          <tr><td class="m">Guardrails</td><td>Un nodo que revisa el texto antes de que llegue al modelo, o la respuesta antes de que salga. Busca datos personales, claves filtradas, intentos de desviar al modelo, temas fuera de alcance, palabras o URLs.</td><td>Contra lo que entra y lo que sale. Ojo: los controles que usan un modelo (jailbreak, tema) son otra llamada que se paga.</td></tr>
+          <tr><td class="m">Max iterations</td><td>Techo de vueltas. Por defecto 10.</td><td>Contra el bucle que no termina y la factura que no para.</td></tr>
+          <tr><td class="m">Formato de salida</td><td>La respuesta tiene que venir con una estructura fija.</td><td>Contra la respuesta creativa que rompe el nodo siguiente.</td></tr>
+          <tr><td class="m">Forzar herramienta</td><td>Opción nueva del nodo: en la primera vuelta el modelo está obligado a llamar a alguna herramienta.</td><td>Contra los modelos chicos que contestan de memoria y se saltean las herramientas.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trampa">
+      <span class="rot">La revisión humana, en concreto</span>
+      <p>Se arma en el panel de herramientas del nodo: agregás un paso de revisión, elegís por dónde llega el pedido de aprobación, y colgás de ese paso las herramientas que lo necesitan. Las otras siguen conectadas directo. El pedido puede ir por el chat de n8n, Slack, Discord, Telegram, Microsoft Teams, Google Chat, Gmail u Outlook, y no hace falta que sea el mismo canal por el que entró el pedido.</p>
+      <p>El mensaje que recibe quien aprueba puede decir exactamente qué quiere hacer el agente: <code>$tool.name</code> es el nombre de la herramienta y <code>$tool.parameters</code> los valores que el modelo completó. La documentación insiste en un detalle: <b>decile al agente, en sus instrucciones, qué herramientas necesitan aprobación y qué hacer si se la niegan</b>. Si no sabe, se confunde.</p>
+      <p class="nota-pie" style="margin-top:10px">Revisión humana por herramienta, canales disponibles, variables <code>$tool</code> y nodo Guardrails, verificados en docs.n8n.io el 30 de septiembre de 2026. La opción de forzar una herramienta en la primera vuelta llegó con n8n 2.40, el 15 de septiembre.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── El costo ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Lo que cuesta</span>
+    <h2>Dos facturas: la de n8n y la del modelo</h2>
+    <p class="intro">En la clase 6 hicimos la cuenta de ejecuciones. Esa cuenta sigue valiendo: cada correo que dispara el flujo es una ejecución, tenga agente o no. Lo nuevo es la segunda factura, la del proveedor del modelo, que cobra por tokens. Y un agente que da cuatro vueltas hace cuatro llamadas.</p>
+
+    <div class="calc" id="calc">
+      <p class="calc-aviso" id="calcCargando">Consultando precios de modelos…</p>
+    </div>
+
+    <div class="trampa">
+      <span class="rot">Dos perillas que bajan la cuenta sin cambiar de flujo</span>
+      <p><b>El modelo.</b> Es un campo del sub-nodo. Entre el modelo más capaz y uno chico puede haber un factor de diez en el precio por token, y para clasificar un correo casi nunca hace falta el más capaz. Probalo con dos o tres correos reales antes de decidir.</p>
+      <p><b>El esfuerzo.</b> Los modelos de Claude actuales razonan antes de contestar, y el nodo de Anthropic en n8n deja elegir cuánto: bajo, medio, alto. Menos esfuerzo es menos tokens. Para clasificar, «bajo» suele alcanzar; para un agente que tiene que elegir entre herramientas, «medio».</p>
+      <p class="nota-pie" style="margin-top:10px">Los precios de la calculadora vienen en vivo de Artificial Analysis a través de <code>/api/datos</code>, con la fecha que figura arriba, en dólares por millón de tokens. La cantidad de tokens por correo es una estimación tuya: cambiala. Las opciones de razonamiento y esfuerzo del nodo Anthropic Chat Model (versión 1.6) están leídas del código de la versión estable de n8n al 30 de septiembre de 2026.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── La otra puerta ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Novedad de septiembre</span>
+    <h2>La otra puerta: Agents</h2>
+    <p class="intro">Si abriste n8n en estas semanas, viste una pestaña nueva en el proyecto: <b>Agents</b>. No es el nodo que vimos hoy. Es otra manera de armar un agente, por fuera de los workflows, y conviene saber qué es y cuándo usarla antes de que la elijas por novedad.</p>
+
+    <div class="comparo">
+      <div class="comparo-lado">
+        <span class="rot">Nodo AI Agent</span>
+        <h4>Un paso adentro de un proceso</h4>
+        <ul>
+          <li><b>Vive en un workflow.</b> Tiene un disparador antes y acciones después, que dibujaste vos.</li>
+          <li><b>Estable.</b> Es la pieza que usa n8n desde hace años, ahora en la versión 3.1.</li>
+          <li><b>Se ve todo.</b> Cada ejecución queda registrada, nodo por nodo, como cualquier flujo.</li>
+          <li><b>Todos los frenos de hoy</b>: revisión humana, Guardrails, formato de salida.</li>
+        </ul>
+      </div>
+      <div class="comparo-lado">
+        <span class="rot">Agents · en Preview</span>
+        <h4>Un asistente con vida propia</h4>
+        <ul>
+          <li><b>Vive al lado de los workflows.</b> Tiene su propio armador: modelo, instrucciones, herramientas, habilidades, archivos para consultar, memoria entre conversaciones y sub-agentes.</li>
+          <li><b>Se le habla</b> por su chat, por Slack, por Telegram o por Linear, y puede correr tareas programadas.</li>
+          <li><b>Borrador y publicación</b>, igual que los workflows: editás un borrador y lo que corre es la versión publicada.</li>
+          <li><b>En Preview.</b> La documentación avisa que puede equivocarse y que su comportamiento puede cambiar.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="cita">Si la IA es un paso de un proceso que ya sabés dibujar, nodo AI Agent. Si el trabajo es una conversación abierta que alguien empieza cuando quiere, por chat o por un canal, Agents.</p>
+
+    <div class="dos-col" style="margin-top:34px">
+      <div class="ficha">
+        <h3>Dónde está disponible</h3>
+        <p>En n8n Cloud, <b>todos los planes</b>. En instancia propia, desde la versión 2.32.3 y activándolo a mano: hay que agregar <code>agents</code> a la variable <code>N8N_ENABLED_MODULES</code>. La 2.42, hoy en beta, lo trae activado por defecto. Todavía <b>no está en la edición Enterprise</b> de instancia propia, y no funciona en modo cola.</p>
+      </div>
+      <div class="ficha">
+        <h3>Lo que cuesta</h3>
+        <p><b>Cada turno cuenta como una ejecución</b>: mandás un mensaje, el agente contesta, una ejecución. Sale de la misma cuota que los workflows. Y las dos cosas se pueden combinar: el nodo <b>Message an Agent</b> le manda un mensaje a un agente publicado desde adentro de un flujo.</p>
+      </div>
+    </div>
+
+    <div class="trampa">
+      <span class="rot">Y un cambio de nombre, para que no te confunda</span>
+      <p>El asistente que arma workflows a partir de lo que le pedís ya no se llama «AI Assistant»: desde el 15 de septiembre es <b>n8n Assistant</b>, y también arma agentes. Otra cosa que se va: <b>Chat Hub</b> queda apagado por defecto en n8n 3.0 y desaparece en la 4.0. No lo usamos, y ahora sabemos por qué.</p>
+      <p class="nota-pie" style="margin-top:10px">Todo lo de Agents sale de la página «Build and manage agents» de docs.n8n.io y de las notas de versión 2.40 y 2.42, consultadas el 30 de septiembre de 2026. La versión estable ese día era la 2.41.4, según el registro de npm.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Manos al lienzo ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Manos al lienzo</span>
+    <h2>El buzón de Marcela, cuando lo que llega no es una factura</h2>
+    <p class="intro">Primero el algoritmo, como siempre. Al buzón de la clase 7 llegan cosas que no son facturas: proveedores que preguntan si ya les pagaron, reclamos, publicidad. Separar eso no entra en un SI, porque depende de lo que dice el texto. Esta es la descomposición.</p>
+
+    <div class="caso">
+      <span class="n">Caso de Marcela · versión 10</span>
+      <h3>Lo que llega sin factura</h3>
+      <pre>CUANDO llega un correo al buzón de facturación:
+
+    SI trae adjunto:
+        es una factura → sigue el flujo de la clase 9
+        FIN
+
+    el modelo lee el correo y decide qué es:      ← la condición que no es un SI
+        consulta por un pago
+        reclamo
+        otra cosa
+
+    SI es consulta por un pago:
+        buscar la factura en facturas_vistas
+        redactar la respuesta con el estado
+        Marcela aprueba el envío                    ← freno
+        responder al proveedor
+    SI es reclamo:
+        avisar a Marcela con un resumen
+    SI es otra cosa:
+        no hacer nada
+FIN</pre>
+      <p style="font-size:0.9rem">Hay dos maneras de llevar esto a n8n, y conviene armar las dos para ver la diferencia.</p>
+    </div>
+
+    <div class="dos-col" style="margin-top:24px">
+      <div class="ficha">
+        <h3>Versión con un paso de IA</h3>
+        <p>Un nodo <b>Text Classifier</b> hace la única parte que necesita un modelo: decidir qué es el correo. Tiene una salida por categoría, y cada salida sigue con nodos comunes. Para la consulta, el número de factura sale con una expresión, se normaliza con la de la clase 9 y se busca en la tabla. El borrador de respuesta le llega a Marcela por Telegram, y <b>Marcela contesta a mano</b>.</p>
+        <p style="margin-top:10px">Una llamada al modelo por correo. Nada sale del estudio sin que una persona lo mande.</p>
+        <div class="acciones" style="margin-top:16px"><a class="boton hueco" href="workflows/10-buzon-un-paso-de-ia-n8n.json" download>Descargar esta versión</a></div>
+      </div>
+      <div class="ficha">
+        <h3>Versión con agente</h3>
+        <p>Un nodo <b>AI Agent</b> con cuatro herramientas: dos que consultan la tabla <code>facturas_vistas</code> —una por número, otra por proveedor—, una que avisa a Marcela y una que responde al proveedor. La última cuelga de un paso de <b>revisión humana</b> por Telegram: el agente redacta, Marcela aprueba o rechaza, y recién ahí sale. Los valores que buscan las herramientas los completa el modelo con <code>$fromAI()</code>, y ninguna escribe en la tabla.</p>
+        <p style="margin-top:10px">De una a cuatro llamadas por correo. A cambio, entiende consultas que el primer flujo no entiende: «la del mes pasado», «las dos que les mandé el martes».</p>
+        <div class="acciones" style="margin-top:16px"><a class="boton" href="workflows/10-buzon-con-agente-n8n.json" download>Descargar esta versión</a></div>
+      </div>
+    </div>
+
+    <p class="nota-pie">Los dos flujos usan Claude Opus 5.5 en el sub-nodo Anthropic Chat Model, con esfuerzo bajo para clasificar y medio para el agente. Cambiar de modelo o de proveedor es cambiar ese sub-nodo. Necesitan tres cosas tuyas: una credencial de Anthropic con saldo, el bot de Telegram de la clase 5 con el chat de Marcela, y la tabla <code>facturas_vistas</code> de la clase 9, que hay que elegir de la lista al abrir cada nodo, porque las tablas no viajan en el JSON. El Gmail Trigger de estos flujos ya está en la versión 1.4, la que n8n 3.0 deja como única.</p>
+  </div>
+</section>
+
+<!-- ─────────── Lo que cambió debajo ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Lo que cambió debajo de lo que ya vimos</span>
+    <h2>n8n 3.0 creció, y revisamos la cursada</h2>
+    <p class="intro">La versión 3.0 sigue anunciada para octubre, pero desde la clase 6 la lista de lo que rompe creció bastante. Revisamos los dieciséis workflows de la cursada contra la lista nueva.</p>
+
+    <div class="dos-col" style="margin-top:30px">
+      <div class="ficha">
+        <h3>Lo que se agregó a la lista</h3>
+        <ul style="margin:12px 0 0 18px">
+          <li style="font-size:0.88rem;color:var(--tenue)">Se van los nodos Cron, Interval, HTML Extract, Read PDF, Manual Chat Trigger, SerpApi y el HTTP Request Tool viejo. Todos tienen reemplazo, salvo SerpApi.</li>
+          <li style="font-size:0.88rem;color:var(--tenue)">El AI Transform no se rompe: los que ya existen se convierten solos en nodos Code con el mismo código. Lo que ya no se puede es agregar uno nuevo.</li>
+          <li style="font-size:0.88rem;color:var(--tenue)">El nodo Code pasa a cortar a los 60 segundos, no a los 5 minutos.</li>
+          <li style="font-size:0.88rem;color:var(--tenue)">Los nodos de la comunidad sin verificar quedan desactivados por defecto.</li>
+          <li style="font-size:0.88rem;color:var(--tenue)">Chat Hub se apaga.</li>
+        </ul>
+      </div>
+      <div class="ficha">
+        <h3>Lo que encontramos en la cursada</h3>
+        <p>Sólo un punto: el <b>Gmail Trigger</b> de los flujos de las clases 7 y 9 está en la versión 1.2, y con n8n 3.0 va a comportarse como la 1.4. La diferencia: no dispara con borradores ni con correos enviados, y levanta hasta 10 correos por consulta. Para un buzón que recibe facturas no cambia nada.</p>
+        <p style="margin-top:10px">Todo lo demás —los nodos HTML, Code, Split Out, Summarize, las Data Tables, el agente de la clase 5— queda igual.</p>
+      </div>
+    </div>
+    <p class="nota-pie">Lista de cambios de n8n 3.0 consultada en docs.n8n.io el 30 de septiembre de 2026. La revisión de los workflows se hizo leyendo el tipo y la versión de cada nodo de los archivos que se descargan desde este sitio.</p>
+  </div>
+</section>
+
+<!-- ─────────── Actividad ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Para el miércoles</span>
+    <h2>Dos preguntas antes de la clase 11</h2>
+    <p class="intro">La clase que viene es sobre lo que le das al modelo para que decida: qué información recibe, en qué orden y con qué límite. La llamamos ingeniería de contexto, y empieza por darse cuenta de que el modelo no sabe nada de tu oficina.</p>
+
+    <div class="actividad" style="margin-top:30px">
+      <div class="pregunta">
+        <label for="q1"><b>Qué sabe alguien con un mes en tu oficina que el modelo no sabe</b><span>Pensá en la decisión que anotaste para hoy. Una persona nueva la toma mal la primera semana y bien al mes. ¿Qué aprendió en el medio? Nombres, excepciones, «con este proveedor siempre pasa tal cosa».</span></label>
+        <textarea id="q1" placeholder="Por ejemplo: que los del estudio de Rosario mandan la factura en el cuerpo del correo y no como adjunto…"></textarea>
+      </div>
+      <div class="pregunta">
+        <label for="q2"><b>Qué no debería ver nunca el modelo</b><span>Hay datos que no tienen que viajar a un proveedor externo, aunque ayuden a decidir mejor. ¿Cuáles son en tu proceso?</span></label>
+        <textarea id="q2" placeholder="Por ejemplo: el CBU de los proveedores, los sueldos, los datos de salud de los empleados…"></textarea>
+      </div>
+      <div class="guardado" id="guardado"></div>
+    </div>
+  </div>
+</section>
+
+<div class="envoltura cierre">
+  <h2>Nos vemos el miércoles 7 de octubre</h2>
+  <p class="intro" style="margin:0 auto">Hoy pusiste un modelo en el lugar de una condición y le diste herramientas y frenos. Pero un modelo decide con lo que le das, ni más ni menos. La clase que viene es sobre eso: qué va en las instrucciones, qué va en el contexto, en qué orden, y cómo se cambia sin romper lo que ya andaba.</p>
+  <div class="acciones">
+    <a class="boton" href="cronograma.html">Ver el cronograma completo</a>
+    <a class="boton hueco" href="09.html">Volver a la clase 9</a>
+  </div>
+</div>
+
+</main>
+
+<footer class="pie">
+  <div class="envoltura">
+    <span>Facultad de Ciencias Económicas · Universidad de Buenos Aires</span>
+    <span>Clase 10 · Diseño de Procesos de Negocios con Automatización e IA Agéntica</span>
+  </div>
+</footer>
+
+<script src="acceso.js"></script>
+<script src="clases.js"></script>
+<script src="menu.js"></script>
+<script src="clase10.js"></script>
+</body>
+</html>

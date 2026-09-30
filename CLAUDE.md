@@ -109,15 +109,26 @@ Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 9, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
+Estado: publicadas las clases 1 a 10, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
-alimenta la 9, y la 9 alimenta la 10. Con la 9 cierra el módulo 3 y quedan
+alimenta la 9, la 9 alimenta la 10 y la 10 alimenta la 11. Con la 9 cierra el módulo 3 y quedan
 saldadas las dos deudas que arrastraba: la memoria entre ejecuciones y la
 planilla usada como base de datos en el caso de la 7. La planilla no desaparece
 del caso, cambia de papel: deja de ser la memoria del flujo y queda como la
 salida que mira una persona.
+
+La 10 abre el módulo 4 con el mismo caso: al buzón de Marcela llegan correos
+sin factura (consultas por pagos, reclamos, publicidad), y separarlos es la
+primera condición de la cursada que no se escribe como SI. La idea que ordena
+la clase: el agente reemplaza **la condición** del esqueleto, no el flujo; el
+disparador y las acciones siguen siendo nodos. Enseña tres escalones —flujo
+fijo, flujo con un paso de IA, agente— y que casi siempre alcanza el del medio.
+El agente usa como herramienta la Data Table `facturas_vistas` de la 9, sin
+ninguna herramienta que escriba en ella. Deja abierta la 11: el system message
+del agente es la mitad del flujo, y la actividad pide lo que el modelo no sabe
+de la oficina y lo que no debería ver nunca.
 
 El taller `taller-oauth.html` es aparte: no es una clase, no lleva número y no
 entra en `clases.js`. Se llega desde el bloque «Talleres» del cronograma, y la
@@ -151,7 +162,7 @@ Contra la fuente (docs.n8n.io y la grilla de n8n.io), no contra recuerdos:
   contradice con lo que escuchó en el aula. Ese es el patrón cuando la
   herramienta cambia debajo de una clase ya dictada: corregir el texto y dejar
   la nota, nunca reescribir en silencio.
-- **n8n 3.0 sale en octubre de 2026**, en pleno módulo 5. Lo que rompe:
+- **n8n 3.0 sale en octubre de 2026**, en pleno módulo 5 (la lista creció después: ver la sección del 30 de septiembre). Lo que rompía al 15/9:
   self-hosted pasa a requerir Docker (npm y npx dejan de servir), se eliminan los
   nodos Function, Function Item, Item Lists, LangChain Code y AI Transform, se va
   el helper `$getPairedItem`, y el nodo AI Agent pierde su versión 1 con los
@@ -203,6 +214,59 @@ Contra docs.n8n.io y el código de `packages/nodes-base/nodes/DataTable/`:
   devuelve **0** cuando no quedó ningún dígito, porque `Number('')` es 0 y no NaN.
   Un IF que pregunte si el monto «existe» lo deja pasar. Tiene que preguntar si
   es mayor que cero. Está enseñado así en la clase y en el flujo del limpiador.
+
+## IA en n8n, verificado el 30 de septiembre de 2026
+
+Contra docs.n8n.io, las notas de versión, el registro de npm y el código de los
+paquetes de la estable (`n8n` 2.41.4 → `n8n-nodes-base` y
+`@n8n/n8n-nodes-langchain` 2.41.3). La 2.42 está en beta.
+
+- **Dos maneras de armar un agente.** El **nodo AI Agent** (versión por defecto
+  3.1; la v1 con selector de tipo de agente desaparece en 3.0; máximo de vueltas
+  por defecto 10; hace falta al menos una herramienta) y **Agents**, un producto
+  aparte en **Preview**: armador propio con modelo, instrucciones, herramientas,
+  skills, base de conocimiento, memoria episódica, sub-agentes, canales (Slack,
+  Telegram, Linear) y tareas programadas, con borrador y publicación. Cloud:
+  todos los planes. Instancia propia: desde 2.32.3 agregando `agents` a
+  `N8N_ENABLED_MODULES` (la 2.42 beta lo trae activado); no en Enterprise de
+  instancia propia; no anda en modo cola. **Un turno = una ejecución**, misma
+  cuota que los workflows. El nodo **Message an Agent** lo llama desde un flujo.
+  La clase 10 pone el nodo al centro y Agents como «la otra puerta», con la
+  regla: paso de un proceso que sabés dibujar → nodo; conversación abierta que
+  alguien empieza por un canal → Agents.
+- **Frenos.** Revisión humana por herramienta (el flujo se pausa; variables
+  `$tool.name` y `$tool.parameters`; canales: chat de n8n, Slack, Discord,
+  Telegram, Teams, Google Chat, Gmail, Outlook — la lista oficial incluye
+  WhatsApp y **no se menciona**). Nodo **Guardrails** (versión 2): datos
+  personales, claves, jailbreak, NSFW, tema, palabras, URLs; los chequeos con
+  modelo son otra llamada paga. Opción «Force Tool Call on First Iteration»
+  desde la 2.40.
+- **Cómo se llaman los nodos en el JSON.** Un nodo usado como herramienta es
+  `<tipo>Tool` (`n8n-nodes-base.dataTableTool`, `gmailTool`, `telegramTool`).
+  La revisión humana es `<tipo>HitlTool` y existe para los nodos con operación
+  «send and wait» (`n8n-nodes-base.telegramHitlTool`): la herramienta que
+  necesita aprobación se conecta **a** ese nodo por `ai_tool`, y ese nodo al
+  agente. `$fromAI('clave', 'descripción', 'tipo')` completa parámetros de
+  herramientas y no funciona en el Code tool.
+- **Anthropic Chat Model 1.6.** Con los Claude nuevos no manda `temperature` ni
+  `top_p` (el código los filtra), y no toca el razonamiento salvo que se lo
+  pidas: con `thinkingMode: 'adaptive'` manda thinking adaptativo y el
+  `effort` elegido. Los flujos de la 10 usan `claude-opus-5-5` con esfuerzo
+  `low` para clasificar y `medium` para el agente. La calculadora de costo de
+  la clase lee precios sólo de `/api/datos`.
+- **Renombres.** «AI Assistant» es **n8n Assistant** desde la 2.40.
+- **n8n 3.0, lo que se sumó a la lista.** Se van Cron, Interval, HTML Extract,
+  Read PDF, Read/Write Binary File, Workflow Trigger, Manual Chat Trigger,
+  SerpApi, el HTTP Request Tool viejo, los loaders viejos y varios vector
+  stores de a pares. El AI Transform ya no se puede agregar pero los existentes
+  **se convierten solos en nodos Code**. El nodo Code corta a los 60 s. Los
+  nodos de comunidad sin verificar quedan apagados. Chat Hub se apaga (y se va
+  en 4.0). El Gmail Trigger 1.0–1.3 pasa a comportarse como el 1.4.
+- **Auditoría de la cursada contra esa lista.** De los dieciséis workflows,
+  sólo los Gmail Trigger 1.2 de las clases 7 y 9, que no se ven afectados en
+  un buzón que recibe facturas; llevan una nota fechada en su sticky. La 9
+  lleva además una nota de revisión sobre la conversión del AI Transform. Los
+  flujos nuevos usan el Gmail Trigger 1.4.
 
 ## Despliegue
 
