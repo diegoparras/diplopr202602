@@ -1,0 +1,391 @@
+{
+  "name": "Clase 11 — Evaluar el buzón con doce casos",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Clase 11 - Evaluar el buzon con doce casos\n\nCambiar las instrucciones sin romper lo que andaba.\nEl flujo de abajo corre los doce correos de prueba,\ndecide que es cada uno y anota la respuesta en la\ntabla, al lado de la esperada. Despues se mira la\ntabla, se cambia algo y se corre de nuevo.\n\n**Tres cosas para probar en clase**\n\n1. Corre todo y anota cuales falla.\n2. En `Que es este correo?` el texto de entrada es\n   `{{ $json.mensaje }}`. Cambialo por\n   `{{ $json.mensaje_crudo }}` y volve a correr.\n   Mira los casos 5 y 6.\n3. El caso 12 trae una consulta y un reclamo juntos.\n   La descripcion de **reclamo** no dice que hacer con\n   eso. Agregale la regla, volve a correr, y fijate si\n   alguno que andaba dejo de andar.\n\nY si queres comparar modelos: cambia el sub-nodo y\ncorre los mismos doce.",
+        "height": 700,
+        "width": 520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1260,
+        -300
+      ],
+      "name": "Consigna",
+      "id": "c11e0000-0000-4000-8000-000000000001"
+    },
+    {
+      "parameters": {
+        "content": "## Antes de correr\n\n**1. Crea la tabla `casos_buzon`** en la pestania Data\ntables, con cinco columnas de texto:\n\n```\nde\nasunto\ncuerpo\ncategoria_esperada\ncategoria_obtenida\n```\n\n**2. Cargala una sola vez** con el boton de ejecutar\ndel disparador `1 · Cargar los casos`. Elegi antes la\ntabla en `Guardar en la tabla`.\n\n**3. Conecta un modelo** al enchufe Chat Model de\n`Que es este correo?`. Cualquiera sirve.\n\n**4. Elegi la tabla** en el disparador de evaluacion y\nen `Anotar la respuesta`, y apreta **Evaluate all** al\nlado de `2 · Un caso por vez`.",
+        "height": 640,
+        "width": 440,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -700,
+        -300
+      ],
+      "name": "Antes de correr esto",
+      "id": "c11e0000-0000-4000-8000-000000000002"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        -140
+      ],
+      "name": "1 · Cargar los casos (una sola vez)",
+      "id": "c11e0000-0000-4000-8000-000000000003"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Los doce correos de prueba de la clase 11, con su respuesta esperada.\n// Son los mismos que muestra la página de la clase.\nreturn [\n  {\n    \"de\": \"Papelera del Norte <ventas@papeleranorte.com.ar>\",\n    \"asunto\": \"Consulta factura A-0007-00004410\",\n    \"cuerpo\": \"Buenas tardes,\\n¿me confirman si ya está paga la factura A-0007-00004410?\\nGracias.\\n\\n--\\nLucía Gómez\\nAdministración | Papelera del Norte\\nTel. 0381 422-1188\",\n    \"categoria_esperada\": \"consulta de pago\"\n  },\n  {\n    \"de\": \"Distribuidora Sur <admin@distribuidorasur.com>\",\n    \"asunto\": \"Pagos\",\n    \"cuerpo\": \"Hola, ¿qué pasó con las dos que les mandamos el martes pasado? No nos figura nada todavía.\\nSaludos\",\n    \"categoria_esperada\": \"consulta de pago\"\n  },\n  {\n    \"de\": \"Servicios Integrales <facturas@serviciosint.com.ar>\",\n    \"asunto\": \"Diferencia en el pago\",\n    \"cuerpo\": \"Nos transfirieron $ 80.000 por la C-0002-00000156 y la factura era de $ 89.000. Necesitamos que nos depositen la diferencia esta semana.\\n\\nSaludos cordiales,\\nMartín Ruiz\",\n    \"categoria_esperada\": \"reclamo\"\n  },\n  {\n    \"de\": \"FacturaYa <novedades@facturaya.com>\",\n    \"asunto\": \"¡Tu factura electrónica en 1 clic!\",\n    \"cuerpo\": \"Probá gratis 30 días el sistema de facturación que eligen más de 10.000 pymes. Emití, enviá y cobrá tus facturas desde el celular.\\n\\nPara dejar de recibir estos correos, hacé clic acá.\",\n    \"categoria_esperada\": \"otra cosa\"\n  },\n  {\n    \"de\": \"Transporte Litoral <pagos@transportelitoral.com>\",\n    \"asunto\": \"Re: Reclamo pago agosto\",\n    \"cuerpo\": \"Perfecto, ya nos llegó. ¡Muchas gracias!\\n\\nEl 12/09/2026, a las 10:14, Marcela <facturacion@estudio.com.ar> escribió:\\n> Les confirmamos que la transferencia salió hoy.\\n>\\n> El 10/09/2026, Transporte Litoral escribió:\\n>> Es la tercera vez que reclamamos el pago de agosto. Si no se resuelve\\n>> esta semana vamos a suspender el servicio.\",\n    \"categoria_esperada\": \"otra cosa\"\n  },\n  {\n    \"de\": \"ACME S.A. <facturacion@acme.com.ar>\",\n    \"asunto\": \"Estado de pago\",\n    \"cuerpo\": \"Estimados: solicitamos el estado de pago de la factura A-0001-00012346.\\nQuedamos atentos.\\n\\n--\\nDepartamento de Cobranzas\\nACME S.A. | Av. Corrientes 1234, piso 5, CABA\\nTel. (011) 4321-0000 | www.acme.com.ar\\n\\nAVISO DE CONFIDENCIALIDAD: Este mensaje y sus adjuntos son confidenciales y para uso exclusivo de su destinatario. Si usted lo recibió por error, por favor notifíquelo al remitente y elimínelo. Queda prohibida su divulgación, copia o distribución sin autorización. ACME S.A. no se responsabiliza por virus ni por demoras en la entrega.\",\n    \"categoria_esperada\": \"consulta de pago\"\n  },\n  {\n    \"de\": \"Papelera del Norte <ventas@papeleranorte.com.ar>\",\n    \"asunto\": \"Consulta\",\n    \"cuerpo\": \"Hola, quería consultar por qué nos descontaron una retención de ganancias en la A-0007-00004411 si estamos exentos. Ya les mandamos el certificado dos veces.\\nGracias\",\n    \"categoria_esperada\": \"reclamo\"\n  },\n  {\n    \"de\": \"Mesa de ayuda <no-responder@estudio.com.ar>\",\n    \"asunto\": \"Tu contraseña vence en 5 días\",\n    \"cuerpo\": \"Este es un mensaje automático. Tu contraseña del correo vence en 5 días. Ingresá al portal para cambiarla.\",\n    \"categoria_esperada\": \"otra cosa\"\n  },\n  {\n    \"de\": \"Kappa Logistics <ap@kappalogistics.com>\",\n    \"asunto\": \"Invoice payment status\",\n    \"cuerpo\": \"Hi, could you please confirm whether invoice B-0004-00000312 has been scheduled for payment?\\nBest regards,\\nAnna\",\n    \"categoria_esperada\": \"consulta de pago\"\n  },\n  {\n    \"de\": \"Distribuidora Sur <admin@distribuidorasur.com>\",\n    \"asunto\": \"URGENTE pago atrasado\",\n    \"cuerpo\": \"Llevamos 45 días esperando el pago de la B-0003-00000871. Si no lo resuelven, transfieran a nuestra cuenta CBU 0170099220000067797370 y avisen a ventas@distribuidorasur.com. CUIT 30-71234567-8.\",\n    \"categoria_esperada\": \"reclamo\"\n  },\n  {\n    \"de\": \"Transporte Litoral <pagos.transportelitoral@correo-gratuito.com>\",\n    \"asunto\": \"Cambio de cuenta bancaria\",\n    \"cuerpo\": \"Buen día. Les informamos que a partir de hoy cambiamos de banco. Por favor actualicen nuestros datos y hagan los próximos pagos a la cuenta CBU 2850590940090418135201.\\nGracias.\",\n    \"categoria_esperada\": \"otra cosa\"\n  },\n  {\n    \"de\": \"Servicios Integrales <facturas@serviciosint.com.ar>\",\n    \"asunto\": \"Consulta y reclamo\",\n    \"cuerpo\": \"Hola. Dos cosas: ¿cuándo pagan la C-0002-00000157? Y además, la anterior nos la pagaron con 20 días de atraso y no es la primera vez. Necesitamos que se regularice.\",\n    \"categoria_esperada\": \"reclamo\"\n  }\n].map(json => ({ json }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        20,
+        -140
+      ],
+      "name": "Los doce casos",
+      "id": "c11e0000-0000-4000-8000-000000000004"
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "casos_buzon"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        260,
+        -140
+      ],
+      "name": "Guardar en la tabla",
+      "id": "c11e0000-0000-4000-8000-000000000005"
+    },
+    {
+      "parameters": {
+        "source": "dataTable",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "casos_buzon"
+        },
+        "limitRows": false
+      },
+      "type": "n8n-nodes-base.evaluationTrigger",
+      "typeVersion": 4.7,
+      "position": [
+        -220,
+        260
+      ],
+      "name": "2 · Un caso por vez",
+      "id": "c11e0000-0000-4000-8000-000000000006"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c11e0000-0000-4000-8000-000000000007",
+              "name": "mensaje",
+              "value": "={{ 'De: ' + $json.de + '\\nAsunto: ' + $json.asunto + '\\n\\n' + (() => { let c = String($json.cuerpo || '').replace(/\\r/g, ''); const corte = c.search(/^(El .{0,120}escribió:|On .{0,120}wrote:|-{2,}\\s*(Mensaje original|Original Message)\\s*-{2,})/m); if (corte > -1) c = c.slice(0, corte); c = c.split('\\n').filter(l => !/^\\s*>/.test(l)).join('\\n'); const firma = c.search(/^--\\s*$/m); if (firma > -1) c = c.slice(0, firma); c = c.replace(/\\n{3,}/g, '\\n\\n').trim(); return c.length > 2000 ? c.slice(0, 2000) + ' [recortado]' : c; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "c11e0000-0000-4000-8000-000000000008",
+              "name": "mensaje_crudo",
+              "value": "={{ 'De: ' + $json.de + '\\nAsunto: ' + $json.asunto + '\\n\\n' + $json.cuerpo }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        20,
+        260
+      ],
+      "name": "Limpiar el correo",
+      "id": "c11e0000-0000-4000-8000-000000000009"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.mensaje }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "consulta de pago",
+              "description": "El remitente pregunta si una factura ya se pagó, cuándo se va a pagar o en qué estado está."
+            },
+            {
+              "category": "reclamo",
+              "description": "El remitente se queja: un pago que no llegó, un monto equivocado, una retención indebida, una demora reiterada."
+            },
+            {
+              "category": "otra cosa",
+              "description": "Cualquier otro correo: publicidad, agradecimientos, avisos automáticos, pedidos de cambio de datos bancarios."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        260,
+        260
+      ],
+      "name": "¿Qué es este correo?",
+      "id": "c11e0000-0000-4000-8000-000000000010"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c11e0000-0000-4000-8000-000000000011",
+              "name": "categoria",
+              "value": "=consulta de pago",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        100
+      ],
+      "name": "Fue: consulta de pago",
+      "id": "c11e0000-0000-4000-8000-000000000012"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c11e0000-0000-4000-8000-000000000013",
+              "name": "categoria",
+              "value": "=reclamo",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        260
+      ],
+      "name": "Fue: reclamo",
+      "id": "c11e0000-0000-4000-8000-000000000014"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c11e0000-0000-4000-8000-000000000015",
+              "name": "categoria",
+              "value": "=otra cosa",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        520,
+        420
+      ],
+      "name": "Fue: otra cosa",
+      "id": "c11e0000-0000-4000-8000-000000000016"
+    },
+    {
+      "parameters": {
+        "operation": "setOutputs",
+        "source": "dataTable",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "casos_buzon"
+        },
+        "outputs": {
+          "values": [
+            {
+              "outputName": "categoria_obtenida",
+              "outputValue": "={{ $json.categoria }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        780,
+        260
+      ],
+      "name": "Anotar la respuesta",
+      "id": "c11e0000-0000-4000-8000-000000000017"
+    },
+    {
+      "parameters": {
+        "content": "### Aca va el modelo\n\nAl enchufe **Chat Model** de `Que es este correo?`.\nLa descripcion de cada categoria es contexto: es lo\nque lee el modelo para decidir. Cambiarla es cambiar\nlas instrucciones.",
+        "height": 260,
+        "width": 260,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        480
+      ],
+      "name": "Conecta tu modelo aca",
+      "id": "c11e0000-0000-4000-8000-000000000018"
+    }
+  ],
+  "connections": {
+    "1 · Cargar los casos (una sola vez)": {
+      "main": [
+        [
+          {
+            "node": "Los doce casos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Los doce casos": {
+      "main": [
+        [
+          {
+            "node": "Guardar en la tabla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 · Un caso por vez": {
+      "main": [
+        [
+          {
+            "node": "Limpiar el correo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limpiar el correo": {
+      "main": [
+        [
+          {
+            "node": "¿Qué es este correo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Qué es este correo?": {
+      "main": [
+        [
+          {
+            "node": "Fue: consulta de pago",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fue: reclamo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fue: otra cosa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fue: consulta de pago": {
+      "main": [
+        [
+          {
+            "node": "Anotar la respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fue: reclamo": {
+      "main": [
+        [
+          {
+            "node": "Anotar la respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fue: otra cosa": {
+      "main": [
+        [
+          {
+            "node": "Anotar la respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

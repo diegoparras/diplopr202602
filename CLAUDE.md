@@ -109,11 +109,11 @@ Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 10, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
+Estado: publicadas las clases 1 a 11, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
-alimenta la 9, la 9 alimenta la 10 y la 10 alimenta la 11. Con la 9 cierra el módulo 3 y quedan
+alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11 y la 11 alimenta la 12. Con la 9 cierra el módulo 3 y quedan
 saldadas las dos deudas que arrastraba: la memoria entre ejecuciones y la
 planilla usada como base de datos en el caso de la 7. La planilla no desaparece
 del caso, cambia de papel: deja de ser la memoria del flujo y queda como la
@@ -129,6 +129,23 @@ El agente usa como herramienta la Data Table `facturas_vistas` de la 9, sin
 ninguna herramienta que escriba en ella. Deja abierta la 11: el system message
 del agente es la mitad del flujo, y la actividad pide lo que el modelo no sabe
 de la oficina y lo que no debería ver nunca.
+
+La 11 es la primera clase **agnóstica de modelos**, por pedido del
+coordinador: ni la página ni los workflows eligen proveedor. Los workflows
+vienen sin sub-nodo de modelo, con una nota que marca dónde enchufarlo; la
+página no recomienda ningún modelo, y la evaluación se presenta como la
+manera honesta de compararlos con casos propios. Esa regla vale de la 11 en
+adelante; las clases 5 y 10 quedan como se dictaron, con Anthropic. La 11
+usa como fuente del concepto el artículo de Anthropic sobre ingeniería de
+contexto (29/9/2025), citado como texto de referencia, nunca como
+recomendación de modelo. Ordena la clase en: qué es el contexto, la anatomía
+de una llamada, dónde va cada cosa (instrucciones, mensaje, herramienta,
+base de documentos, no entra), las tres versiones de las instrucciones, las
+herramientas como contexto, el orden, Guardrails para tapar, RAG explicado
+sin workflow, y la evaluación simple con doce casos. Las evaluaciones con
+puntaje quedan para el módulo 6. El texto de las instrucciones y los doce
+casos tienen un solo origen y se copian a la página y a los workflows al
+armarlos: si se cambia uno, se regeneran los dos.
 
 El taller `taller-oauth.html` es aparte: no es una clase, no lleva número y no
 entra en `clases.js`. Se llega desde el bloque «Talleres» del cronograma, y la
@@ -267,6 +284,50 @@ paquetes de la estable (`n8n` 2.41.4 → `n8n-nodes-base` y
   un buzón que recibe facturas; llevan una nota fechada en su sticky. La 9
   lleva además una nota de revisión sobre la conversión del AI Transform. Los
   flujos nuevos usan el Gmail Trigger 1.4.
+
+## Contexto y evaluaciones en n8n, verificado el 7 de octubre de 2026
+
+Contra docs.n8n.io y el código de la estable (`n8n` 2.42.4 →
+`n8n-nodes-base` y `@n8n/n8n-nodes-langchain` 2.42.3). La 2.43 está en beta
+y la página de la 3.0 no cambió desde el 30/9 (sigue «octubre de 2026»).
+
+- **La documentación de n8n no usa la expresión «context engineering»** ni
+  una vez en todo su índice. La clase lo dice.
+- **Memoria.** Simple Memory guarda las últimas N interacciones (Session Key,
+  Context Window Length) y en modo cola no funciona en producción; en los
+  sub-nodos las expresiones resuelven siempre al primer ítem. Chat Memory
+  Manager recorta o inyecta mensajes. Los agentes usan memoria; las cadenas,
+  no. El agente v3 tiene una opción `maxTokensFromMemory` pero está
+  **oculta** en la interfaz: no se enseña.
+- **Reuso del comienzo del paquete.** Cada nodo de modelo lo expone distinto
+  (uno con opción de 5 min / 1 h, otro con una clave, la mayoría nada), así
+  que la clase enseña el principio —lo fijo primero, lo variable al final, y
+  nunca `{{ $now }}` al principio de las instrucciones— y no un botón.
+- **Guardrails v2 en Sanitize Text** no pide modelo: sólo lo pide si se usan
+  jailbreak, NSFW, tema o personalizado. Reemplaza por `<TIPO>` y deja el
+  texto en `guardrailsInput`; la operación sanitize tiene una sola salida y
+  no conserva los demás campos del ítem. **No trae entidades argentinas**
+  (ni CUIT, ni CBU, ni DNI): se agregan con «Custom Regex», que acepta el
+  patrón con o sin barras.
+- **RAG.** Necesita un modelo de *embeddings*; n8n tiene nodos para trece
+  proveedores, uno local. La regla de la clase: si el dato tiene llave,
+  herramienta; si es texto que hay que buscar por significado, base de
+  documentos.
+- **Evaluaciones.** Las simples: todos los planes de Cloud y Community
+  registrada, Business y Enterprise en instancia propia; casos en una Data
+  Table o una planilla; nodos Evaluation Trigger 4.7 (fuente `dataTable`) y
+  Evaluation 4.8 (operación `setOutputs`). Las de puntaje (Categorization,
+  Correctness, Helpfulness, String Similarity, Tools Used, propias): Cloud Pro
+  y Enterprise, Enterprise en instancia propia, y Starter o Community
+  registrada para un solo workflow.
+- **El Gmail Trigger en modo completo (`simple: false`)** entrega lo que arma
+  mailparser: `from` es un **objeto** (el texto está en `from.text`), no hay
+  `snippet`, y **el campo `attachments` se borra** a propósito. Los adjuntos
+  sólo llegan como binarios si se prende la opción `downloadAttachments`, y
+  se detectan con `Object.keys($binary || {}).length`. Los workflows de la 11
+  ya lo hacen así. **Los de las clases 7, 9 y 10 no**: su «¿Trae adjunto?» da
+  siempre falso y `$json.from.split(...)` falla. Pendiente de decisión del
+  coordinador.
 
 ## Despliegue
 

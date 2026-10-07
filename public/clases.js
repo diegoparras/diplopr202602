@@ -51,7 +51,7 @@ const CLASES = [
   { n: 10, fecha: '2026-09-30', dia: 'Miércoles', mod: 'M4', pagina: '10.html',
     titulo: 'n8n + IA: el nodo AI Agent',
     bajada: 'Un modelo que razona, decide y usa herramientas adentro de un flujo. Memoria y tools.' },
-  { n: 11, fecha: '2026-10-07', dia: 'Miércoles', mod: 'M4', pagina: null,
+  { n: 11, fecha: '2026-10-07', dia: 'Miércoles', mod: 'M4', pagina: '11.html',
     titulo: 'Ingeniería de contexto en flujos automatizados',
     bajada: 'Qué información recibe el modelo, en qué orden y con qué límite. Iterar sin romper lo que anda.' },
   { n: 12, fecha: '2026-10-14', dia: 'Miércoles', mod: 'M4', pagina: null,
