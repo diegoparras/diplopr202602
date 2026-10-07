@@ -19,8 +19,8 @@
     },
     {
       "parameters": {
-        "content": "## Tres cosas antes de darle a ejecutar\n\n**1. Crea la tabla.** Pestania `Data tables` del proyecto,\nboton `Create Data table`, nombre `facturas_vistas`, con\nestas columnas:\n\n```\nnumero      texto    (la llave)\nproveedor   texto\nmonto       numero\nestado      texto\nfecha       texto\n```\n\n**2. Elegi la tabla en los tres nodos Data Table.** Vienen\nvacios a proposito: las tablas son de tu proyecto y no viajan\nadentro del JSON, igual que las credenciales. Al abrir cada\nnodo, elegila de la lista.\n\n**3. Cambia los dos `PEGAR_...`** por el chat de Telegram de\nMarcela y el del socio, y elegi tu planilla en el nodo de\nGoogle Sheets.\n\nEl tope de autorizacion esta en el nodo **Leer los datos**,\npuesto en 50000, que es el numero que usamos desde la\nclase 01. El flujo de la clase 07 todavia dice 200000: si\nlos corres uno al lado del otro, acordate de emparejarlos.\n\n**Nota del 30/9/2026 - n8n 3.0.** El disparador de este flujo es\nel Gmail Trigger 1.2. Con n8n 3.0 va a comportarse como el 1.4: no\ndispara con borradores ni con correos enviados, y levanta hasta 10\ncorreos por consulta. Para un buzon que recibe facturas no cambia\nnada. Si lo armas de cero, usa el 1.4, como en la clase 10.",
-        "height": 820,
+        "content": "## Tres cosas antes de darle a ejecutar\n\n**1. Crea la tabla.** Pestania `Data tables` del proyecto,\nboton `Create Data table`, nombre `facturas_vistas`, con\nestas columnas:\n\n```\nnumero      texto    (la llave)\nproveedor   texto\nmonto       numero\nestado      texto\nfecha       texto\n```\n\n**2. Elegi la tabla en los tres nodos Data Table.** Vienen\nvacios a proposito: las tablas son de tu proyecto y no viajan\nadentro del JSON, igual que las credenciales. Al abrir cada\nnodo, elegila de la lista.\n\n**3. Cambia los dos `PEGAR_...`** por el chat de Telegram de\nMarcela y el del socio, y elegi tu planilla en el nodo de\nGoogle Sheets.\n\nEl tope de autorizacion esta en el nodo **Leer los datos**,\npuesto en 50000, que es el numero que usamos desde la\nclase 01. El flujo de la clase 07 todavia dice 200000: si\nlos corres uno al lado del otro, acordate de emparejarlos.\n\n**Nota del 30/9/2026 - n8n 3.0.** El disparador de este flujo es\nel Gmail Trigger 1.2. Con n8n 3.0 va a comportarse como el 1.4: no\ndispara con borradores ni con correos enviados, y levanta hasta 10\ncorreos por consulta. Para un buzon que recibe facturas no cambia\nnada. Si lo armas de cero, usa el 1.4, como en la clase 10.\n\n**Nota de revision, 7/10/2026.** La primera version de este\nflujo trataba el remitente como texto, preguntaba por\n`$json.attachments` y buscaba el CUIT y la fecha en\n`snippet`. Con el disparador en modo completo el remitente llega\ncomo objeto: el texto esta en `from.text` y el nombre en\n`from.value[0].name`. El campo `attachments` llega vacio: los adjuntos solo\naparecen como binarios, y solo si esta prendido Download\nAttachments en el disparador.\nY `snippet` no llega: el cuerpo entero esta en `text`.\nEsta version ya lo tiene corregido.",
+        "height": 1040,
         "width": 460,
         "color": 3
       },
@@ -46,7 +46,9 @@
         "filters": {
           "q": "has:attachment"
         },
-        "options": {}
+        "options": {
+          "downloadAttachments": true
+        }
       },
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1.2,
@@ -69,7 +71,7 @@
           "conditions": [
             {
               "id": "c9100000-0000-4000-8000-000000000004",
-              "leftValue": "={{ $json.attachments ? $json.attachments.length : 0 }}",
+              "leftValue": "={{ Object.keys($binary || {}).length }}",
               "rightValue": "=0",
               "operator": {
                 "type": "number",
@@ -94,7 +96,7 @@
     {
       "parameters": {
         "chatId": "PEGAR_CHAT_ID_DE_MARCELA",
-        "text": "=Llego un correo al buzon de facturacion sin ningun adjunto.\n\nDe: {{ $('Llega un correo').item.json.from }}\nAsunto: {{ $('Llega un correo').item.json.subject }}",
+        "text": "=Llego un correo al buzon de facturacion sin ningun adjunto.\n\nDe: {{ $('Llega un correo').item.json.from.text }}\nAsunto: {{ $('Llega un correo').item.json.subject }}",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -116,7 +118,7 @@
             {
               "id": "c9100000-0000-4000-8000-000000000007",
               "name": "proveedorBruto",
-              "value": "={{ $json.from.split('<')[0].trim() }}",
+              "value": "={{ $json.from.value[0].name || $json.from.value[0].address }}",
               "type": "string"
             },
             {
@@ -128,7 +130,7 @@
             {
               "id": "c9100000-0000-4000-8000-000000000009",
               "name": "cuitBruto",
-              "value": "={{ ($json.snippet.match(/\\d{2}[-.]?\\d{8}[-.]?\\d/) || [''])[0] }}",
+              "value": "={{ (($json.text || '').match(/\\d{2}[-.]?\\d{8}[-.]?\\d/) || [''])[0] }}",
               "type": "string"
             },
             {
@@ -140,7 +142,7 @@
             {
               "id": "c9100000-0000-4000-8000-000000000011",
               "name": "fechaBruta",
-              "value": "={{ ($json.snippet.match(/\\d{1,2}\\/\\d{1,2}\\/\\d{4}/) || [''])[0] }}",
+              "value": "={{ (($json.text || '').match(/\\d{1,2}\\/\\d{1,2}\\/\\d{4}/) || [''])[0] }}",
               "type": "string"
             },
             {

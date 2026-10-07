@@ -321,13 +321,16 @@ y la página de la 3.0 no cambió desde el 30/9 (sigue «octubre de 2026»).
   y Enterprise, Enterprise en instancia propia, y Starter o Community
   registrada para un solo workflow.
 - **El Gmail Trigger en modo completo (`simple: false`)** entrega lo que arma
-  mailparser: `from` es un **objeto** (el texto está en `from.text`), no hay
-  `snippet`, y **el campo `attachments` se borra** a propósito. Los adjuntos
-  sólo llegan como binarios si se prende la opción `downloadAttachments`, y
-  se detectan con `Object.keys($binary || {}).length`. Los workflows de la 11
-  ya lo hacen así. **Los de las clases 7, 9 y 10 no**: su «¿Trae adjunto?» da
-  siempre falso y `$json.from.split(...)` falla. Pendiente de decisión del
-  coordinador.
+  mailparser: `from` es un **objeto** (el texto está en `from.text`, con el
+  nombre entre comillas; el nombre solo, en `from.value[0].name`), no hay
+  `snippet` (el cuerpo está en `text`), y **el campo `attachments` se borra**
+  a propósito. Los adjuntos sólo llegan como binarios si se prende la opción
+  `downloadAttachments`, y se detectan con `Object.keys($binary || {}).length`.
+  Los workflows de la 11 nacieron así. Los de las clases 7, 9 y 10 tenían el
+  error y se corrigieron el 7/10/2026, con nota de revisión fechada en el
+  sticky de puesta a punto de cada flujo y en un `.nota-pie` junto a las
+  descargas de 07.html, 09.html y 10.html. Todo flujo nuevo con Gmail
+  Trigger sale así de entrada.
 
 ## Despliegue
 

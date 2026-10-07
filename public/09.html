@@ -594,6 +594,7 @@ FIN</pre>
     </div>
 
     <p class="nota-pie">Los dos flujos vienen con la tabla <code>facturas_vistas</code> referenciada por nombre: al importarlos, n8n te va a pedir que elijas la Data Table, porque las tablas son de tu proyecto y no viajan adentro del JSON. Creala primero desde la pestaña <b>Data tables</b> con las cinco columnas del pseudocódigo. Es el mismo motivo por el que las credenciales tampoco viajan, que vimos en la clase 8.</p>
+    <p class="nota-pie"><b>Nota de revisión, 7 de octubre de 2026.</b> El flujo con la tabla se corrigió en tres lugares que dependen del Gmail Trigger en modo completo: el remitente llega como objeto (<code>from.text</code>, <code>from.value[0].name</code>), los adjuntos llegan como binarios sólo con <i>Download Attachments</i> prendido —el campo <code>attachments</code> viene vacío—, y no hay <code>snippet</code>: el CUIT y la fecha se buscan en <code>text</code>, el cuerpo entero. Si lo bajaste antes de esta fecha, volvé a descargarlo.</p>
   </div>
 </section>
 

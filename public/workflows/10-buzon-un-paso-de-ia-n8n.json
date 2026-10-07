@@ -19,8 +19,8 @@
     },
     {
       "parameters": {
-        "content": "## Tres cosas antes de ejecutar\n\n**1. Credencial de Anthropic.** En el sub-nodo\n`Claude` elegi tu credencial. Viene con Claude Opus 5.5\ny esfuerzo bajo, que para clasificar alcanza. Cambiar de\nmodelo o de proveedor es cambiar solo ese sub-nodo.\n\n**2. La tabla de la clase 9.** En `Buscar en la tabla`\nelegi `facturas_vistas` de la lista: las tablas son de tu\nproyecto y no viajan en el JSON.\n\n**3. Telegram.** Cambia `PEGAR_CHAT_ID_DE_MARCELA` en\nlos dos avisos. Es el bot de la clase 5.\n\nProbalo primero con el boton de ejecutar a mano: no\nconsume cuota de ejecuciones.",
-        "height": 520,
+        "content": "## Tres cosas antes de ejecutar\n\n**1. Credencial de Anthropic.** En el sub-nodo\n`Claude` elegi tu credencial. Viene con Claude Opus 5.5\ny esfuerzo bajo, que para clasificar alcanza. Cambiar de\nmodelo o de proveedor es cambiar solo ese sub-nodo.\n\n**2. La tabla de la clase 9.** En `Buscar en la tabla`\nelegi `facturas_vistas` de la lista: las tablas son de tu\nproyecto y no viajan en el JSON.\n\n**3. Telegram.** Cambia `PEGAR_CHAT_ID_DE_MARCELA` en\nlos dos avisos. Es el bot de la clase 5.\n\nProbalo primero con el boton de ejecutar a mano: no\nconsume cuota de ejecuciones.\n\n**Nota de revision, 7/10/2026.** La primera version de este\nflujo trataba el remitente como texto, preguntaba por\n`$json.attachments` y leia el cuerpo de\n`snippet`. Con el disparador en modo completo el remitente llega\ncomo objeto: el texto esta en `from.text` y el nombre en\n`from.value[0].name`. El campo `attachments` llega vacio: los adjuntos solo\naparecen como binarios, y solo si esta prendido Download\nAttachments en el disparador.\nY `snippet` no llega: el cuerpo entero esta en `text`.\nEsta version ya lo tiene corregido.",
+        "height": 720,
         "width": 440,
         "color": 3
       },
@@ -44,7 +44,9 @@
         },
         "simple": false,
         "filters": {},
-        "options": {}
+        "options": {
+          "downloadAttachments": true
+        }
       },
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1.4,
@@ -67,7 +69,7 @@
           "conditions": [
             {
               "id": "c10a0000-0000-4000-8000-000000000004",
-              "leftValue": "={{ $json.attachments ? $json.attachments.length : 0 }}",
+              "leftValue": "={{ Object.keys($binary || {}).length }}",
               "rightValue": "=0",
               "operator": {
                 "type": "number",
@@ -102,7 +104,7 @@
     },
     {
       "parameters": {
-        "inputText": "={{ 'De: ' + $json.from + '\\nAsunto: ' + $json.subject + '\\n\\n' + ($json.text || $json.snippet || '') }}",
+        "inputText": "={{ 'De: ' + $json.from.text + '\\nAsunto: ' + $json.subject + '\\n\\n' + ($json.text || '') }}",
         "categories": {
           "categories": [
             {
@@ -165,7 +167,7 @@
             {
               "id": "c10a0000-0000-4000-8000-000000000009",
               "name": "numero",
-              "value": "={{ (($json.subject + ' ' + ($json.text || $json.snippet || '')).match(/[A-Z]?-?\\d{1,4}-\\d{4,8}/) || [''])[0].replace(/[^0-9-]/g, '').split('-').filter(p => p).map(p => Number(p)).join('-') }}",
+              "value": "={{ (($json.subject + ' ' + ($json.text || '')).match(/[A-Z]?-?\\d{1,4}-\\d{4,8}/) || [''])[0].replace(/[^0-9-]/g, '').split('-').filter(p => p).map(p => Number(p)).join('-') }}",
               "type": "string"
             }
           ]
@@ -216,7 +218,7 @@
     {
       "parameters": {
         "chatId": "PEGAR_CHAT_ID_DE_MARCELA",
-        "text": "={{ $json.estado\n  ? 'Consulta por un pago de ' + $('Sacar el número').item.json.from + '\\n\\nLa factura ' + $json.numero + ' esta: ' + $json.estado + '.\\n\\nBorrador:\\nHola, la factura ' + $json.numero + ' esta recibida y ' + ($json.estado === 'para pagar' ? 'en cola para pagar' : 'pendiente de autorizacion') + '. Saludos.'\n  : 'Consulta por un pago de ' + $('Sacar el número').item.json.from + ', pero no pude identificar la factura' + ($('Sacar el número').item.json.numero ? ' (' + $('Sacar el número').item.json.numero + ' no esta en la tabla)' : ' (no trae numero)') + '. Contestale vos.\\n\\nAsunto: ' + $('Sacar el número').item.json.subject }}",
+        "text": "={{ $json.estado\n  ? 'Consulta por un pago de ' + $('Sacar el número').item.json.from.text + '\\n\\nLa factura ' + $json.numero + ' esta: ' + $json.estado + '.\\n\\nBorrador:\\nHola, la factura ' + $json.numero + ' esta recibida y ' + ($json.estado === 'para pagar' ? 'en cola para pagar' : 'pendiente de autorizacion') + '. Saludos.'\n  : 'Consulta por un pago de ' + $('Sacar el número').item.json.from.text + ', pero no pude identificar la factura' + ($('Sacar el número').item.json.numero ? ' (' + $('Sacar el número').item.json.numero + ' no esta en la tabla)' : ' (no trae numero)') + '. Contestale vos.\\n\\nAsunto: ' + $('Sacar el número').item.json.subject }}",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -233,7 +235,7 @@
     {
       "parameters": {
         "chatId": "PEGAR_CHAT_ID_DE_MARCELA",
-        "text": "=Llego un reclamo al buzon de facturacion.\n\nDe: {{ $json.from }}\nAsunto: {{ $json.subject }}\n\n{{ $json.snippet }}",
+        "text": "=Llego un reclamo al buzon de facturacion.\n\nDe: {{ $json.from.text }}\nAsunto: {{ $json.subject }}\n\n{{ ($json.text || '').slice(0, 600) }}",
         "additionalFields": {
           "appendAttribution": false
         }

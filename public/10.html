@@ -652,6 +652,7 @@ FIN</pre>
     </div>
 
     <p class="nota-pie">Los dos flujos usan Claude Opus 5.5 en el sub-nodo Anthropic Chat Model, con esfuerzo bajo para clasificar y medio para el agente. Cambiar de modelo o de proveedor es cambiar ese sub-nodo. Necesitan tres cosas tuyas: una credencial de Anthropic con saldo, el bot de Telegram de la clase 5 con el chat de Marcela, y la tabla <code>facturas_vistas</code> de la clase 9, que hay que elegir de la lista al abrir cada nodo, porque las tablas no viajan en el JSON. El Gmail Trigger de estos flujos ya está en la versión 1.4, la que n8n 3.0 deja como única.</p>
+    <p class="nota-pie"><b>Nota de revisión, 7 de octubre de 2026.</b> Los dos flujos se corrigieron en lo que depende del Gmail Trigger en modo completo: el remitente llega como objeto (<code>from.text</code>), los adjuntos llegan como binarios sólo con <i>Download Attachments</i> prendido —el campo <code>attachments</code> viene vacío, así que la pregunta «¿trae adjunto?» mira <code>$binary</code>—, y no hay <code>snippet</code>: el cuerpo está en <code>text</code>. Si los bajaste antes de esta fecha, volvé a descargarlos.</p>
   </div>
 </section>
 

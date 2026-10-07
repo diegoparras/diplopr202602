@@ -19,8 +19,8 @@
     },
     {
       "parameters": {
-        "content": "## Puesta a punto\n\n**1 - Los datos salen del asunto, no del PDF.** Muchos proveedores\nmandan \"Factura A 0001-00012345 - $ 250.000\" en el asunto, y con eso\nalcanza para este flujo. Leer los datos de adentro de un PDF es otra\ncosa y la vemos en el modulo 4: hoy el adjunto viaja para reenviarlo,\nno para leerlo.\n\nSi tus proveedores no ponen nada util en el asunto, el flujo igual\nsirve: cambia el nodo \"Leer los datos\" por uno que te pregunte a vos.\nUn proceso a medias automatizado que avisa es mejor que uno entero\nque nadie reviso.\n\n**2 - El tope esta en un solo lugar.** El nodo \"Leer los datos\" define\n`tope` una vez. El dia que cambie, se cambia ahi y no en tres nodos.\nNumeros magicos repartidos por el lienzo es como se rompen los flujos\nde otros.\n\n**3 - La planilla hace de memoria.** El control de repetidas busca el\nnumero de factura en la planilla antes de cargar. Funciona, y tiene el\nproblema que vamos a ver en la clase 9: la planilla no fue hecha para\nesto y a las mil filas se nota.\n\n**4 - Que hace falta antes de importarlo.** Credenciales de Gmail y de\nGoogle Sheets, el identificador de la planilla, y el chat de Telegram\ndonde van los avisos. Los tres campos estan marcados con PEGAR_.\n\n**Nota del 30/9/2026 - n8n 3.0.** El disparador de este flujo es\nel Gmail Trigger 1.2. Con n8n 3.0 va a comportarse como el 1.4: no\ndispara con borradores ni con correos enviados, y levanta hasta 10\ncorreos por consulta. Para un buzon que recibe facturas no cambia\nnada. Si lo armas de cero, usa el 1.4, como en la clase 10.",
-        "height": 820,
+        "content": "## Puesta a punto\n\n**1 - Los datos salen del asunto, no del PDF.** Muchos proveedores\nmandan \"Factura A 0001-00012345 - $ 250.000\" en el asunto, y con eso\nalcanza para este flujo. Leer los datos de adentro de un PDF es otra\ncosa y la vemos en el modulo 4: hoy el adjunto viaja para reenviarlo,\nno para leerlo.\n\nSi tus proveedores no ponen nada util en el asunto, el flujo igual\nsirve: cambia el nodo \"Leer los datos\" por uno que te pregunte a vos.\nUn proceso a medias automatizado que avisa es mejor que uno entero\nque nadie reviso.\n\n**2 - El tope esta en un solo lugar.** El nodo \"Leer los datos\" define\n`tope` una vez. El dia que cambie, se cambia ahi y no en tres nodos.\nNumeros magicos repartidos por el lienzo es como se rompen los flujos\nde otros.\n\n**3 - La planilla hace de memoria.** El control de repetidas busca el\nnumero de factura en la planilla antes de cargar. Funciona, y tiene el\nproblema que vamos a ver en la clase 9: la planilla no fue hecha para\nesto y a las mil filas se nota.\n\n**4 - Que hace falta antes de importarlo.** Credenciales de Gmail y de\nGoogle Sheets, el identificador de la planilla, y el chat de Telegram\ndonde van los avisos. Los tres campos estan marcados con PEGAR_.\n\n**Nota del 30/9/2026 - n8n 3.0.** El disparador de este flujo es\nel Gmail Trigger 1.2. Con n8n 3.0 va a comportarse como el 1.4: no\ndispara con borradores ni con correos enviados, y levanta hasta 10\ncorreos por consulta. Para un buzon que recibe facturas no cambia\nnada. Si lo armas de cero, usa el 1.4, como en la clase 10.\n\n**Nota de revision, 7/10/2026.** La primera version de este\nflujo trataba el remitente como texto. Con el disparador en modo completo el remitente llega\ncomo objeto: el texto esta en `from.text` y el nombre en\n`from.value[0].name`.\nEsta version ya lo tiene corregido.",
+        "height": 920,
         "width": 480,
         "color": 6
       },
@@ -98,7 +98,7 @@
     {
       "parameters": {
         "chatId": "PEGAR_CHAT_ID_DE_MARCELA",
-        "text": "=Llegó un correo sin factura adjunta.\n\nDe: {{ $('Llega un correo').item.json.from }}\nAsunto: {{ $('Llega un correo').item.json.subject }}\n\nRevisalo a mano: no cargué nada.",
+        "text": "=Llegó un correo sin factura adjunta.\n\nDe: {{ $('Llega un correo').item.json.from.text }}\nAsunto: {{ $('Llega un correo').item.json.subject }}\n\nRevisalo a mano: no cargué nada.",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -120,7 +120,7 @@
             {
               "id": "c7100000-0000-4000-8000-000000000201",
               "name": "proveedor",
-              "value": "={{ $json.from.split('<')[0].trim() }}",
+              "value": "={{ $json.from.value[0].name || $json.from.value[0].address }}",
               "type": "string"
             },
             {
