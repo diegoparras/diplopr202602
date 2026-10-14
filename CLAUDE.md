@@ -109,11 +109,11 @@ Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 11, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
+Estado: publicadas las clases 1 a 12, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
-alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11 y la 11 alimenta la 12. Con la 9 cierra el módulo 3 y quedan
+alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12 y la 12 alimenta la 13. Con la 9 cierra el módulo 3 y quedan
 saldadas las dos deudas que arrastraba: la memoria entre ejecuciones y la
 planilla usada como base de datos en el caso de la 7. La planilla no desaparece
 del caso, cambia de papel: deja de ser la memoria del flujo y queda como la
@@ -146,6 +146,24 @@ sin workflow, y la evaluación simple con doce casos. Las evaluaciones con
 puntaje quedan para el módulo 6. El texto de las instrucciones y los doce
 casos tienen un solo origen y se copian a la página y a los workflows al
 armarlos: si se cambia uno, se regeneran los dos.
+
+La 12 trae los agentes de código (Claude Code, Codex, OpenCode) como
+herramienta para escribir expresiones, nodos Code y JSON de workflows, y
+sigue siendo agnóstica: presenta los tres por lo que hacen bien y lo que
+cuestan, más n8n Assistant como «el que ya está adentro», y da criterios
+para elegir sin recomendar ninguno. La idea que la ordena: es el mismo
+bucle de la clase 10 con otras herramientas, el pedido lleva el
+pseudocódigo, un ítem real tapado y los casos, y lo que decide si el agente
+acertó son los casos. Piezas: el armador del pedido, un probador que corre
+expresiones y nodos Code contra casos en el navegador, un revisor de JSON
+de workflows con la lista real de tipos y versiones de la estable (sale de
+los `nodes.json` de los paquetes; para actualizarla se reemplazan las
+constantes `TIPOS`, `COMO_HERRAMIENTA` y `CON_APROBACION` de `clase12.js`
+con los de la versión nueva, sin WhatsApp) y una
+plantilla de `AGENTS.md`. El workflow de la clase prueba un nodo Code
+contra casos adentro de n8n, sin modelo ni credenciales. Deja abierta la
+13: el agente no ve tu n8n, todo se lo copiaste a mano, y la actividad pide
+lo que no le dejarías hacer nunca ahí adentro.
 
 El taller `taller-oauth.html` es aparte: no es una clase, no lleva número y no
 entra en `clases.js`. Se llega desde el bloque «Talleres» del cronograma, y la
@@ -272,6 +290,9 @@ paquetes de la estable (`n8n` 2.41.4 → `n8n-nodes-base` y
   `low` para clasificar y `medium` para el agente. La calculadora de costo de
   la clase lee precios sólo de `/api/datos`.
 - **Renombres.** «AI Assistant» es **n8n Assistant** desde la 2.40.
+  (Corregido el 14/10: son dos productos. «Ask n8n AI» es el asistente
+  viejo de ayuda, sin desarrollo; **n8n Assistant** es el agente nuevo que
+  arma, ejecuta y publica en el lienzo. Ver la sección del 14 de octubre.)
 - **n8n 3.0, lo que se sumó a la lista.** Se van Cron, Interval, HTML Extract,
   Read PDF, Read/Write Binary File, Workflow Trigger, Manual Chat Trigger,
   SerpApi, el HTTP Request Tool viejo, los loaders viejos y varios vector
@@ -331,6 +352,56 @@ y la página de la 3.0 no cambió desde el 30/9 (sigue «octubre de 2026»).
   sticky de puesta a punto de cada flujo y en un `.nota-pie` junto a las
   descargas de 07.html, 09.html y 10.html. Todo flujo nuevo con Gmail
   Trigger sale así de entrada.
+
+## Agentes de código, verificado el 14 de octubre de 2026
+
+Contra code.claude.com, claude.com/pricing, learn.chatgpt.com, opencode.ai,
+agents.md, docs.n8n.io, el registro de npm y el código de la estable
+(`n8n` 2.43.5 → `n8n-nodes-base`, `@n8n/n8n-nodes-langchain` y
+`@n8n/task-runner` 2.43.3). La beta es la 2.44.1.
+
+- **n8n 3.0 todavía no salió**: no hay ninguna 3.x en npm, sólo imágenes
+  nocturnas en Docker. Su página de cambios ya dice «has been released» y
+  el changelog trae entradas fechadas a futuro: no dar fecha. La lista
+  sumó, entre otras cosas, la pestaña Ask AI del nodo Code, Import from
+  URL y `$evaluateExpression()`. El nodo Code hoy corta a los 300 s; el
+  corte a 60 s es de la 3.0.
+- **Nodo Code.** Versiones 1 y 2. En modo por ítem devuelve un objeto y
+  n8n rechaza `$input.all()`; en modo para todos, una lista. n8n envuelve
+  solo en `{ json }`. `items` todavía anda en modo para todos pero la
+  documentación ya no lo muestra. Sin red, sin Data Tables, y en Cloud
+  sólo `crypto` y `moment` con `require`. El constructor de IA de n8n
+  tiene la orden de usar Code «como último recurso».
+- **Importar JSON.** El editor sólo exige `nodes` y `connections`; las
+  conexiones a nombres que no existen se descartan sin aviso, un tipo
+  desconocido queda como nodo a instalar, y `$node["…"]` sigue andando
+  pero desapareció de la documentación. El JSON exportado trae nombre e
+  id de cada credencial, no el secreto; `pinData` sí viaja.
+- **Claude Code.** Sólo modelos de Anthropic. Incluido desde Pro (USD 20);
+  el plan gratuito no lo trae. Código cerrado. Lee `CLAUDE.md`, y desde la
+  2.1.277 `AGENTS.md` si no hay `CLAUDE.md` (o vía `@AGENTS.md`). Modos:
+  Manual, aceptar ediciones, plan, auto.
+- **Codex.** Modelos de OpenAI por defecto, acepta otros proveedores y
+  locales. Incluido desde ChatGPT Plus (USD 20); gratuito y Go sólo en la
+  app de escritorio, con un modelo chico y «sujeto a despliegue». CLI
+  Apache 2.0. Lee `AGENTS.md`, no `CLAUDE.md`. Desde julio vive dentro de
+  la app de escritorio de ChatGPT y su documentación está en
+  learn.chatgpt.com.
+- **OpenCode.** MIT, cualquier proveedor y modelos locales. La v2 salió el
+  11/9/2026 como paquete aparte (`@opencode/cli`) y sólo lee `AGENTS.md`.
+  Una suscripción de Claude no se puede usar ahí.
+- **`AGENTS.md`** lo cuida la Agentic AI Foundation (Linux Foundation) y es
+  hoy el único archivo que leen los tres.
+- **n8n Assistant** (Preview): arma, ejecuta, depura y publica con
+  aprobación. Cloud Starter y Pro con créditos; instancia propia en
+  Community y Business, no Enterprise, con Docker y clave de modelo propia.
+  Reemplaza al AI Workflow Builder.
+- **Para la 13**: n8n tiene servidor MCP por instancia (Settings >
+  Instance-level MCP), skills oficiales para agentes de código
+  (`n8n-io/skills`), la n8n CLI y dos MCP de documentación. Las
+  herramientas de construcción del MCP trabajan con el Workflow SDK en
+  TypeScript, no con JSON crudo. Codex quitó el modo servidor MCP el 5/9;
+  como cliente los tres andan.
 
 ## Despliegue
 

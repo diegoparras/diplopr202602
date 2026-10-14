@@ -1,0 +1,162 @@
+{
+  "name": "Clase 12 - Probar lo que escribió el agente",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Clase 12 - Probar lo que escribió el agente\n\nEste flujo no lee correos: prueba un nodo Code\ncontra tus casos, adentro de n8n.\n\n```\nCUANDO lo ejecuto a mano:\n    cargar los casos { entrada, esperado }\n    PARA cada caso:\n        correr el código que escribió el agente\n        comparar lo que dio con lo esperado\n    contar cuántos pasaron y cuáles fallaron\nFIN\n```\n\nEl agente escribió `Normalizar el número` a partir\ndel pseudocódigo que está en su primer comentario.\nQue lo haya escrito un agente no lo hace correcto:\nlo hace correcto que pase los casos.\n\nNo hay modelo, credenciales ni tablas: se importa\ny se ejecuta con el botón Execute workflow.",
+        "height": 620,
+        "width": 460,
+        "color": 4
+      },
+      "id": "c1200000-0000-4000-8000-000000000001",
+      "name": "Consigna",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1000,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Para tu caso\n\n1. En `Los casos`, cambiá la lista por los cinco\n   casos que trajiste de la clase 11. Si tu entrada\n   tiene más de un campo, ponelos todos: `entrada`\n   puede ser un objeto.\n\n2. En `Normalizar el número`, pegá lo que te\n   devolvió el agente. Tiene que dejar el resultado\n   en el campo `obtenido`.\n\n3. Ejecutá y mirá `El veredicto`. Si falla uno,\n   no cambies el caso para que pase: pasale el caso\n   al agente y pedile que lo corrija.\n\nCuando pasen todos, recién ahí copiás el nodo al\nflujo de verdad.",
+        "height": 520,
+        "width": 420,
+        "color": 5
+      },
+      "id": "c1200000-0000-4000-8000-000000000002",
+      "name": "Para tu caso",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -500,
+        -200
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c1200000-0000-4000-8000-000000000003",
+      "name": "Probar",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Tus casos: una entrada y lo que esperás que salga.\n// Cambialos por los cinco que trajiste de la clase 11.\nconst casos = [\n  { entrada: \"A-0007-00004410\", esperado: \"7-4410\" },\n  { entrada: \"0001-00012345\", esperado: \"1-12345\" },\n  { entrada: \"B-0010-00000420\", esperado: \"10-420\" },\n  { entrada: \"Nº 0001-00012345\", esperado: \"1-12345\" },\n  { entrada: \"A 0001 00012345\", esperado: \"1-12345\" },\n  { entrada: \"sin número\", esperado: \"\" },\n];\n\nreturn casos.map(c => ({ json: c }));"
+      },
+      "id": "c1200000-0000-4000-8000-000000000004",
+      "name": "Los casos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Pseudocódigo que se le pasó al agente:\n//   tomar los grupos de dígitos del número\n//   quedarse con los dos últimos: punto de venta y número\n//   sacarles los ceros de adelante y unirlos con un guion\n//   si no hay ningún dígito, devolver vacío\n//\n// Pegá acá lo que te devuelva el tuyo. Modo: Run Once for Each Item.\nconst tramos = String($json.entrada || '').match(/\\d+/g) || [];\nconst obtenido = tramos.slice(-2).map(t => Number(t)).join('-');\n\nreturn { json: { ...$json, obtenido } };"
+      },
+      "id": "c1200000-0000-4000-8000-000000000005",
+      "name": "Normalizar el número",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1200000-0000-4000-8000-000000000101",
+              "name": "paso",
+              "value": "={{ $json.obtenido === $json.esperado }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "c1200000-0000-4000-8000-000000000006",
+      "name": "Comparar",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const filas = $input.all().map(i => i.json);\nconst fallaron = filas.filter(f => !f.paso);\n\nreturn [{\n  json: {\n    pasaron: filas.length - fallaron.length,\n    de: filas.length,\n    fallaron: fallaron.map(f => f.entrada + ' -> dio \"' + f.obtenido + '\", esperaba \"' + f.esperado + '\"'),\n  },\n}];"
+      },
+      "id": "c1200000-0000-4000-8000-000000000007",
+      "name": "El veredicto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Probar": {
+      "main": [
+        [
+          {
+            "node": "Los casos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Los casos": {
+      "main": [
+        [
+          {
+            "node": "Normalizar el número",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar el número": {
+      "main": [
+        [
+          {
+            "node": "Comparar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comparar": {
+      "main": [
+        [
+          {
+            "node": "El veredicto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

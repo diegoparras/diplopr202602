@@ -54,7 +54,7 @@ const CLASES = [
   { n: 11, fecha: '2026-10-07', dia: 'Miércoles', mod: 'M4', pagina: '11.html',
     titulo: 'Ingeniería de contexto en flujos automatizados',
     bajada: 'Qué información recibe el modelo, en qué orden y con qué límite. Iterar sin romper lo que anda.' },
-  { n: 12, fecha: '2026-10-14', dia: 'Miércoles', mod: 'M4', pagina: null,
+  { n: 12, fecha: '2026-10-14', dia: 'Miércoles', mod: 'M4', pagina: '12.html',
     titulo: 'Agentes de código, primer contacto',
     bajada: 'Claude Code, Codex y OpenCode como herramienta para construir: nodo Code, expresiones y JSON de workflows.' },
   { n: 13, fecha: '2026-10-21', dia: 'Miércoles', mod: 'M5', pagina: null,
