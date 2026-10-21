@@ -1,0 +1,272 @@
+{
+  "name": "Clase 13 - Herramientas de la tienda (servidor MCP)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Clase 13 - Herramientas de la tienda\n\nEste flujo **es un servidor MCP**. No hace nada por su\ncuenta: espera que una IA de afuera se conecte y le\nofrece dos herramientas.\n\n```\nCUANDO una IA se conecta al servidor:\n    le muestro mis herramientas, cada una con\n    su nombre y su descripción\nCUANDO la IA elige una:\n    consultar_stock    -> busco en la tabla stock\n    registrar_consulta -> guardo una fila en consultas\n    le devuelvo el resultado\nFIN\n```\n\nLa IA decide cuál usar leyendo la **descripción** de\ncada herramienta. Si la descripción es mala, la IA no\nsabe cuándo usarla.\n\nLas **instrucciones** del disparador le llegan a la IA\ncuando se conecta: es contexto, como en la clase 11.",
+        "height": 640,
+        "width": 520,
+        "color": 4
+      },
+      "id": "c13a0000-0000-4000-8000-000000000001",
+      "name": "Consigna",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1180,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Antes de conectar nada\n\n**1. Dos tablas.** Pestaña `Data tables` del proyecto:\n\n```\nstock       producto (texto), talle (texto),\n            cantidad (número)\nconsultas   consulta (texto), producto (texto),\n            fecha (texto)\n```\n\n**2. Elegí la tabla** en `consultar_stock`, en\n`registrar_consulta` y en `Guardar el stock`.\n\n**3. Cargá el stock de ejemplo** una sola vez: botón\nExecute workflow sobre `Cargar el stock de ejemplo`.\n\n**4. La autenticación.** El disparador viene con\n**Bearer Auth** y sin credencial: creá una con un token\nlargo inventado por vos. Sin autenticación, cualquiera\nque conozca la URL usa tus herramientas.\n\n**5. Publicá** el flujo y copiá la **Production URL**\ndel disparador. Esa URL más el token es lo que le das\nal cliente MCP: Claude, Codex, OpenCode u otro n8n.",
+        "height": 700,
+        "width": 460,
+        "color": 5
+      },
+      "id": "c13a0000-0000-4000-8000-000000000002",
+      "name": "Antes de conectar nada",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -620,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "bearerAuth",
+        "path": "herramientas-de-la-tienda",
+        "instructions": "Sos el asistente de una tienda de ropa. Para saber si queda un producto, usá consultar_stock: nunca inventes cantidades. Si la consulta no es sobre stock, registrala con registrar_consulta y avisá que una persona la va a responder. No guardes nombres, teléfonos ni correos de clientes."
+      },
+      "id": "c13a0000-0000-4000-8000-000000000003",
+      "name": "Servidor MCP de la tienda",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "c13a0000-0000-4000-8000-0000000000aa"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Devuelve cuántas unidades quedan de un producto en un talle. Usala cuando pregunten por stock, disponibilidad o si queda algo.",
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "stock"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "producto",
+              "condition": "ilike",
+              "keyValue": "=%{{ $fromAI('producto', 'Nombre del producto en minúsculas y en singular, por ejemplo remera', 'string') }}%"
+            },
+            {
+              "keyName": "talle",
+              "condition": "eq",
+              "keyValue": "={{ $fromAI('talle', 'Talle en mayúsculas: S, M, L o XL', 'string') }}"
+            }
+          ]
+        }
+      },
+      "id": "c13a0000-0000-4000-8000-000000000004",
+      "name": "consultar_stock",
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        -80,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Guarda la consulta de un cliente para que una persona la responda. Usala cuando la pregunta no se resuelve mirando el stock: cambios, envíos, pagos, reclamos.",
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "consultas"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "consulta": "={{ $fromAI('consulta', 'La consulta del cliente con sus palabras, sin nombres, teléfonos ni correos', 'string') }}",
+            "producto": "={{ $fromAI('producto', 'El producto del que habla, si nombra alguno; si no, vacío', 'string') }}",
+            "fecha": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "consulta",
+              "displayName": "consulta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "producto",
+              "displayName": "producto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c13a0000-0000-4000-8000-000000000005",
+      "name": "registrar_consulta",
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        120,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Lo que la IA de afuera puede hacer\n\nSólo esto: **leer el stock y anotar una consulta**.\nNo ve otros flujos, no ve credenciales, no borra.\n\nNinguna herramienta modifica el stock. Si alguna vez\nsumás una que lo haga, que pase por una confirmación\nhumana antes de escribir.\n\nDiferencia con el servidor MCP de la instancia: aquel\ndeja que la IA vea y arme flujos; este sólo expone lo\nque diseñaste acá adentro.",
+        "height": 420,
+        "width": 420,
+        "color": 6
+      },
+      "id": "c13a0000-0000-4000-8000-000000000006",
+      "name": "Lo que la IA de afuera puede hacer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        360,
+        -100
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c13a0000-0000-4000-8000-000000000007",
+      "name": "Cargar el stock de ejemplo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// El stock de ejemplo. Se carga una sola vez en la tabla stock.\nconst stock = [\n  { producto: \"remera\", talle: 'S', cantidad: 4 },\n  { producto: \"remera\", talle: 'M', cantidad: 0 },\n  { producto: \"remera\", talle: 'L', cantidad: 7 },\n  { producto: \"remera\", talle: 'XL', cantidad: 2 },\n  { producto: \"buzo\", talle: 'M', cantidad: 3 },\n  { producto: \"buzo\", talle: 'L', cantidad: 1 },\n  { producto: \"pantalón\", talle: 'M', cantidad: 5 },\n  { producto: \"campera\", talle: 'L', cantidad: 0 },\n];\n\nreturn stock.map(fila => ({ json: fila }));"
+      },
+      "id": "c13a0000-0000-4000-8000-000000000008",
+      "name": "El stock",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "",
+          "cachedResultName": "stock"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "id": "c13a0000-0000-4000-8000-000000000009",
+      "name": "Guardar el stock",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        560
+      ]
+    }
+  ],
+  "connections": {
+    "consultar_stock": {
+      "ai_tool": [
+        [
+          {
+            "node": "Servidor MCP de la tienda",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "registrar_consulta": {
+      "ai_tool": [
+        [
+          {
+            "node": "Servidor MCP de la tienda",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cargar el stock de ejemplo": {
+      "main": [
+        [
+          {
+            "node": "El stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "El stock": {
+      "main": [
+        [
+          {
+            "node": "Guardar el stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

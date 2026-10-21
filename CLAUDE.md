@@ -109,11 +109,11 @@ Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 12, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
+Estado: publicadas las clases 1 a 13, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
-alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12 y la 12 alimenta la 13. Con la 9 cierra el módulo 3 y quedan
+alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13 y la 13 alimenta la 14. Con la 9 cierra el módulo 3 y quedan
 saldadas las dos deudas que arrastraba: la memoria entre ejecuciones y la
 planilla usada como base de datos en el caso de la 7. La planilla no desaparece
 del caso, cambia de papel: deja de ser la memoria del flujo y queda como la
@@ -164,6 +164,24 @@ plantilla de `AGENTS.md`. El workflow de la clase prueba un nodo Code
 contra casos adentro de n8n, sin modelo ni credenciales. Deja abierta la
 13: el agente no ve tu n8n, todo se lo copiaste a mano, y la actividad pide
 lo que no le dejarías hacer nunca ahí adentro.
+
+La 13 sale del PDF del coordinador «Clase 13 - MCP» y sigue su orden:
+teoría en nueve bloques (apertura, por qué ahora, N × M, historia,
+arquitectura con el restaurante y JSON-RPC, transportes, primitivas, n8n en
+los dos lados, seguridad), la práctica con el servidor MCP de la instancia
+y sus tres pedidos, y los tres nodos MCP. Dos cambios respecto del PDF, por
+las reglas de la cursada: la práctica no es sólo con Codex (trae el comando
+de Codex, Claude Code y OpenCode) y el tercer pedido usa una credencial de
+modelo con el nombre que ponga cada uno, en vez de una de OpenAI. Las
+cifras de MCP del PDF son del anuncio de la donación (9/12/2025), no del
+aniversario, y la página lo dice. El ejemplo de la tienda del PDF se armó
+con Data Tables en lugar de Google Sheets, para que no pida credenciales.
+Workflows: el servidor de la tienda (MCP Server Trigger con Bearer Auth,
+dos herramientas Data Table) y n8n como cliente (agente sin modelo con MCP
+Client Tool filtrado a la herramienta de lectura, y un MCP Client fijo).
+Deja abierta la 14: el servidor MCP tiene que estar en internet, y la
+actividad pregunta qué datos pasaron por servidores ajenos y quién cuidaría
+un n8n propio.
 
 El taller `taller-oauth.html` es aparte: no es una clase, no lleva número y no
 entra en `clases.js`. Se llega desde el bloque «Talleres» del cronograma, y la
@@ -402,6 +420,41 @@ agents.md, docs.n8n.io, el registro de npm y el código de la estable
   herramientas de construcción del MCP trabajan con el Workflow SDK en
   TypeScript, no con JSON crudo. Codex quitó el modo servidor MCP el 5/9;
   como cliente los tres andan.
+
+## MCP, verificado el 21 de octubre de 2026
+
+Contra modelcontextprotocol.io, anthropic.com, linuxfoundation.org,
+docs.n8n.io, la grilla de n8n.io, el registro de npm y el código de la
+estable (`n8n` 2.44.5 → nodos 2.44.3). La beta es la 2.45.1 y no hay
+ninguna 3.x publicada.
+
+- **Especificación vigente: 2026-07-28.** Sin saludo `initialize` ni
+  sesiones; el resultado de `tools/call` lleva `resultType: "complete"`;
+  transportes stdio y Streamable HTTP, SSE deprecado; OAuth recomendado
+  para remotos; del lado del cliente sólo queda la elicitación (Sampling,
+  Roots y Logging deprecados). Tools las controla el modelo, resources la
+  aplicación, prompts el usuario.
+- **Historia.** Lanzado el 25/11/2024; donado a la Agentic AI Foundation
+  (Linux Foundation) el 9/12/2025, cofundada por Anthropic, Block y
+  OpenAI. Las cifras «97 M de descargas mensuales y 10.000 servidores»
+  son de ese anuncio y cuentan sólo los SDK de Python y TypeScript.
+- **Servidor MCP de la instancia.** Settings > Instance-level MCP, y
+  después flujo por flujo («Available in MCP»); todo cliente ve todos los
+  flujos habilitados. OAuth recomendado o token personal. URL terminada en
+  `/mcp-server/http`. En todos los planes de Cloud y en Community,
+  Business y Enterprise de instancia propia. Crear y editar flujos, desde
+  2.13 según la guía (la referencia de herramientas dice 2.12). Un cliente
+  conectado también puede publicar (`publish_workflow`). n8n publica los
+  comandos de Claude Code y Codex, no el de OpenCode. No está documentado
+  si una ejecución por MCP cuenta para la cuota.
+- **Nodos.** MCP Server Trigger 2.1 (auth None, Bearer, Header u OAuth de
+  n8n; campo «Instructions» que le llega al cliente al conectarse), MCP
+  Client Tool 1.4 (All / Selected / All Except), MCP Client 1.1, existe
+  desde n8n 1.122 (noviembre de 2025).
+- **dolarapi.com** responde sin credenciales en `/v1/dolares/oficial` y
+  `/v1/dolares/blue` (campos compra, venta, fechaActualizacion).
+- **A reverificar:** la grilla de Cloud parece haber cambiado de planes
+  respecto de la sección del 15 de septiembre.
 
 ## Despliegue
 

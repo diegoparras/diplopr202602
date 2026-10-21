@@ -57,7 +57,7 @@ const CLASES = [
   { n: 12, fecha: '2026-10-14', dia: 'Miércoles', mod: 'M4', pagina: '12.html',
     titulo: 'Agentes de código, primer contacto',
     bajada: 'Claude Code, Codex y OpenCode como herramienta para construir: nodo Code, expresiones y JSON de workflows.' },
-  { n: 13, fecha: '2026-10-21', dia: 'Miércoles', mod: 'M5', pagina: null,
+  { n: 13, fecha: '2026-10-21', dia: 'Miércoles', mod: 'M5', pagina: '13.html',
     titulo: 'MCP: el protocolo que conecta la IA con tus herramientas',
     bajada: 'n8n como servidor y como cliente MCP. Una IA que arma el workflow hablándole en lenguaje natural.' },
   { n: 14, fecha: '2026-10-28', dia: 'Miércoles', mod: 'M5', pagina: null,
