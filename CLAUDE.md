@@ -228,8 +228,9 @@ Contra la fuente (docs.n8n.io y la grilla de n8n.io), no contra recuerdos:
   los de sondeo, solo cuando encuentran algo; los webhooks, cada pedido que
   active el disparador, incluso con cuerpo vacío.
 - **Precios Cloud (grilla, facturación anual).** Starter 20 € y 2.500
-  ejecuciones, Pro 50 € y 10.000, Business 667 € y 40.000. Todos con usuarios y
-  workflows ilimitados. El plan gratuito de 50 ejecuciones no figura en la
+  ejecuciones, Pro 50 € y 10.000. Business, 667 € y 40.000, es **sólo para
+  instancia propia** (corregido el 21/10, con nota de revisión en la clase 6);
+  Enterprise, en los dos. Todos con usuarios y workflows ilimitados. El plan gratuito de 50 ejecuciones no figura en la
   grilla: sale del panel de la cuenta y conviene reconfirmarlo cada cohorte.
 
 ## Datos en n8n, verificado el 23 de septiembre de 2026
@@ -453,8 +454,10 @@ ninguna 3.x publicada.
   desde n8n 1.122 (noviembre de 2025).
 - **dolarapi.com** responde sin credenciales en `/v1/dolares/oficial` y
   `/v1/dolares/blue` (campos compra, venta, fechaActualizacion).
-- **A reverificar:** la grilla de Cloud parece haber cambiado de planes
-  respecto de la sección del 15 de septiembre.
+- **Grilla de n8n.io, 21/10:** Cloud tiene Starter (20 €, 2.500
+  ejecuciones, 1.600 créditos de Assistant), Pro (50 €, 10.000) y
+  Enterprise; Business (667 €, 40.000) dice «Self-hosted only» y la
+  pregunta frecuente lo confirma: «Not yet» en Cloud.
 
 ## Despliegue
 
