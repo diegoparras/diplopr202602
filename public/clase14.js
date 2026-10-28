@@ -339,6 +339,13 @@ const alBuscar = [];
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
   }
+  document.querySelectorAll('[data-copiar]').forEach(b => b.addEventListener('click', () => {
+    const texto = document.getElementById(b.dataset.copiar).textContent;
+    const original = b.textContent;
+    const listo = ok => { b.textContent = ok ? 'Copiado' : 'Seleccioná y copiá a mano'; setTimeout(() => { b.textContent = original; }, 1800); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(texto).then(() => listo(true), () => listo(false));
+    else listo(false);
+  }));
   const marcas = (() => { try { return JSON.parse(leerGuardado('clase14-practica') || '{}'); } catch (e) { return {}; } })();
   document.querySelectorAll('.chequeo input[type="checkbox"]').forEach(ch => {
     ch.checked = !!marcas[ch.id];

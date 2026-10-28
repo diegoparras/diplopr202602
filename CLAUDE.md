@@ -183,6 +183,24 @@ Deja abierta la 14: el servidor MCP tiene que estar en internet, y la
 actividad pregunta qué datos pasaron por servidores ajenos y quién cuidaría
 un n8n propio.
 
+La 14 cambió de tema el 28/10 por pedido del coordinador: es **RAG con n8n
+y con Dify**, introductoria para Dify, y el self-hosting se juntó con la 15
+(«Self-hosting e instancia propia»). Las clases 1, 12 y 13, que nombraban
+a la 14 como la de self-hosting, llevan nota de revisión fechada. La 14
+cierra lo que la 11 dejó explicado sin workflow (RAG) y lo que la 13 dejó
+en `registrar_consulta`: las consultas de cambios y envíos las contesta la
+política de la tienda. El documento es una política inventada
+(`politica-de-la-tienda.md`, que la página genera para descargar) con un
+solo origen para la página y el workflow. Piezas: dónde va cada cosa,
+partir con tamaño y superposición, buscar por significado con diez
+«ideas» escritas a mano (se dice que es una simulación), el paquete que
+recibe el modelo, errores comunes, la práctica de Dify en seis pasos con
+casilleros y n8n o Dify. Workflows: RAG en n8n con Simple Vector Store
+(sin modelo ni embeddings: la regla es el mismo modelo de embeddings para
+cargar y preguntar) y n8n que le pregunta a Dify por HTTP Request. La
+actividad alimenta la 15: qué documentos no saldrían nunca y qué te
+traerías a una máquina propia.
+
 El taller `taller-oauth.html` es aparte: no es una clase, no lleva número y no
 entra en `clases.js`. Se llega desde el bloque «Talleres» del cronograma, y la
 clase 9 lo usa como primera parte. Veinte etapas para poner un n8n propio
@@ -458,6 +476,35 @@ ninguna 3.x publicada.
   ejecuciones, 1.600 créditos de Assistant), Pro (50 €, 10.000) y
   Enterprise; Business (667 €, 40.000) dice «Self-hosted only» y la
   pregunta frecuente lo confirma: «Not yet» en Cloud.
+
+## RAG y Dify, verificado el 28 de octubre de 2026
+
+Contra docs.n8n.io, el código de la estable (`n8n` 2.45.5 → nodos 2.45.4;
+beta 2.46.1; ninguna 3.x), docs.dify.ai, dify.ai/pricing, la licencia de
+Dify y Docker Hub.
+
+- **RAG en n8n.** Simple Vector Store 1.3 (modos load, insert, retrieve,
+  retrieve-as-tool; `memoryKey` es resource locator desde 1.2; n8n lo
+  marca «sólo para uso experimental»: en memoria, se pierde al reiniciar,
+  lo ven todos los usuarios). Default Data Loader 1.1 (modo Simple: 1.000
+  caracteres con 200 de superposición). Recursive Character Text Splitter
+  1 (1.000 y 0 por defecto). Trece nodos de embeddings, Ollama entre ellos.
+- **Dify.** Plataforma de código abierto de LangGenius, versión 1.18.0
+  (octubre de 2026). Licencia Apache 2.0 modificada: sin servicio
+  multi-inquilino sin licencia comercial y sin quitar el logo. Cloud:
+  Sandbox gratis con 200 créditos de una sola vez, 5 apps, 50 documentos,
+  50 MB; Professional USD 59; Team USD 159; Community propia gratis
+  (Docker Compose, 2 núcleos y 4 GiB). **Dify for Education**: Professional
+  anual gratis para estudiantes y docentes, con créditos de Sandbox.
+  Modelos en Integrations → Model Provider. El Chatbot usa la base
+  «Classic» (General o Parent-child; High Quality con embeddings o
+  Economical con palabras clave; Vector, Full-Text o Hybrid; Top K 3;
+  Retrieval Testing); la base nueva, en beta, no sirve para el Chatbot.
+  Publish → Access Point: web, API, widget, servidor MCP. API:
+  `POST https://api.dify.ai/v1/chat-messages`, `Authorization: Bearer`,
+  cuerpo `inputs`, `query`, `user`, `response_mode`; respuesta `answer` y
+  `metadata.retriever_resources`. No hay integración oficial n8n ↔ Dify;
+  sí un nodo de comunidad de un particular, que no se usa.
 
 ## Despliegue
 

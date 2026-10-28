@@ -1,0 +1,171 @@
+{
+  "name": "Clase 14 - n8n le pregunta a Dify",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Clase 14 - n8n le pregunta a Dify\n\nDify tiene la base de conocimiento y el asistente.\nn8n orquesta: le manda la consulta por la API de Dify\ny usa la respuesta en el resto del proceso.\n\n```\nCUANDO lo ejecuto a mano:\n    tomar la consulta\n    mandarla a la app de Dify por su API\n    quedarme con la respuesta y con las fuentes\nFIN\n```\n\nNo hay un nodo oficial de Dify en n8n: se usa el\nHTTP Request de la clase 8 contra\n`/v1/chat-messages`. En un flujo real, el disparador\nsería el correo o el formulario, y después de la\nrespuesta vendría la acción: avisar, responder,\nanotar.",
+        "height": 560,
+        "width": 480,
+        "color": 4
+      },
+      "id": "c14b0000-0000-4000-8000-000000000001",
+      "name": "Consigna",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1100,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Antes de ejecutar\n\n**1. La clave de la app.** En Dify, en tu Chatbot:\nAccess Point (o API Access) → API Key. Es una clave\nde esa app, no de tu cuenta.\n\n**2. La credencial en n8n.** En `Preguntarle a Dify`,\ncredencial **Header Auth**: nombre `Authorization`,\nvalor `Bearer ` seguido de la clave. Nunca la\nescribas en el nodo.\n\n**3. La dirección.** Viene la de Dify Cloud,\n`https://api.dify.ai/v1/chat-messages`. Si tu Dify\nes propio, cambiá el comienzo por tu servidor.\n\n**4. La consulta.** Cambiala en `La consulta` y\nejecutá. Probá una que la política no responda.",
+        "height": 560,
+        "width": 440,
+        "color": 5
+      },
+      "id": "c14b0000-0000-4000-8000-000000000002",
+      "name": "Antes de ejecutar",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -580,
+        -260
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c14b0000-0000-4000-8000-000000000003",
+      "name": "Probar",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c14b0000-0000-4000-8000-000000000101",
+              "name": "consulta",
+              "value": "La remera me quedó chica, ¿cómo hago para cambiarla?",
+              "type": "string"
+            },
+            {
+              "id": "c14b0000-0000-4000-8000-000000000102",
+              "name": "usuario",
+              "value": "clase-14",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c14b0000-0000-4000-8000-000000000004",
+      "name": "La consulta",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.dify.ai/v1/chat-messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ inputs: {}, query: $json.consulta, user: $json.usuario, response_mode: 'blocking' }) }}",
+        "options": {}
+      },
+      "id": "c14b0000-0000-4000-8000-000000000005",
+      "name": "Preguntarle a Dify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c14b0000-0000-4000-8000-000000000103",
+              "name": "respuesta",
+              "value": "={{ $json.answer }}",
+              "type": "string"
+            },
+            {
+              "id": "c14b0000-0000-4000-8000-000000000104",
+              "name": "fuentes",
+              "value": "={{ ($json.metadata && $json.metadata.retriever_resources || []).map(r => r.document_name + ' (' + Number(r.score).toFixed(2) + ')').join(', ') || 'ninguna' }}",
+              "type": "string"
+            },
+            {
+              "id": "c14b0000-0000-4000-8000-000000000105",
+              "name": "conversacion",
+              "value": "={{ $json.conversation_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c14b0000-0000-4000-8000-000000000006",
+      "name": "La respuesta",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        660,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Probar": {
+      "main": [
+        [
+          {
+            "node": "La consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "La consulta": {
+      "main": [
+        [
+          {
+            "node": "Preguntarle a Dify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preguntarle a Dify": {
+      "main": [
+        [
+          {
+            "node": "La respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

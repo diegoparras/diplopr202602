@@ -822,6 +822,144 @@ FIN</pre>
   </div>
 </section>
 
+<!-- ─────────── Dify, primer contacto ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Dify · Primer contacto</span>
+    <h2>Una plataforma hecha para armar aplicaciones de IA</h2>
+    <p class="intro">Dify se presenta como «una plataforma de código abierto para construir aplicaciones de IA». La hace LangGenius. Si n8n es un taller de procesos donde la IA es un paso más, Dify es al revés: el centro es la aplicación de IA, y la base de documentos viene armada, con su pantalla para probar búsquedas y su chat listo para publicar.</p>
+
+    <h3 style="margin-top:40px;font-size:1.1rem">Cuatro lugares para orientarse</h3>
+    <div class="ops">
+      <div class="op destacada"><b>Studio</b><p>Donde se crean las aplicaciones. Hoy vamos a usar un <b>Chatbot</b>.</p></div>
+      <div class="op destacada"><b>Knowledge</b><p>Las bases de documentos. Subís un archivo y Dify lo parte, lo convierte y lo guarda. Hace sola los pasos 1 a 4 del momento de cargar.</p></div>
+      <div class="op destacada"><b>Integrations → Model Provider</b><p>Donde se conectan los modelos: el de chat y el de <i>embeddings</i>. Cada uno pone su proveedor.</p></div>
+      <div class="op destacada"><b>Publish → Access Point</b><p>Donde la aplicación sale al mundo: una página web, la API, un widget para otra página o un servidor MCP, como en la clase 13.</p></div>
+    </div>
+
+    <h3 style="margin-top:40px;font-size:1.1rem">Los tipos de aplicación</h3>
+    <div class="tabla-caja">
+      <table class="datos">
+        <thead><tr><th>Tipo</th><th>Qué es</th><th>Para qué</th></tr></thead>
+        <tbody>
+          <tr><td><b>Workflow</b></td><td>Un flujo de una sola vuelta, que arranca con datos de entrada o con un disparador.</td><td>Lo más parecido a n8n. Dify lo recomienda junto con Chatflow.</td></tr>
+          <tr><td><b>Chatflow</b></td><td>Un workflow que se dispara en cada mensaje de una conversación, con memoria.</td><td>Conversaciones con pasos armados.</td></tr>
+          <tr><td><b>Chatbot</b></td><td>La manera más simple: un modelo, unas instrucciones y, si querés, una base de documentos.</td><td><b>La de hoy.</b> Es de los tipos básicos, con pantalla más simple.</td></tr>
+          <tr><td><b>Agent</b></td><td>Un chat donde el modelo razona y usa herramientas. El clásico hoy se llama «legacy»; hay uno nuevo en beta.</td><td>Lo de la clase 10, dentro de Dify.</td></tr>
+          <tr><td><b>Text Generator</b></td><td>Una sola vuelta: genera un texto a partir de una indicación y unos datos.</td><td>Resúmenes, borradores.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="margin-top:40px;font-size:1.1rem">Dónde corre y cuánto cuesta</h3>
+    <div class="tabla-caja">
+      <table class="datos">
+        <thead><tr><th>Plan</th><th>Precio por mes</th><th>Créditos de mensajes</th><th>Apps · documentos · espacio</th></tr></thead>
+        <tbody>
+          <tr><td><b>Sandbox</b> (Cloud)</td><td>Gratis</td><td>200, <b>una sola vez</b></td><td>5 · 50 · 50 MB, un solo miembro</td></tr>
+          <tr><td><b>Professional</b> (Cloud)</td><td>USD 59</td><td>5.000 por mes</td><td>50 · 500 · 5 GB, tres miembros</td></tr>
+          <tr><td><b>Team</b> (Cloud)</td><td>USD 159</td><td>10.000 por mes</td><td>200 · 1.000 · 20 GB, cincuenta miembros</td></tr>
+          <tr><td><b>Community</b> (instancia propia)</td><td>Gratis</td><td>Los que pague tu proveedor de modelos</td><td>Lo que dé tu servidor: con Docker, desde 2 núcleos y 4 GiB de memoria</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="trampa" style="border-left-color:var(--acierto)">
+      <span class="rot" style="color:var(--acierto)">Para la cursada</span>
+      <p><b>Dify for Education:</b> estudiantes, docentes y personal de una institución educativa que verifican su vínculo usan el plan Professional anual gratis. Tiene todo lo del Professional salvo los créditos de IA, que quedan como en Sandbox.</p>
+    </div>
+    <div class="trampa">
+      <span class="rot">Lo que cuesta, con honestidad</span>
+      <p>Los créditos de mensajes son de Dify para probar modelos de algunos proveedores; cuando se terminan, ponés tu propia clave. La licencia es una Apache 2.0 modificada: no deja usar el código para ofrecer Dify como servicio a terceros sin licencia comercial ni quitar su logo. Y cambia rápido: la versión 1.18 salió este mes, y la base de conocimiento nueva y el Agent nuevo siguen en beta. Lo de esta página puede verse distinto en pocas semanas.</p>
+    </div>
+    <p class="nota-pie">Verificado el 28 de octubre de 2026 en docs.dify.ai, dify.ai/pricing (precios con facturación mensual), el archivo de licencia del proyecto y Docker Hub (versión 1.18.0). Instalar Dify en una máquina propia es tema de la clase 15.</p>
+  </div>
+</section>
+
+<!-- ─────────── Práctica en Dify ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Manos a la obra · Dify</span>
+    <h2>El asistente de la tienda en Dify, en seis pasos</h2>
+    <p class="intro">El mismo documento, el mismo algoritmo. Lo que en n8n eran cinco nodos, en Dify son pantallas. Marcá cada paso cuando lo termines: queda guardado en este dispositivo.</p>
+    <div class="sim-acciones" style="margin-top:20px">
+      <button type="button" class="boton" id="bajarPolitica">Descargar la política de la tienda (.md)</button>
+    </div>
+
+    <div class="pasos-dify">
+      <div class="paso-dify">
+        <h3>Crear la cuenta</h3>
+        <p>En <a href="https://dify.ai" target="_blank" rel="noopener noreferrer">dify.ai</a>, «Start for Free». Con el plan Sandbox alcanza para hoy; si querés más espacio, pedí Dify for Education con tu correo de la facultad.</p>
+        <div class="chequeo"><label><input type="checkbox" id="d1"> Entré a Dify y veo Studio, Knowledge e Integrations.</label></div>
+      </div>
+      <div class="paso-dify">
+        <h3>Conectar los modelos</h3>
+        <p>En <b>Integrations → Model Provider</b>, instalá tu proveedor, poné tu clave en <b>Setup</b> y elegí los <b>Default Models</b>: uno de chat y uno de <i>embeddings</i>. Los créditos de prueba sirven para el chat con algunos proveedores.</p>
+        <p style="margin-top:8px;color:var(--tenue)">Si no tenés modelo de <i>embeddings</i>, seguí igual: en el paso 3 elegí el índice <b>Economical</b>. Es un experimento en sí mismo.</p>
+        <div class="chequeo"><label><input type="checkbox" id="d2"> Tengo un modelo de chat y, si pude, uno de embeddings.</label></div>
+      </div>
+      <div class="paso-dify">
+        <h3>Crear la base de conocimiento</h3>
+        <p><b>Knowledge → Create → «Create a ready-to-use knowledge base»</b>, fuente <b>archivo local</b>, y subí la política. Después, cómo partirla y cómo indexarla:</p>
+        <ul>
+          <li><b>Chunk mode: General.</b> En la pantalla aparece con separador de párrafo y 1.024 caracteres. Probá 400 de largo y 50 de superposición, como en el flujo de n8n.</li>
+          <li><b>Index method: High Quality</b> usa tu modelo de <i>embeddings</i>: busca por significado. <b>Economical</b> guarda diez palabras clave por pedazo y no gasta nada: busca por palabras.</li>
+          <li><b>Retrieval: Vector</b>, <b>Full-Text</b> o <b>Hybrid</b>, que combina las dos. Top K arranca en 3.</li>
+        </ul>
+        <p style="margin-top:8px;color:var(--tenue)">Dos decisiones no tienen vuelta atrás: el modo de partir, y pasar de High Quality a Economical.</p>
+        <div class="chequeo"><label><input type="checkbox" id="d3"> La base terminó de procesar la política.</label></div>
+      </div>
+      <div class="paso-dify">
+        <h3>Probar la búsqueda antes de armar nada</h3>
+        <p>En la base, <b>Retrieval Testing</b>. Escribí las seis preguntas del buscador de más arriba y mirá qué pedazos trae y con qué puntaje. Es lo mismo que hiciste con las diez ideas, pero con un modelo de verdad.</p>
+        <p style="margin-top:8px;color:var(--tenue)">Si usaste Economical, probá «me quedó chica»: buscando por palabras, ¿aparece el pedazo de cambios?</p>
+        <div class="chequeo"><label><input type="checkbox" id="d4"> «Me quedó chica» trae el pedazo de cambios o el de talles.</label><label><input type="checkbox" id="d4b"> «¿Tienen local?» no trae nada útil, o trae pedazos con puntaje bajo.</label></div>
+      </div>
+      <div class="paso-dify">
+        <h3>Armar el Chatbot</h3>
+        <p><b>Studio → Create → Chatbot</b>. Pegá las instrucciones, y en <b>Context → Add</b> elegí la base. En <b>Add Features</b>, prendé <b>Citation and Attribution</b>, para que cada respuesta diga de qué pedazo salió.</p>
+        <div class="prompt">
+          <div class="cabeza"><b>Las instrucciones</b><button type="button" class="boton hueco" data-copiar="instrDify">Copiar</button></div>
+<pre id="instrDify">Sos el asistente de atención de una tienda de ropa. Respondé sólo con la información del contexto, que viene de la política de atención de la tienda. Si el contexto no alcanza para contestar, decilo y ofrecé derivar la consulta a una persona. No inventes plazos, montos ni direcciones. Respondé breve y cordial, en castellano rioplatense.</pre>
+        </div>
+        <div class="chequeo"><label><input type="checkbox" id="d5"> Con «la remera me quedó chica», contesta con el plazo de 30 días y cita la política.</label><label><input type="checkbox" id="d5b"> Con «¿tienen local?», no inventa una dirección.</label></div>
+      </div>
+      <div class="paso-dify">
+        <h3>Publicar</h3>
+        <p><b>Publish</b>, y en <b>Access Point</b> está el enlace de la página web. Ahí mismo están la clave de la API, que usa el segundo flujo de n8n, y la opción de servidor MCP, que viene apagada.</p>
+        <div class="chequeo"><label><input type="checkbox" id="d6"> Abrí el chat publicado en otra pestaña y funciona.</label></div>
+      </div>
+    </div>
+    <p class="nota-pie">Menús y opciones verificados el 28 de octubre de 2026 en docs.dify.ai. El largo de 1.024 caracteres con separador de párrafo es el que muestra la pantalla de Dify (sale de su código; la documentación no lo dice). El Chatbot usa la base «Classic»; la base nueva, en beta, sólo funciona con Workflow, Chatflow y el Agent nuevo.</p>
+  </div>
+</section>
+
+<!-- ─────────── n8n o Dify ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Honestidad comparativa</span>
+    <h2>n8n o Dify, y cuándo los dos</h2>
+    <div class="comparo">
+      <div class="comparo-lado despues"><span class="rot">Dify</span><h4>El centro es la aplicación de IA</h4><ul><li><b>Hace bien:</b> la base de documentos viene armada, con prueba de búsqueda, citas y un chat publicado en minutos. Código abierto, y MCP en los dos sentidos.</li><li><b>Cuesta:</b> pocos créditos gratis, menos conexiones con los sistemas de la organización, una licencia con condiciones, y cambios cada pocas semanas.</li></ul></div>
+      <div class="comparo-lado antes"><span class="rot">n8n</span><h4>El centro es el proceso</h4><ul><li><b>Hace bien:</b> disparadores, condiciones y cientos de integraciones; RAG como un paso más, con cada pieza a la vista.</li><li><b>Cuesta:</b> armar el RAG nodo por nodo, sin pantalla de prueba de búsqueda, y la base simple es sólo para experimentar: para algo real hace falta otra base de vectores.</li></ul></div>
+    </div>
+    <p class="intro" style="margin-top:22px"><b>Regla:</b> si lo que querés es conversar con documentos, Dify. Si es un proceso que en algún paso necesita consultar documentos, n8n. Si ya existe el asistente en Dify, n8n le pregunta por la API, y n8n sigue en el centro.</p>
+    <div class="prueba" id="pruebaCual"></div>
+    <p class="prueba-total" id="pruebaCualTotal"></p>
+
+    <div class="caso">
+      <span class="n">El segundo flujo de la clase</span>
+      <h3>n8n le pregunta a Dify</h3>
+<pre>CUANDO lo ejecuto a mano:
+    tomar la consulta
+    mandarla a la app de Dify por su API
+    quedarme con la respuesta y con las fuentes
+FIN</pre>
+      <p style="font-size:0.92rem">No hay un nodo oficial de Dify en n8n, ni guía de ninguno de los dos lados: se usa el HTTP Request de la clase 8. Un pedido <code>POST</code> a <code>https://api.dify.ai/v1/chat-messages</code> con la clave de la app en el encabezado <code>Authorization</code>, y en el cuerpo <code>query</code>, <code>user</code>, <code>inputs</code> y <code>response_mode: "blocking"</code>. La respuesta trae <code>answer</code> y, en <code>metadata.retriever_resources</code>, los pedazos que usó con su puntaje.</p>
+      <div class="acciones"><a class="boton" href="workflows/14-n8n-pregunta-a-dify-n8n.json" download>Descargar n8n le pregunta a Dify</a></div>
+    </div>
+    <p class="nota-pie">API de Dify verificada el 28 de octubre de 2026 en su referencia oficial. Existe un nodo de comunidad para Dify hecho por un particular; no lo usamos: el HTTP Request alcanza y no depende de nadie. La clave de la app va en una credencial Header Auth de n8n, nunca escrita en el nodo.</p>
+  </div>
+</section>
 
 
 <!-- ─────────── Actividad ─────────── -->
