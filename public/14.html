@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clase 14 · RAG con n8n y con Dify · FCE-UBA</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B0B0D">
+<script src="tema.js"></script>
+<link rel="stylesheet" href="estilo.css">
+<style>
+  :root { --acierto: #22C55E; --fallo: #F87171; --alerta: #EAB308; }
+  :root[data-tema="claro"] { --acierto: #15803D; --fallo: #B4231A; --alerta: #A16207; }
+
+  section.bloque { padding: 96px 0; border-top: 1px solid var(--linea); }
+  section.bloque:first-of-type { border-top: 0; }
+  .bloque h2 { max-width: 20ch; margin: 18px 0 22px; }
+  .bloque .intro { max-width: 62ch; font-size: 1.05rem; }
+
+  .dos-col { display: grid; grid-template-columns: 1fr 1fr; gap: 54px; align-items: start; }
+  @media (max-width: 900px) {
+    .dos-col { grid-template-columns: 1fr; gap: 26px; }
+    section.bloque { padding: 68px 0; }
+  }
+
+  .portada { padding: 54px 0 20px; }
+  .portada h1 { max-width: 19ch; margin: 20px 0 24px; }
+  .portada .meta {
+    display: flex; gap: 28px; flex-wrap: wrap;
+    font-family: var(--dato); font-size: 0.75rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue);
+    margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--linea);
+  }
+  @media (max-width: 720px) { .portada { padding: 40px 0 18px; } }
+
+  code, .mono { font-family: var(--dato); font-size: 0.85em; color: var(--naranja); overflow-wrap: anywhere; }
+  .nota-pie { margin-top: 14px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); line-height: 1.7; }
+
+  .cita {
+    border-left: 2px solid var(--naranja);
+    padding: 8px 0 8px 24px; margin-top: 30px;
+    font-family: var(--display); font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+    font-weight: 600; letter-spacing: -0.02em; line-height: 1.35; color: var(--texto);
+    max-width: 48ch;
+  }
+
+  .ficha { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 24px 22px; box-shadow: var(--sombra); }
+  .ficha h3 { font-size: 1.12rem; margin-bottom: 8px; }
+  .ficha p { font-size: 0.9rem; }
+
+  .caso {
+    background: var(--sup); border: 1px solid var(--linea); border-left: 2px solid var(--naranja);
+    border-radius: 16px; padding: 26px; margin-top: 18px; box-shadow: var(--sombra);
+  }
+  .caso .n { font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--naranja); }
+  .caso h3 { margin: 6px 0 10px; }
+  .caso pre {
+    font-family: var(--dato); font-size: 0.78rem; line-height: 1.75;
+    background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px;
+    padding: 18px 20px; margin: 16px 0; color: var(--texto);
+    white-space: pre; overflow-x: auto; min-width: 0;
+  }
+  .caso .acciones { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+
+  .traido {
+    margin-top: 30px; background: var(--sup); border: 1px solid var(--linea);
+    border-left: 2px solid var(--naranja); border-radius: 16px;
+    padding: 24px 26px; box-shadow: var(--sombra);
+  }
+  .traido .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja); }
+  .traido .linea { margin-top: 14px; }
+  .traido .linea b { display: block; font-size: 0.82rem; color: var(--tenue); font-family: var(--dato); margin-bottom: 4px; }
+  .traido .linea p { color: var(--texto); font-size: 0.98rem; }
+  .traido .vacio { font-size: 0.92rem; }
+
+  /* ── El taller, primera parte ── */
+  .taller-caja {
+    margin-top: 30px; background: var(--sup); border: 1px solid var(--linea);
+    border-radius: 20px; padding: 32px; box-shadow: var(--sombra);
+    display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center;
+  }
+  @media (max-width: 760px) { .taller-caja { grid-template-columns: 1fr; padding: 24px; } }
+  .taller-caja h3 { font-size: 1.3rem; margin-bottom: 8px; }
+  .taller-caja p { font-size: 0.94rem; }
+  .taller-caja .etapas {
+    display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px;
+    font-family: var(--dato); font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--tenue);
+  }
+
+  /* ── Comparación planilla / tabla ── */
+  .comparo { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+  @media (max-width: 760px) { .comparo { grid-template-columns: 1fr; } }
+  .comparo-lado {
+    background: var(--sup); border: 1px solid var(--linea); border-radius: 16px;
+    padding: 24px; box-shadow: var(--sombra); min-width: 0;
+  }
+  .comparo-lado.antes { border-left: 2px solid var(--alerta); }
+  .comparo-lado.despues { border-left: 2px solid var(--acierto); }
+  .comparo-lado .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--tenue); }
+  .comparo-lado h4 { margin: 6px 0 12px; font-size: 1.05rem; }
+  .comparo-lado ul { margin: 0 0 0 18px; }
+  .comparo-lado li { font-size: 0.89rem; color: var(--tenue); margin-bottom: 8px; }
+  .comparo-lado li b { color: var(--texto); }
+
+  /* ── El decisor ── */
+  .decisor { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 30px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .decisor { padding: 22px; } }
+  .decisor-p { margin-bottom: 20px; }
+  .decisor-p > b { display: block; font-family: var(--display); font-size: 1.02rem; margin-bottom: 10px; color: var(--texto); }
+  .opciones { display: flex; gap: 9px; flex-wrap: wrap; }
+  .opciones button {
+    padding: 9px 16px; border: 1px solid var(--linea); border-radius: 999px;
+    background: transparent; color: var(--tenue);
+    font-family: var(--cuerpo); font-size: 0.88rem; cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .opciones button:hover { color: var(--texto); border-color: var(--naranja); }
+  .opciones button[aria-pressed="true"] { background: var(--brasa); color: var(--texto); border-color: var(--naranja); }
+  .veredicto {
+    margin-top: 8px; padding: 22px; border-radius: 14px;
+    background: var(--fondo); border: 1px solid var(--linea); border-left: 2px solid var(--naranja);
+  }
+  .veredicto .cual { font-family: var(--display); font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .veredicto p { font-size: 0.92rem; }
+
+  /* ── Las operaciones ── */
+  .ops { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 12px; margin-top: 28px; }
+  .op {
+    background: var(--sup); border: 1px solid var(--linea); border-radius: 14px;
+    padding: 18px 20px; box-shadow: var(--sombra); min-width: 0;
+  }
+  .op.destacada { border-left: 2px solid var(--acierto); }
+  .op b { display: block; font-family: var(--dato); font-size: 0.86rem; color: var(--naranja); margin-bottom: 7px; }
+  .op p { font-size: 0.87rem; }
+  .op small { display: block; margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--linea); font-size: 0.8rem; color: var(--tenue); }
+
+  /* ── El simulador ── */
+  .sim { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .sim { grid-template-columns: 1fr; } }
+  .sim-panel { background: var(--sup); border: 1px solid var(--linea); border-radius: 18px; padding: 24px; box-shadow: var(--sombra); min-width: 0; }
+  .sim-panel > .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja); display: block; margin-bottom: 14px; }
+  .sim-entrante {
+    padding: 16px 18px; border-radius: 12px; background: var(--fondo);
+    border: 1px solid var(--linea); margin-bottom: 16px;
+  }
+  .sim-entrante b { display: block; font-size: 1rem; margin-bottom: 5px; }
+  .sim-entrante dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; margin-top: 8px; }
+  .sim-entrante dt { font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); }
+  .sim-entrante dd { font-family: var(--dato); font-size: 0.76rem; color: var(--texto); overflow-wrap: anywhere; }
+  .sim-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+  .sim-tabla { width: 100%; border-collapse: collapse; font-family: var(--dato); font-size: 0.74rem; }
+  .sim-tabla th, .sim-tabla td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--linea); }
+  .sim-tabla th { color: var(--naranja); font-weight: 400; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .sim-tabla td { color: var(--texto); }
+  .sim-tabla tr.nueva td { background: var(--brasa); }
+  .sim-vacia { font-size: 0.86rem; color: var(--tenue); font-family: var(--cuerpo); }
+  .sim-envoltura { overflow-x: auto; min-width: 0; }
+  .bitacora { margin-top: 18px; display: grid; gap: 6px; max-height: 260px; overflow-y: auto; }
+  .bit {
+    display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: baseline;
+    font-size: 0.85rem; padding: 7px 10px; border-radius: 9px; background: var(--fondo);
+    border: 1px solid var(--linea);
+  }
+  .bit i { font-style: normal; font-family: var(--dato); font-size: 0.72rem; }
+  .bit.ok i { color: var(--acierto); }
+  .bit.rep i { color: var(--alerta); }
+  .bit.mal i { color: var(--fallo); }
+  .bit span { color: var(--tenue); min-width: 0; overflow-wrap: anywhere; }
+  .bit span b { color: var(--texto); font-weight: 600; }
+
+  /* ── Expresiones ── */
+  .tabla-caja { margin-top: 24px; overflow-x: auto; min-width: 0; }
+  table.datos { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 0.87rem; }
+  table.datos th, table.datos td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  table.datos th { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--naranja); font-weight: 400; }
+  table.datos td { color: var(--tenue); }
+  table.datos td.m { font-family: var(--dato); font-size: 0.79rem; color: var(--texto); overflow-wrap: anywhere; }
+  table.datos tr:last-child td { border-bottom: 0; }
+
+  /* ── El laboratorio de datos sucios ── */
+  .lab { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 30px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .lab { padding: 22px; } }
+  .lab-pestanas { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+  .lab-pestanas button {
+    padding: 7px 15px; border: 1px solid var(--linea); border-radius: 999px;
+    background: transparent; color: var(--tenue);
+    font-family: var(--dato); font-size: 0.75rem; cursor: pointer;
+  }
+  .lab-pestanas button:hover { color: var(--texto); border-color: var(--naranja); }
+  .lab-pestanas button[aria-selected="true"] { background: var(--brasa); color: var(--texto); border-color: var(--naranja); }
+  .lab-campo { display: flex; flex-direction: column; gap: 7px; }
+  .lab-campo label { font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); }
+  .lab-campo input {
+    width: 100%; min-width: 0; padding: 12px 15px; background: var(--fondo); color: var(--texto);
+    border: 1px solid var(--linea); border-radius: 11px;
+    font-family: var(--dato); font-size: 0.86rem;
+  }
+  .lab-campo input:focus { outline: none; border-color: var(--naranja); }
+  .lab-muestras { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+  .lab-muestras button {
+    padding: 5px 11px; border: 1px solid var(--linea); border-radius: 8px;
+    background: transparent; color: var(--tenue);
+    font-family: var(--dato); font-size: 0.72rem; cursor: pointer;
+  }
+  .lab-muestras button:hover { color: var(--naranja); border-color: var(--naranja); }
+  .lab-salida { margin-top: 22px; display: grid; gap: 14px; }
+  .lab-fila { padding: 16px 18px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); min-width: 0; }
+  .lab-fila .rot { font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tenue); display: block; margin-bottom: 7px; }
+  .lab-fila code { display: block; font-size: 0.82rem; color: var(--texto); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .lab-fila.resultado { border-left: 2px solid var(--acierto); }
+  .lab-fila.resultado code { color: var(--acierto); font-size: 0.95rem; }
+  .lab-fila.error { border-left: 2px solid var(--fallo); }
+  .lab-fila.error code { color: var(--fallo); }
+  .lab-fila .expl { font-size: 0.85rem; color: var(--tenue); margin-top: 9px; }
+
+  /* ── Trampa ── */
+  .trampa {
+    margin-top: 22px; border: 1px solid var(--linea); border-left: 3px solid var(--alerta);
+    border-radius: 0 12px 12px 0; background: var(--sup); padding: 18px 22px;
+  }
+  .trampa .rot { display: block; font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--alerta); margin-bottom: 8px; }
+  .trampa p { font-size: 0.92rem; }
+  .trampa p + p { margin-top: 10px; }
+
+  /* ── Actividad ── */
+  .actividad { background: var(--sup); border-radius: 20px; padding: 34px; border: 1px solid var(--linea); box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .actividad { padding: 22px; } }
+  .pregunta { margin-top: 24px; }
+  .pregunta label { display: block; margin-bottom: 8px; }
+  .pregunta label b { font-family: var(--display); font-size: 1.08rem; font-weight: 600; color: var(--naranja); display: block; }
+  .pregunta label span { font-size: 0.88rem; color: var(--tenue); }
+  .pregunta textarea {
+    width: 100%; min-height: 84px; resize: vertical;
+    padding: 13px 15px; background: var(--fondo);
+    border: 1px solid var(--linea); border-radius: 12px;
+    color: var(--texto); font-family: var(--cuerpo); font-size: 0.95rem; line-height: 1.55;
+  }
+  .pregunta textarea:focus { outline: none; border-color: var(--naranja); }
+  .guardado { margin-top: 16px; font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); }
+
+  .cierre { text-align: center; padding: 90px 0 40px; }
+  .cierre h2 { margin: 0 auto 22px; max-width: 24ch; }
+  .cierre .acciones { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+  @media (max-width: 720px) { .cierre { padding: 60px 26px 30px; } }
+
+  .revelar { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .revelar.visible { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .revelar { opacity: 1; transform: none; transition: none; }
+    .opciones button { transition: none; }
+  }
+
+  /* ══ Clase 10 ══ */
+
+  /* El esqueleto con el agente en el medio */
+  .esqueleto { display: grid; grid-template-columns: 1fr auto 1.25fr auto 1fr; gap: 14px; align-items: stretch; margin-top: 30px; }
+  @media (max-width: 820px) { .esqueleto { grid-template-columns: 1fr; } .esq-flecha { transform: rotate(90deg); justify-self: center; } }
+  .esq-caja { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 20px; box-shadow: var(--sombra); min-width: 0; }
+  .esq-caja .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--tenue); display: block; margin-bottom: 8px; }
+  .esq-caja b { display: block; font-family: var(--display); font-size: 1.05rem; margin-bottom: 6px; }
+  .esq-caja p { font-size: 0.87rem; }
+  .esq-caja code { display: block; margin-top: 10px; white-space: pre-wrap; }
+  .esq-caja.medio { border: 1px solid var(--naranja); background: var(--brasa); }
+  .esq-flecha { align-self: center; font-family: var(--dato); color: var(--naranja); font-size: 1.2rem; }
+  .conmutar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; }
+
+  /* Los tres escalones */
+  .escalones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 30px; }
+  @media (max-width: 900px) { .escalones { grid-template-columns: 1fr; } }
+  .escalon { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 22px; box-shadow: var(--sombra); min-width: 0; }
+  .escalon .n { font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1; color: var(--naranja); }
+  .escalon h3 { font-size: 1.08rem; margin: 10px 0 8px; }
+  .escalon p { font-size: 0.88rem; }
+  .escalon small { display: block; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--linea); font-size: 0.8rem; color: var(--tenue); }
+
+  .ejercicio { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 28px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .ejercicio { padding: 20px; } }
+  .correo-caso { padding: 16px 18px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); margin: 14px 0; }
+  .correo-caso b { display: block; font-size: 0.8rem; font-family: var(--dato); color: var(--tenue); margin-bottom: 6px; }
+  .correo-caso p { color: var(--texto); font-size: 0.95rem; }
+  .ej-pie { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 18px; font-family: var(--dato); font-size: 0.75rem; color: var(--tenue); }
+
+  /* El bucle */
+  .contadores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .contador { padding: 12px 14px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); }
+  .contador b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.5rem; line-height: 1.1; }
+  .contador span { font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tenue); }
+  .escenarios { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .paso-bucle { padding: 12px 14px; border-radius: 11px; background: var(--fondo); border: 1px solid var(--linea); font-size: 0.86rem; color: var(--tenue); }
+  .paso-bucle .quien { display: block; font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; }
+  .paso-bucle.modelo .quien { color: var(--naranja); }
+  .paso-bucle.herramienta .quien { color: var(--acierto); }
+  .paso-bucle.humano { border-left: 2px solid var(--alerta); }
+  .paso-bucle.humano .quien { color: var(--alerta); }
+  .paso-bucle.fin { border-left: 2px solid var(--acierto); }
+  .paso-bucle.freno { border-left: 2px solid var(--fallo); }
+  .paso-bucle.freno .quien { color: var(--fallo); }
+  .paso-bucle code { white-space: pre-wrap; }
+  .paso-bucle p { color: var(--texto); font-size: 0.88rem; }
+  .aprobar { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .aprobar button { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--linea); background: transparent; color: var(--texto); font-family: var(--cuerpo); font-size: 0.84rem; cursor: pointer; }
+  .aprobar button.si { border-color: var(--acierto); color: var(--acierto); }
+  .aprobar button.no { border-color: var(--fallo); color: var(--fallo); }
+  .lista-pasos { display: grid; gap: 8px; max-height: 520px; overflow-y: auto; }
+
+  /* La calculadora */
+  .calc { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 28px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .calc { padding: 20px; } }
+  .calc-campos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 700px) { .calc-campos { grid-template-columns: 1fr; } }
+  .calc-campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .calc-campo label { font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); }
+  .calc-campo select, .calc-campo input {
+    width: 100%; min-width: 0; padding: 10px 13px; background: var(--fondo); color: var(--texto);
+    border: 1px solid var(--linea); border-radius: 10px; font-family: var(--dato); font-size: 0.84rem;
+  }
+  .calc-campo small { font-size: 0.76rem; color: var(--tenue); }
+  .calc-atajos { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 20px; }
+  .calc-res { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+  @media (max-width: 700px) { .calc-res { grid-template-columns: 1fr; } }
+  .calc-tile { padding: 16px 18px; border-radius: 14px; background: var(--fondo); border: 1px solid var(--linea); }
+  .calc-tile b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.6rem; letter-spacing: -0.02em; }
+  .calc-tile span { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tenue); }
+  .calc-tile p { font-size: 0.8rem; margin-top: 6px; }
+  .calc-aviso { font-size: 0.9rem; color: var(--tenue); }
+
+  /* ══ Clase 11 ══ */
+
+  /* Anatomía de una llamada */
+  .anatomia { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 28px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .anatomia { padding: 20px; } }
+  .bloques { display: grid; gap: 10px; margin-top: 18px; }
+  .bloque-ctx { display: grid; grid-template-columns: 170px 1fr 92px; gap: 14px; align-items: center; }
+  @media (max-width: 700px) { .bloque-ctx { grid-template-columns: 1fr 70px; } .bloque-ctx .barra-ctx { grid-column: 1 / -1; } }
+  .bloque-ctx b { font-size: 0.88rem; }
+  .bloque-ctx small { display: block; font-size: 0.74rem; color: var(--tenue); }
+  .barra-ctx { height: 14px; border-radius: 999px; background: var(--sup2); overflow: hidden; }
+  .barra-ctx i { display: block; height: 100%; background: var(--naranja); border-radius: 999px; transition: width 0.4s ease; }
+  .bloque-ctx .tk { font-family: var(--dato); font-size: 0.78rem; text-align: right; color: var(--texto); }
+  .total-ctx { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--linea); font-family: var(--dato); font-size: 0.8rem; color: var(--tenue); }
+  .total-ctx b { color: var(--texto); font-size: 1rem; }
+  .ver-texto { margin-top: 18px; }
+  .ver-texto summary { cursor: pointer; font-family: var(--dato); font-size: 0.78rem; color: var(--naranja); }
+  .ver-texto pre { margin-top: 10px; font-family: var(--dato); font-size: 0.76rem; line-height: 1.6; white-space: pre-wrap; background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px; padding: 14px 16px; color: var(--texto); max-height: 340px; overflow-y: auto; }
+
+  /* El clasificador de contexto */
+  .destinos { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Tres versiones */
+  .versiones-pre { font-family: var(--dato); font-size: 0.78rem; line-height: 1.7; white-space: pre-wrap; background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px; padding: 18px 20px; color: var(--texto); margin-top: 16px; min-width: 0; overflow-wrap: anywhere; }
+  .critica { margin-top: 14px; padding: 16px 18px; border-radius: 12px; border-left: 2px solid var(--alerta); background: var(--fondo); }
+  .critica.bien { border-left-color: var(--acierto); }
+  .critica p { font-size: 0.9rem; }
+
+  /* Orden y prefijo */
+  .llamadas { display: grid; gap: 10px; margin-top: 16px; }
+  .llamada { font-family: var(--dato); font-size: 0.74rem; line-height: 1.6; padding: 12px 14px; border-radius: 10px; background: var(--fondo); border: 1px solid var(--linea); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--tenue); min-width: 0; }
+  .llamada mark { background: var(--brasa); color: var(--texto); border-radius: 3px; padding: 0 1px; }
+  .llamada .rot { display: block; font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--naranja); margin-bottom: 6px; }
+
+  /* Tapar datos */
+  .tapar { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .tapar { grid-template-columns: 1fr; } }
+  .tapar textarea { width: 100%; min-height: 150px; resize: vertical; padding: 13px 15px; background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px; color: var(--texto); font-family: var(--dato); font-size: 0.8rem; line-height: 1.6; }
+  .tapar textarea:focus { outline: none; border-color: var(--naranja); }
+  .tapado { padding: 13px 15px; min-height: 150px; background: var(--fondo); border: 1px solid var(--linea); border-left: 2px solid var(--acierto); border-radius: 12px; font-family: var(--dato); font-size: 0.8rem; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--texto); }
+  .tapado mark { background: var(--brasa); color: var(--naranja); border-radius: 3px; padding: 0 2px; }
+  .tapar .rot { display: block; font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tenue); margin-bottom: 8px; }
+
+  /* ══ Clase 12 ══ */
+
+  /* El mismo bucle, otras herramientas */
+  .paralelo { margin-top: 30px; }
+  table.datos td b { color: var(--texto); }
+  table.datos th:first-child, table.datos td:first-child { width: 22%; }
+
+  /* Los tres */
+  .tres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 30px; }
+  @media (max-width: 960px) { .tres { grid-template-columns: 1fr; } }
+  .herr { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 24px 22px; box-shadow: var(--sombra); min-width: 0; display: flex; flex-direction: column; }
+  .herr .de { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--tenue); }
+  .herr h3 { font-size: 1.25rem; margin: 6px 0 12px; }
+  .herr dl { display: grid; gap: 10px; margin: 0; }
+  .herr dt { font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--naranja); }
+  .herr dd { margin: 2px 0 0; font-size: 0.87rem; color: var(--tenue); }
+  .herr dd b { color: var(--texto); font-weight: 600; }
+  .herr .bien, .herr .cuesta { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--fondo); font-size: 0.85rem; border-left: 2px solid var(--acierto); }
+  .herr .cuesta { border-left-color: var(--alerta); margin-top: 8px; }
+  .herr .bien b, .herr .cuesta b { display: block; font-family: var(--dato); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); margin-bottom: 4px; font-weight: 400; }
+
+  .regla { margin-top: 26px; display: grid; gap: 10px; }
+  .regla div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 16px; padding: 14px 18px; border-radius: 12px; background: var(--sup); border: 1px solid var(--linea); }
+  @media (max-width: 700px) { .regla div { grid-template-columns: 1fr; gap: 6px; } }
+  .regla b { font-size: 0.92rem; }
+  .regla span { font-size: 0.9rem; color: var(--tenue); }
+
+  /* El armador del pedido */
+  .pedido { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 960px) { .pedido { grid-template-columns: 1fr; } }
+  .pedido-campos { background: var(--sup); border: 1px solid var(--linea); border-radius: 18px; padding: 24px; box-shadow: var(--sombra); display: grid; gap: 16px; min-width: 0; }
+  .campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .campo label { font-family: var(--dato); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); }
+  .campo small { font-size: 0.78rem; color: var(--tenue); }
+  .campo input, .campo textarea {
+    width: 100%; min-width: 0; padding: 10px 13px; background: var(--fondo); color: var(--texto);
+    border: 1px solid var(--linea); border-radius: 10px; font-family: var(--dato); font-size: 0.8rem; line-height: 1.55;
+  }
+  .campo textarea { min-height: 92px; resize: vertical; }
+  .campo input:focus, .campo textarea:focus { outline: none; border-color: var(--naranja); }
+  .campos-par { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 520px) { .campos-par { grid-template-columns: 1fr; } }
+  .pedido-salida { background: var(--sup); border: 1px solid var(--linea); border-left: 2px solid var(--naranja); border-radius: 18px; padding: 24px; box-shadow: var(--sombra); min-width: 0; position: sticky; top: 90px; }
+  @media (max-width: 960px) { .pedido-salida { position: static; } }
+  .pedido-salida .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja); }
+  .pedido-salida pre { margin: 12px 0 16px; font-family: var(--dato); font-size: 0.76rem; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px; padding: 16px 18px; color: var(--texto); max-height: 560px; overflow-y: auto; }
+
+  /* El probador y el revisor */
+  .banco { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 960px) { .banco { grid-template-columns: 1fr; } }
+  .banco-panel { background: var(--sup); border: 1px solid var(--linea); border-radius: 18px; padding: 24px; box-shadow: var(--sombra); min-width: 0; }
+  .banco-panel > .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja); display: block; margin-bottom: 12px; }
+  .banco textarea {
+    width: 100%; min-width: 0; resize: vertical; padding: 13px 15px; background: var(--fondo); color: var(--texto);
+    border: 1px solid var(--linea); border-radius: 12px; font-family: var(--dato); font-size: 0.78rem; line-height: 1.6;
+  }
+  .banco textarea:focus { outline: none; border-color: var(--naranja); }
+  #prCodigo { min-height: 130px; }
+  #prCasos { min-height: 150px; }
+  #rvJson { min-height: 420px; white-space: pre; overflow-wrap: normal; overflow-x: auto; }
+  .banco .expl { font-size: 0.86rem; color: var(--tenue); margin: 10px 0 14px; min-height: 1.4em; }
+  .banco .resumen { font-family: var(--dato); font-size: 0.78rem; color: var(--texto); margin-bottom: 12px; }
+  .banco .bitacora { max-height: 520px; margin-top: 0; }
+  .banco .botones { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+
+  /* El archivo de instrucciones */
+  .archivo { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 18px; padding: 24px; box-shadow: var(--sombra); }
+  .archivo .cabeza { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .archivo .cabeza code { font-size: 0.95rem; }
+  .archivo pre { margin-top: 14px; font-family: var(--dato); font-size: 0.76rem; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px; padding: 18px 20px; color: var(--texto); max-height: 520px; overflow-y: auto; }
+
+  /* ══ Clase 13 ══ */
+
+  .disparadora { margin-top: 26px; }
+  .disparadora .rta { margin-top: 16px; padding: 18px 20px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); border-left: 2px solid var(--naranja); font-size: 0.93rem; }
+
+  /* Los dos mundos */
+  .mundos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 28px; }
+  @media (max-width: 760px) { .mundos { grid-template-columns: 1fr; } }
+  .mundo { background: var(--sup); border: 1px solid var(--linea); border-radius: 16px; padding: 22px; box-shadow: var(--sombra); }
+  .mundo .n { font-family: var(--display); font-weight: 800; font-size: 1.8rem; color: var(--naranja); line-height: 1; }
+  .mundo h3 { font-size: 1.05rem; margin: 8px 0 6px; }
+  .mundo p { font-size: 0.89rem; }
+  .mundo.fuera { border-style: dashed; }
+
+  .cifras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 24px; }
+  @media (max-width: 700px) { .cifras { grid-template-columns: 1fr; } }
+  .cifra { padding: 18px 20px; border-radius: 14px; background: var(--sup); border: 1px solid var(--linea); }
+  .cifra b { display: block; font-family: var(--display); font-weight: 800; font-size: 1.9rem; letter-spacing: -0.02em; color: var(--texto); }
+  .cifra span { font-size: 0.85rem; color: var(--tenue); }
+
+  /* N × M */
+  .nxm { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 26px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .nxm { padding: 18px; } }
+  .nxm-controles { display: flex; flex-wrap: wrap; gap: 22px; align-items: center; margin-bottom: 14px; }
+  .nxm-controles label { font-family: var(--dato); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tenue); display: flex; align-items: center; gap: 10px; }
+  .nxm-controles input[type="range"] { accent-color: var(--naranja); width: 130px; }
+  .nxm-controles b { color: var(--texto); font-size: 0.95rem; min-width: 1.4em; display: inline-block; }
+  #nxmDibujo { width: 100%; height: auto; display: block; background: var(--fondo); border: 1px solid var(--linea); border-radius: 14px; }
+  #nxmDibujo.animado line { transition: opacity 0.3s ease; }
+  .nxm-cuenta { margin-top: 14px; font-size: 0.95rem; }
+  .nxm-cuenta b { font-family: var(--display); font-size: 1.15rem; color: var(--naranja); }
+
+  /* Línea de tiempo */
+  .tiempo { margin-top: 28px; display: grid; gap: 0; border-left: 2px solid var(--linea); padding-left: 0; }
+  .hito { position: relative; padding: 4px 0 22px 28px; }
+  .hito::before { content: ''; position: absolute; left: -7px; top: 8px; width: 12px; height: 12px; border-radius: 50%; background: var(--naranja); }
+  .hito .cuando { font-family: var(--dato); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--naranja); }
+  .hito p { margin-top: 4px; font-size: 0.93rem; max-width: 70ch; }
+
+  /* El restaurante */
+  .resto { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .resto { grid-template-columns: 1fr; } }
+  .resto-mapa { background: var(--sup); border: 1px solid var(--linea); border-radius: 18px; padding: 22px; box-shadow: var(--sombra); display: grid; gap: 12px; min-width: 0; }
+  .resto-fila { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .resto-caja { flex: 1 1 0; min-width: 0; max-width: 220px; padding: 12px 14px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); text-align: center; transition: border-color 0.25s ease, background 0.25s ease; }
+  .resto-caja.ancha { max-width: 460px; }
+  .resto-caja b { display: block; font-size: 0.9rem; }
+  .resto-caja small { display: block; font-family: var(--dato); font-size: 0.66rem; color: var(--tenue); margin-top: 3px; }
+  .resto-caja.on { border-color: var(--naranja); background: var(--brasa); }
+  @media (prefers-reduced-motion: reduce) { .resto-caja { transition: none; } }
+  .resto-panel { background: var(--sup); border: 1px solid var(--linea); border-radius: 18px; padding: 22px; box-shadow: var(--sombra); min-width: 0; }
+  .resto-paso { min-height: 120px; }
+  .resto-paso .quien { display: block; font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--naranja); margin-bottom: 8px; }
+  .resto-paso p { color: var(--texto); font-size: 0.95rem; }
+  .resto-paso .otro { color: var(--tenue); font-size: 0.85rem; margin-top: 8px; }
+
+  /* JSON */
+  .json-par { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 24px; }
+  @media (max-width: 800px) { .json-par { grid-template-columns: 1fr; } }
+  pre.codigo { font-family: var(--dato); font-size: 0.76rem; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px; padding: 16px 18px; color: var(--texto); margin: 10px 0; min-width: 0; }
+  .json-par .rot, .rot-chica { display: block; font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tenue); }
+
+  /* Las descripciones */
+  .desc { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .desc { grid-template-columns: 1fr; } }
+  .desc .opciones { flex-direction: column; align-items: stretch; }
+  .desc .opciones button { text-align: left; border-radius: 12px; }
+
+  /* Pruebas rápidas */
+  .prueba { margin-top: 24px; display: grid; gap: 12px; }
+  .prueba-item { padding: 16px 18px; border-radius: 14px; background: var(--sup); border: 1px solid var(--linea); }
+  .prueba-item > p:first-child { color: var(--texto); font-size: 0.95rem; margin-bottom: 10px; }
+  .prueba-fb { margin-top: 10px; font-size: 0.86rem; }
+  .prueba-fb.ok { color: var(--acierto); }
+  .prueba-fb.mal { color: var(--fallo); }
+  .prueba-total { margin-top: 12px; font-family: var(--dato); font-size: 0.78rem; color: var(--tenue); }
+
+  /* n8n en los dos lados */
+  .lados { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 26px; box-shadow: var(--sombra); }
+  .lados-mapa { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: center; margin: 20px 0; }
+  @media (max-width: 760px) { .lados-mapa { grid-template-columns: 1fr; } .lados-mapa .flecha { transform: rotate(90deg); justify-self: center; } }
+  .lados-mapa .caja { padding: 16px; border-radius: 14px; background: var(--fondo); border: 1px solid var(--linea); text-align: center; font-size: 0.88rem; color: var(--tenue); }
+  .lados-mapa .caja b { display: block; color: var(--texto); font-size: 1rem; margin-bottom: 4px; }
+  .lados-mapa .centro { border-color: var(--naranja); background: var(--brasa); }
+  .lados-mapa .flecha { font-family: var(--dato); color: var(--linea); font-size: 1.3rem; }
+  .lados-mapa[data-lado="izq"] .izq, .lados-mapa[data-lado="der"] .der { border-color: var(--naranja); color: var(--texto); }
+  .lados-mapa[data-lado="izq"] .f-izq, .lados-mapa[data-lado="der"] .f-der { color: var(--naranja); }
+  .lados-txt p { font-size: 0.93rem; }
+
+  /* Tu lista contra los frenos */
+  .frenos { margin-top: 26px; display: grid; gap: 10px; }
+  .freno-fila { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 14px; align-items: center; padding: 12px 16px; border-radius: 12px; background: var(--sup); border: 1px solid var(--linea); }
+  @media (max-width: 700px) { .freno-fila { grid-template-columns: 1fr; } }
+  .freno-fila span { color: var(--texto); font-size: 0.92rem; }
+  .freno-fila select { width: 100%; min-width: 0; padding: 9px 12px; background: var(--fondo); color: var(--texto); border: 1px solid var(--linea); border-radius: 10px; font-family: var(--cuerpo); font-size: 0.85rem; }
+
+  /* La práctica */
+  .practica { margin-top: 30px; background: var(--sup); border: 1px solid var(--linea); border-radius: 20px; padding: 26px; box-shadow: var(--sombra); }
+  @media (max-width: 620px) { .practica { padding: 18px; } }
+  .practica h3 { font-size: 1.1rem; margin: 26px 0 10px; }
+  .practica h3:first-child { margin-top: 0; }
+  .practica ol { margin: 0 0 0 20px; }
+  .practica li { font-size: 0.92rem; margin-bottom: 6px; }
+  .prompt { margin-top: 18px; border: 1px solid var(--linea); border-left: 2px solid var(--naranja); border-radius: 14px; padding: 18px 20px; background: var(--fondo); }
+  .prompt .cabeza { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .prompt .cabeza b { font-family: var(--display); font-size: 1.02rem; }
+  .prompt pre { margin: 12px 0 0; font-family: var(--dato); font-size: 0.76rem; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--texto); }
+  .chequeo { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--linea); display: grid; gap: 6px; }
+  .chequeo label { display: flex; gap: 10px; align-items: baseline; font-size: 0.86rem; color: var(--tenue); cursor: pointer; }
+  .chequeo input { accent-color: var(--naranja); }
+  .enlaces { display: grid; gap: 8px; margin-top: 10px; }
+  .enlaces a { font-size: 0.9rem; }
+
+  /* Los nodos */
+  .decisor .decisor-p[hidden] { display: none; }
+
+  /* ══ Clase 14 ══ */
+
+  .momentos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 28px; }
+  @media (max-width: 860px) { .momentos { grid-template-columns: 1fr; } }
+  .momento { background: var(--sup); border: 1px solid var(--linea); border-radius: 18px; padding: 22px; box-shadow: var(--sombra); min-width: 0; }
+  .momento .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--naranja); }
+  .momento h3 { font-size: 1.1rem; margin: 6px 0 12px; }
+  .cadena { display: grid; gap: 8px; }
+  .cadena div { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: baseline; padding: 10px 12px; border-radius: 10px; background: var(--fondo); border: 1px solid var(--linea); font-size: 0.88rem; }
+  .cadena b { font-family: var(--display); color: var(--naranja); }
+  .cadena span { color: var(--tenue); }
+  .cadena span em { color: var(--texto); font-style: normal; }
+
+  .control { display: flex; flex-wrap: wrap; gap: 22px; align-items: center; margin-bottom: 14px; }
+  .control label { font-family: var(--dato); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tenue); display: flex; align-items: center; gap: 10px; }
+  .control input[type="range"] { accent-color: var(--naranja); width: 150px; }
+  .control b { color: var(--texto); font-size: 0.95rem; min-width: 2.6em; display: inline-block; }
+  .pedazos { display: grid; gap: 8px; max-height: 460px; overflow-y: auto; margin-top: 12px; }
+  .pedazo { padding: 12px 14px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); min-width: 0; }
+  .pedazo .rot, .hallado .rot { font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); }
+  .pedazo p { margin-top: 6px; font-size: 0.86rem; color: var(--texto); overflow-wrap: anywhere; }
+  .pedazo mark { background: var(--brasa); color: var(--naranja); border-radius: 3px; padding: 0 2px; }
+
+  .buscador { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .buscador { grid-template-columns: 1fr; } }
+  .buscador .opciones { flex-direction: column; align-items: stretch; }
+  .buscador .opciones button { text-align: left; border-radius: 12px; }
+  .buscador input[type="text"] { width: 100%; min-width: 0; padding: 11px 14px; background: var(--fondo); color: var(--texto); border: 1px solid var(--linea); border-radius: 11px; font-family: var(--cuerpo); font-size: 0.92rem; margin-top: 12px; }
+  .buscador input[type="text"]:focus { outline: none; border-color: var(--naranja); }
+  .ideas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; margin-top: 14px; }
+  .idea { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: center; font-family: var(--dato); font-size: 0.7rem; color: var(--tenue); }
+  .idea i { display: block; height: 8px; border-radius: 999px; background: var(--sup2); }
+  .idea.on { color: var(--texto); }
+  .idea.on i { background: var(--naranja); }
+  .hallados { display: grid; gap: 10px; }
+  .hallado { padding: 14px 16px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); border-left: 2px solid var(--acierto); min-width: 0; }
+  .hallado.flojo { border-left-color: var(--linea); opacity: 0.6; }
+  .hallado .cabeza { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .hallado .cabeza b { font-family: var(--display); font-size: 1.05rem; }
+  .hallado p { margin-top: 8px; font-size: 0.85rem; color: var(--texto); overflow-wrap: anywhere; }
+  .aviso-umbral { padding: 14px 16px; border-radius: 12px; border-left: 2px solid var(--alerta); background: var(--fondo); font-size: 0.88rem; }
+  .exactas { margin-top: 14px; font-size: 0.86rem; color: var(--tenue); }
+
+  .paquete { margin-top: 24px; display: grid; gap: 8px; font-family: var(--dato); font-size: 0.78rem; line-height: 1.6; }
+  .bloque-p { display: block; padding: 12px 14px; border-radius: 10px; background: var(--fondo); border: 1px solid var(--linea); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--texto); }
+  .bloque-p b { display: block; font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); margin-bottom: 6px; font-weight: 400; }
+  .bloque-p.frag { border-left: 2px solid var(--naranja); }
+  .bloque-p.frag b { color: var(--naranja); }
+
+  .pasos-dify { counter-reset: paso; display: grid; gap: 14px; margin-top: 24px; }
+  .paso-dify { position: relative; padding: 18px 20px 18px 62px; border-radius: 14px; background: var(--sup); border: 1px solid var(--linea); box-shadow: var(--sombra); }
+  .paso-dify::before { counter-increment: paso; content: counter(paso); position: absolute; left: 18px; top: 16px; width: 30px; height: 30px; border-radius: 50%; background: var(--brasa); color: var(--naranja); font-family: var(--display); font-weight: 800; display: grid; place-items: center; }
+  .paso-dify h3 { font-size: 1.02rem; margin-bottom: 6px; }
+  .paso-dify p, .paso-dify li { font-size: 0.9rem; }
+  .paso-dify ul { margin: 8px 0 0 18px; }
+  .paso-dify .chequeo { margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-int">
+    <a class="marca" href="cronograma.html"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 32 H30 M38 22 H30 M38 42 H30 M30 22 V42" fill="none" stroke="#FB923C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="32" r="5.5" fill="#F97316"/><circle cx="44" cy="21" r="5" fill="#FDBA74"/><circle cx="44" cy="43" r="5" fill="#FDBA74"/></svg>Diplomatura <span>Procesos</span> · FCE-UBA</a>
+    <nav>
+      <a href="cronograma.html">Cronograma</a>
+      <span data-selector-clases><a href="cronograma.html">Clases</a></span>
+      <a href="#" id="salir">Salir</a>
+      <button class="tema" type="button" title="Cambiar tema">
+        <svg class="luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="sol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2M12 19.8v2M2.2 12h2M19.8 12h2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M19.1 4.9l-1.5 1.5M6.4 17.6l-1.5 1.5"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<div class="envoltura portada">
+  <span class="rotulo">Clase 14 · Módulo 5 · Orquestar y alojar</span>
+  <h1>RAG con n8n y con Dify</h1>
+  <p class="intro">La clase pasada la IA aprendió a buscar datos en tus sistemas: el stock, una factura, un flujo. Pero mucho de lo que sabe una organización no está en una tabla: está escrito en documentos, y nadie lo pregunta con las mismas palabras. Hoy vemos cómo se busca por significado, cómo se arma en n8n, y cómo lo resuelve Dify, una herramienta que no usaron nunca y que nació para esto.</p>
+  <div class="meta">
+    <span>28 de octubre de 2026</span>
+    <span>Miércoles · 18 a 21:30 h</span>
+    <span>FCE — UBA</span>
+  </div>
+</div>
+
+<!-- ─────────── Lo que trajiste ─────────── -->
+<section class="bloque">
+  <div class="envoltura">
+    <span class="rotulo">Empezamos por vos</span>
+    <h2>Lo que pasa por servidores ajenos, ahora con documentos</h2>
+    <p class="intro">La tarea de la clase 13 pedía seguir un caso y anotar qué dato pasa por cada servidor. Hoy esa lista suma una fila.</p>
+    <div class="traido" id="traido"></div>
+  </div>
+</section>
+
+<!-- ─────────── El problema ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">El problema</span>
+    <h2>Lo que terminaba en registrar_consulta</h2>
+    <p class="intro">En el servidor MCP de la tienda, la clase pasada, había dos herramientas. Si alguien preguntaba por stock, la IA consultaba la tabla. Si preguntaba «la remera me quedó chica, ¿cómo la cambio?», la consulta se anotaba para que la conteste una persona. La respuesta existe: está en la política de atención de la tienda. Lo que faltaba era una manera de que la IA la encuentre.</p>
+    <div class="dos-col" style="margin-top:30px">
+      <div class="ficha">
+        <h3>Pegar el documento entero en las instrucciones</h3>
+        <p>Anda con una página. Con un manual de cuarenta, cada pregunta paga el manual entero, el modelo se pierde en lo que no importa y, como vimos en la clase 11, el contexto tiene límite.</p>
+      </div>
+      <div class="ficha">
+        <h3>Buscar el pedazo que sirve y pegar sólo eso</h3>
+        <p>El documento se guarda partido en pedazos. En cada pregunta se buscan los pedazos que tienen que ver y sólo esos entran al contexto. Eso es RAG.</p>
+      </div>
+    </div>
+    <p class="cita">RAG, <i>Retrieval-Augmented Generation</i>: buscar, agregar al contexto, generar la respuesta. El modelo no aprende nada nuevo: se le pasa lo justo, en el momento justo.</p>
+
+    <h3 style="margin-top:44px;font-size:1.1rem">La regla de la clase 11, otra vez: ¿dónde va cada cosa?</h3>
+    <p style="margin-top:8px">Si el dato tiene llave, herramienta. Si es texto que hay que buscar por significado, base de documentos. Si es una regla para todos los casos, instrucciones.</p>
+    <div class="prueba" id="pruebaDonde"></div>
+    <p class="prueba-total" id="pruebaDondeTotal"></p>
+  </div>
+</section>
+
+<!-- ─────────── Dos momentos ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">El algoritmo</span>
+    <h2>Dos momentos: cargar una vez, preguntar cada vez</h2>
+    <div class="momentos">
+      <div class="momento">
+        <span class="rot">Momento 1 · cargar</span>
+        <h3>Una vez, o cada vez que cambia el documento</h3>
+        <div class="cadena">
+          <div><b>1</b><span><em>Leer</em> el documento.</span></div>
+          <div><b>2</b><span><em>Partirlo</em> en pedazos de un tamaño que elegís.</span></div>
+          <div><b>3</b><span><em>Convertir</em> cada pedazo en una lista de números que representa su significado: un <i>embedding</i>.</span></div>
+          <div><b>4</b><span><em>Guardar</em> pedazos y números en una base de vectores.</span></div>
+        </div>
+      </div>
+      <div class="momento">
+        <span class="rot">Momento 2 · preguntar</span>
+        <h3>Cada vez que alguien escribe</h3>
+        <div class="cadena">
+          <div><b>1</b><span>La <em>pregunta</em> también se convierte en números, con el mismo modelo.</span></div>
+          <div><b>2</b><span>La base <em>busca</em> los pedazos cuyos números se parecen más.</span></div>
+          <div><b>3</b><span>Esos pedazos se <em>agregan</em> al contexto, junto con las instrucciones y la pregunta.</span></div>
+          <div><b>4</b><span>El modelo <em>responde</em> con eso, y si no alcanza, lo dice.</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="intro" style="margin-top:24px">En el esqueleto de siempre: el <b>disparador</b> es la pregunta, la <b>condición</b> la resuelve el agente (¿esto está en la política?), y la <b>acción</b> es buscar en la base y contestar. Lo que viaja entre los tres son los pedazos.</p>
+  </div>
+</section>
+
+<!-- ─────────── Partir ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Paso 1 · Partir</span>
+    <h2>El tamaño de los pedazos decide qué se puede encontrar</h2>
+    <p class="intro">Esta es la política de la tienda, partida. Mové el tamaño y la superposición: lo resaltado es lo que un pedazo repite del anterior, para no cortar una idea justo en el medio. Probá los extremos y después mirá cómo cambia la búsqueda de más abajo.</p>
+    <div class="sim-panel" style="margin-top:26px">
+      <div class="control">
+        <label>Tamaño <input type="range" id="ptTam" min="120" max="1200" step="20" value="400"> <b id="ptTamV">400</b></label>
+        <label>Superposición <input type="range" id="ptSup" min="0" max="300" step="10" value="50"> <b id="ptSupV">50</b></label>
+      </div>
+      <div class="sim-acciones">
+        <button type="button" class="boton hueco" data-pt="120,0">Muy chicos</button>
+        <button type="button" class="boton hueco" data-pt="400,50">Razonables</button>
+        <button type="button" class="boton hueco" data-pt="1200,100">Muy grandes</button>
+      </div>
+      <p class="resumen" id="ptResumen" style="margin-top:14px;font-family:var(--dato);font-size:0.8rem"></p>
+      <div class="pedazos" id="ptLista"></div>
+    </div>
+    <p class="nota-pie">El corte de esta página se parece al del Recursive Character Text Splitter de n8n: primero por párrafos, después por oraciones y recién después por palabras. En n8n viene en 1.000 caracteres sin superposición, y el modo «Simple» del Default Data Loader corta cada 1.000 con 200 de superposición. Verificado en la versión estable al 28 de octubre de 2026 (n8n 2.45.5).</p>
+  </div>
+</section>
+
+<!-- ─────────── Buscar ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Paso 2 · Buscar</span>
+    <h2>Por significado, no por palabras</h2>
+    <p class="intro">Nadie escribe como el documento. «Me quedó chica» no dice «cambio» ni «talle», y sin embargo es una pregunta de cambio por talle. Un modelo de <i>embeddings</i> convierte cada texto en cientos de números que aprendió solo, leyendo muchísimo: textos que significan algo parecido quedan con números parecidos. Acá usamos diez «ideas» escritas a mano para ver el mecanismo.</p>
+    <div class="buscador">
+      <div class="banco-panel">
+        <span class="rot-chica" style="margin-bottom:12px">La pregunta</span>
+        <div class="opciones" id="bsPreg"></div>
+        <input type="text" id="bsTexto" placeholder="O escribí la tuya…" aria-label="Pregunta">
+        <span class="rot-chica" style="margin:18px 0 0">Su «embedding», en diez ideas</span>
+        <div class="ideas" id="bsVector"></div>
+      </div>
+      <div class="banco-panel">
+        <div class="control" style="margin-bottom:12px">
+          <label>Pedazos que trae <input type="range" id="bsK" min="1" max="5" value="3"> <b id="bsKV">3</b></label>
+        </div>
+        <div class="hallados" id="bsRes" aria-live="polite"></div>
+        <p class="exactas" id="bsExactas"></p>
+      </div>
+    </div>
+    <p class="nota-pie">El número de cada pedazo es su parecido con la pregunta, de 0 a 1 (similitud del coseno). Los que no llegan a 0,3 quedan grisados y no entran al contexto. Un modelo real usa cientos o miles de números y nadie los escribe a mano; la idea es la misma.</p>
+  </div>
+</section>
+
+<!-- ─────────── El paquete ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Paso 3 · Agregar y responder</span>
+    <h2>Lo que recibe el modelo es esto, y nada más</h2>
+    <p class="intro">Es la anatomía de la clase 11 con un bloque nuevo en el medio: lo que trajo la búsqueda. Cambiá la pregunta de arriba y mirá cómo cambia el paquete. Probá «¿Tienen local para probarme la ropa?»: la política no dice nada de locales.</p>
+    <div class="paquete" id="paquete" aria-live="polite"></div>
+    <p class="nota-pie" id="paqueteNota"></p>
+
+    <h3 style="margin-top:44px;font-size:1.1rem">Cuatro maneras de que RAG salga mal</h3>
+    <div class="prueba" id="pruebaErrores"></div>
+    <p class="prueba-total" id="pruebaErroresTotal"></p>
+  </div>
+</section>
+
+<!-- ─────────── RAG en n8n ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Manos al lienzo · n8n</span>
+    <h2>RAG en n8n: los dos momentos, nodo por nodo</h2>
+    <p class="intro">En n8n cada paso del algoritmo es un nodo. Lo armás vos, y por eso ves y controlás cada pieza.</p>
+    <div class="tabla-caja">
+      <table class="datos">
+        <thead><tr><th>Paso</th><th>Nodo de n8n</th><th>Qué hace</th></tr></thead>
+        <tbody>
+          <tr><td><b>Leer</b></td><td class="m">Default Data Loader</td><td>Toma el texto, un PDF, un CSV o un Word que viene del paso anterior y lo convierte en documento.</td></tr>
+          <tr><td><b>Partir</b></td><td class="m">Recursive Character Text Splitter</td><td>Corta en pedazos del tamaño y la superposición que elijas.</td></tr>
+          <tr><td><b>Convertir</b></td><td class="m">Embeddings (el de tu proveedor)</td><td>Hay nodos para trece proveedores. Ollama corre en tu propia máquina.</td></tr>
+          <tr><td><b>Guardar y buscar</b></td><td class="m">Simple Vector Store, u otra base</td><td>En modo <b>Insert</b> guarda; en modo <b>Retrieve as Tool</b> se vuelve una herramienta del AI Agent, que busca cuando la necesita.</td></tr>
+          <tr><td><b>Responder</b></td><td class="m">AI Agent</td><td>El de la clase 10, con la base como herramienta y las instrucciones de la clase 11.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="caso">
+      <span class="n">El flujo de la clase</span>
+      <h3>RAG con la política de la tienda</h3>
+<pre>1 · CARGAR (una vez, o cuando cambia la política)
+    tomar el documento
+    partirlo en pedazos de 400 caracteres
+    convertir cada pedazo en embeddings
+    guardarlos en la base de vectores
+
+2 · PREGUNTAR (cada vez que alguien escribe)
+    el agente lee la pregunta
+    SI es sobre la política:
+        busca los 3 pedazos más parecidos
+        responde sólo con eso
+        SI no alcanza: lo dice y deriva
+FIN</pre>
+      <p style="font-size:0.92rem">Viene sin modelo de chat y sin <i>embeddings</i>, como desde la clase 11: enchufás los de tu proveedor. La regla que no se negocia: <b>el mismo modelo de embeddings para cargar y para preguntar</b>. Cargá una vez y preguntá desde el chat de n8n.</p>
+      <div class="acciones"><a class="boton" href="workflows/14-rag-politica-de-la-tienda-n8n.json" download>Descargar el flujo de RAG</a></div>
+    </div>
+    <div class="trampa">
+      <span class="rot">El Simple Vector Store es para aprender</span>
+      <p>n8n lo marca «sólo para uso experimental»: guarda todo en la memoria de la instancia, lo pierde si n8n se reinicia, lo puede borrar si falta memoria y lo ven todos los usuarios de la instancia. Para algo que usen clientes de verdad, una base de vectores real: n8n trae nodos para Postgres con PGVector, Qdrant, Pinecone, Supabase, MongoDB Atlas y otras.</p>
+    </div>
+    <p class="nota-pie">Nodos verificados en la versión estable al 28 de octubre de 2026 (n8n 2.45.5): Simple Vector Store 1.3, Default Data Loader 1.1, Recursive Character Text Splitter 1, AI Agent 3.1 y trece nodos de embeddings.</p>
+  </div>
+</section>
+
+
+
+<!-- ─────────── Actividad ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Para el miércoles</span>
+    <h2>Dos cosas antes de la clase 15</h2>
+    <p class="intro">Hoy tu documento viajó a un proveedor de <i>embeddings</i>, quedó guardado en una base de vectores y, si usaste Dify Cloud, vive en un servidor ajeno. La clase que viene es la de alojarlo vos: n8n, y también Dify o la base de vectores, en una máquina de la organización.</p>
+    <div class="actividad" style="margin-top:30px">
+      <div class="pregunta">
+        <label for="q1"><b>Los documentos que no saldrían nunca</b><span>Pensá en los documentos de tu organización que servirían para un asistente así. ¿Cuáles no podrían subirse a un servicio en la nube ni mandarse a un proveedor de <i>embeddings</i>? ¿Por qué?</span></label>
+        <textarea id="q1" placeholder="Por ejemplo: los legajos, los contratos con proveedores, el manual de procedimientos internos…"></textarea>
+      </div>
+      <div class="pregunta">
+        <label for="q2"><b>Qué te traerías a casa</b><span>De todo lo de hoy —n8n, Dify, la base de vectores, el modelo de embeddings, el modelo de chat—, ¿qué querrías que corra en una máquina de la organización y qué podría quedar afuera?</span></label>
+        <textarea id="q2" placeholder="n8n adentro, el modelo afuera… o todo adentro, con un modelo local…"></textarea>
+      </div>
+      <div class="guardado" id="guardado"></div>
+    </div>
+  </div>
+</section>
+
+<div class="envoltura cierre">
+  <h2>Nos vemos el miércoles 4 de noviembre</h2>
+  <p class="intro" style="margin:0 auto">Hoy la IA contestó con lo que la organización tiene escrito, sin inventar lo que no está. Lo armaste dos veces: pieza por pieza en n8n y de una en Dify. Las dos veces tu documento salió de tu computadora. La clase que viene se pregunta qué pasa si no querés que salga.</p>
+  <div class="acciones">
+    <a class="boton" href="cronograma.html">Ver el cronograma completo</a>
+    <a class="boton hueco" href="13.html">Volver a la clase 13</a>
+  </div>
+</div>
+
+</main>
+
+<footer class="pie">
+  <div class="envoltura">
+    <span>Facultad de Ciencias Económicas · Universidad de Buenos Aires</span>
+    <span>Clase 14 · Diseño de Procesos de Negocios con Automatización e IA Agéntica</span>
+  </div>
+</footer>
+
+<script src="acceso.js"></script>
+<script src="clases.js"></script>
+<script src="menu.js"></script>
+<script src="clase14.js"></script>
+</body>
+</html>

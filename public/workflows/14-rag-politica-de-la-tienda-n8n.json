@@ -1,0 +1,265 @@
+{
+  "name": "Clase 14 - RAG con la política de la tienda",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Clase 14 - RAG con la política de la tienda\n\nDos partes, en dos momentos distintos.\n\n```\n1 · CARGAR (una sola vez, o cuando cambia la política)\n    tomar el documento\n    partirlo en pedazos de 400 caracteres\n    convertir cada pedazo en números (embeddings)\n    guardarlos en la base de vectores\n\n2 · PREGUNTAR (cada vez que alguien escribe)\n    el agente lee la pregunta\n    SI es sobre la política:\n        busca los 3 pedazos más parecidos\n        responde sólo con eso\n        SI no alcanza: lo dice y deriva\nFIN\n```\n\nEs la tienda de la clase 13: lo que antes terminaba\nen registrar_consulta para que lo conteste una\npersona, ahora lo contesta la política.",
+        "height": 720,
+        "width": 520,
+        "color": 4
+      },
+      "id": "c14a0000-0000-4000-8000-000000000001",
+      "name": "Consigna",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1180,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Antes de ejecutar\n\n**1. Los embeddings.** Los dos nodos de la base piden\nun sub-nodo **Embeddings**. Enchufá el de tu proveedor\n(n8n tiene nodos para trece; Ollama corre en tu propia máquina). **El mismo\nmodelo en los dos**: cargar con uno y preguntar con\notro no funciona.\n\n**2. El modelo del agente.** Enchufá en **Chat Model**\nel sub-nodo de chat de tu proveedor.\n\n**3. Cargá la política** una vez: Execute workflow\nsobre `1 · Cargar la política`.\n\n**4. Preguntá** desde el chat de n8n: «la remera me\nquedó chica», «¿hacen envíos a Chile?», «¿tienen\nlocal?». La última no está en la política: fijate\nque no invente.\n\n**Ojo:** el Simple Vector Store es sólo para\nexperimentar. Guarda todo en memoria, lo pierde si\nn8n se reinicia y lo ven todos los usuarios de la\ninstancia. Para algo real, una base de vectores de\nverdad (Postgres con PGVector, Qdrant, Pinecone…).",
+        "height": 760,
+        "width": 460,
+        "color": 5
+      },
+      "id": "c14a0000-0000-4000-8000-000000000002",
+      "name": "Antes de ejecutar",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -620,
+        -320
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c14a0000-0000-4000-8000-000000000003",
+      "name": "1 · Cargar la política",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// La política de la tienda: el mismo texto que se sube a Dify.\nconst texto = \"# Política de atención de la tienda\\n\\nTienda de ropa inventada para la clase 14. No es asesoramiento legal.\\n\\n## Cambios\\nPodés cambiar cualquier prenda por otro talle o por otro color dentro de los 30 días corridos desde que la recibiste. La prenda tiene que estar sin uso, con la etiqueta puesta y con el comprobante de compra. El primer cambio es sin costo; si querés un segundo cambio de la misma prenda, el envío lo pagás vos. Las prendas en liquidación se pueden cambiar sólo por talle.\\n\\n## Devoluciones y arrepentimiento\\nSi compraste por la web y te arrepentiste, tenés 10 días corridos desde la entrega para devolver la compra sin dar explicaciones. Te reintegramos el dinero por el mismo medio de pago dentro de los 10 días hábiles de recibir la prenda. Pasado ese plazo no hacemos devoluciones de dinero, pero podés cambiar la prenda según la política de cambios.\\n\\n## Envíos\\nEnviamos a todo el país. En la Ciudad de Buenos Aires el pedido llega en 48 horas hábiles; en el resto del país, entre 3 y 7 días hábiles según la provincia. El envío es gratis en compras desde $ 80.000. Cuando el pedido sale te mandamos un correo con el número de seguimiento. Por ahora no hacemos envíos al exterior.\\n\\n## Formas de pago\\nAceptamos tarjetas de crédito y débito, transferencia bancaria y billeteras virtuales. Con tarjeta de crédito de bancos adheridos hay hasta 6 cuotas sin interés en compras desde $ 60.000. Pagando por transferencia tenés un 10 % de descuento. El pedido se prepara cuando el pago queda acreditado.\\n\\n## Prendas con falla\\nSi una prenda llega con una falla de fabricación, como una costura abierta, una mancha o un cierre que no funciona, la cambiamos sin costo dentro de los 6 meses de la compra. Mandanos una foto de la falla por correo y te enviamos la prenda nueva o, si no hay stock, te reintegramos el dinero.\\n\\n## Talles\\nLas remeras y los buzos tienen horma amplia: si dudás entre dos talles, elegí el más chico. Los pantalones tienen horma justa: si dudás, elegí el más grande. En cada producto de la web está la tabla de medidas en centímetros.\\n\\n## Atención\\nRespondemos consultas por correo y por el chat de la web, de lunes a viernes de 9 a 18. Los pedidos se pueden consultar con el número que figura en el correo de confirmación.\";\n\nreturn [{ json: { texto, fuente: 'politica-de-la-tienda' } }];"
+      },
+      "id": "c14a0000-0000-4000-8000-000000000004",
+      "name": "La política",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "id",
+          "value": "politica_tienda"
+        },
+        "clearStore": true
+      },
+      "id": "c14a0000-0000-4000-8000-000000000005",
+      "name": "Guardar en la base",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        460,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.texto }}",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "id": "c14a0000-0000-4000-8000-000000000006",
+      "name": "Leer el documento",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "chunkSize": 400,
+        "chunkOverlap": 50,
+        "options": {}
+      },
+      "id": "c14a0000-0000-4000-8000-000000000007",
+      "name": "Partir en pedazos",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        640,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Acá van los embeddings\n\nArrastrá al enchufe **Embedding** el sub-nodo de\ntu proveedor. El mismo en las dos bases.",
+        "height": 220,
+        "width": 240,
+        "color": 6
+      },
+      "id": "c14a0000-0000-4000-8000-000000000008",
+      "name": "Embeddings de la carga",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        300,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "c14a0000-0000-4000-8000-000000000009",
+      "name": "2 · Llega una pregunta",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        560
+      ],
+      "webhookId": "c14a0000-0000-4000-8000-0000000000aa"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Sos el asistente de atención de una tienda de ropa. Para cualquier pregunta sobre cambios, devoluciones, envíos, pagos, prendas con falla, talles o atención, buscá primero en politica_de_la_tienda y respondé sólo con lo que encuentres ahí. Si lo que encontraste no alcanza para contestar, decilo y ofrecé derivar la consulta a una persona. No inventes plazos, montos ni direcciones. Respondé breve y cordial, en castellano rioplatense.",
+          "maxIterations": 5
+        }
+      },
+      "id": "c14a0000-0000-4000-8000-000000000010",
+      "name": "Atender la consulta",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        260,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "id",
+          "value": "politica_tienda"
+        },
+        "topK": 3,
+        "toolDescription": "Busca en la política de atención de la tienda: cambios, devoluciones, envíos, formas de pago, prendas con falla, talles y horarios. Devuelve los fragmentos más parecidos a la pregunta."
+      },
+      "id": "c14a0000-0000-4000-8000-000000000011",
+      "name": "politica_de_la_tienda",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        500,
+        780
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Acá van el modelo y los embeddings\n\n**Chat Model** del agente: tu proveedor.\n\n**Embedding** de `politica_de_la_tienda`: el mismo\nmodelo que usaste para cargar.",
+        "height": 240,
+        "width": 300,
+        "color": 6
+      },
+      "id": "c14a0000-0000-4000-8000-000000000012",
+      "name": "Modelo y embeddings de la pregunta",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        780
+      ]
+    }
+  ],
+  "connections": {
+    "1 · Cargar la política": {
+      "main": [
+        [
+          {
+            "node": "La política",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "La política": {
+      "main": [
+        [
+          {
+            "node": "Guardar en la base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer el documento": {
+      "ai_document": [
+        [
+          {
+            "node": "Guardar en la base",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Partir en pedazos": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Leer el documento",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 · Llega una pregunta": {
+      "main": [
+        [
+          {
+            "node": "Atender la consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "politica_de_la_tienda": {
+      "ai_tool": [
+        [
+          {
+            "node": "Atender la consulta",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

@@ -101,19 +101,19 @@ con progresión de nube a instancia propia.
 3. Construir de verdad (7 a 9) — primer caso completo, APIs y webhooks, datos
 4. Contexto e inteligencia (10 a 12) — nodo de agente, ingeniería de contexto,
    primer contacto con los orquestadores
-5. Orquestar y alojar (13 a 17) — MCP, self-hosting, instancia propia,
-   orquestación desde afuera, multi-agente
+5. Orquestar y alojar (13 a 17) — MCP, RAG con n8n y Dify, self-hosting e
+   instancia propia, orquestación desde afuera, multi-agente
 6. Evaluar y mejorar (18 a 20) — métricas, refactor, proyecto integrador
 
 Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 13, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
+Estado: publicadas las clases 1 a 14, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
-alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13 y la 13 alimenta la 14. Con la 9 cierra el módulo 3 y quedan
+alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13, la 13 alimenta la 14 y la 15 (la primera pregunta va a la 14, la segunda a la 15) y la 14 alimenta la 15. Con la 9 cierra el módulo 3 y quedan
 saldadas las dos deudas que arrastraba: la memoria entre ejecuciones y la
 planilla usada como base de datos en el caso de la 7. La planilla no desaparece
 del caso, cambia de papel: deja de ser la memoria del flujo y queda como la
