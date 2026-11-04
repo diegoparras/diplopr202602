@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Clase 15 · Self-hosting e instancia propia · FCE-UBA</title>
+<title>Clase 15 · Docker, máquinas virtuales y servidores · FCE-UBA</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -617,25 +617,77 @@
 
   /* ══ Clase 15 ══ */
 
-  /* La escalera */
-  .escalera-t { width: 100%; min-width: 680px; border-collapse: collapse; font-size: 0.86rem; }
-  .escalera-t th, .escalera-t td { padding: 10px 12px; border-bottom: 1px solid var(--linea); text-align: left; vertical-align: top; color: var(--tenue); transition: background 0.2s ease, color 0.2s ease; }
-  .escalera-t th { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 400; }
-  .escalera-t td b { color: var(--texto); }
-  .escalera-t .on { background: var(--brasa); color: var(--texto); }
-  .escalera-t th.on { color: var(--naranja); }
-  .escalera-t td.vos.on { color: var(--naranja); font-weight: 600; }
-  @media (prefers-reduced-motion: reduce) { .escalera-t th, .escalera-t td { transition: none; } }
-  .esc-txt { margin-top: 16px; padding: 16px 18px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); border-left: 2px solid var(--naranja); }
-  .esc-txt p { font-size: 0.93rem; }
+  /* Las capas */
+  .capas { margin-top: 24px; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .capas { grid-template-columns: 1fr; } }
+  .cap-dibujo { display: grid; gap: 6px; padding: 18px; border-radius: 16px; background: var(--sup); border: 1px solid var(--linea); box-shadow: var(--sombra); }
+  .capa { display: flex; gap: 6px; }
+  .capa span { flex: 1 1 0; min-width: 0; padding: 12px 8px; border-radius: 10px; text-align: center; font-size: 0.82rem; background: var(--fondo); border: 1px solid var(--linea); color: var(--texto); overflow-wrap: anywhere; }
+  .capa-apps span { border-color: var(--naranja); background: var(--brasa); }
+  .capa-guest span { border-style: dashed; color: var(--tenue); }
+  .capa-libs span { color: var(--tenue); font-size: 0.76rem; }
+  .capa-hyp span, .capa-motor span { border-color: var(--naranja); color: var(--naranja); font-family: var(--dato); font-size: 0.76rem; }
+  .capa-hw span { background: var(--sup2); font-family: var(--dato); font-size: 0.76rem; }
+  .cap-txt p { font-size: 0.95rem; }
+  .arranque { display: grid; grid-template-columns: 70px 1fr minmax(0, 1.2fr); gap: 10px; align-items: center; margin-top: 10px; font-size: 0.84rem; }
+  .arranque b { font-weight: 400; color: var(--acierto); font-size: 0.8rem; }
 
-  /* La cuenta */
-  .cuenta-campos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-  @media (max-width: 900px) { .cuenta-campos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 520px) { .cuenta-campos { grid-template-columns: 1fr; } }
+  /* El edificio */
+  .edificio { margin-top: 24px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .edificio { grid-template-columns: 1fr; } }
+  .ed-dibujo { display: grid; gap: 6px; padding: 16px; border-radius: 16px; background: var(--sup); border: 1px solid var(--linea); box-shadow: var(--sombra); }
+  .ed-dibujo .techo { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); text-align: center; padding-bottom: 6px; }
+  .piso { padding: 12px; border-radius: 10px; background: var(--fondo); border: 1px solid var(--linea); text-align: center; font-size: 0.84rem; color: var(--tenue); }
+  .piso.mio { border-color: var(--naranja); background: var(--brasa); color: var(--texto); }
+  .piso.ruidoso { border-color: var(--alerta); color: var(--alerta); }
+  .ed-dibujo .piso:only-of-type { padding: 60px 12px; }
+  .ed-vel { margin-top: 14px; }
+  .ed-vel .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); display: block; margin-bottom: 6px; }
+  .ed-vel p { font-size: 0.86rem; margin-top: 8px; }
+
+  /* El glosario */
+  .glosario { margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+  .carta { position: relative; min-height: 170px; border: 1px solid var(--linea); border-radius: 16px; background: var(--sup); color: var(--texto); text-align: left; padding: 0; cursor: pointer; box-shadow: var(--sombra); font: inherit; }
+  .carta > span { position: absolute; inset: 0; padding: 18px; display: flex; flex-direction: column; gap: 8px; transition: opacity 0.25s ease; }
+  .carta .frente b { font-family: var(--display); font-size: 1.3rem; }
+  .carta .frente small { color: var(--tenue); font-size: 0.78rem; margin-top: auto; }
+  .carta .dorso { opacity: 0; background: var(--brasa); border-radius: 16px; }
+  .carta .dorso b { color: var(--naranja); }
+  .carta .dorso span { font-size: 0.86rem; }
+  .carta .dorso em { font-style: normal; font-family: var(--dato); font-size: 0.74rem; color: var(--tenue); margin-top: auto; }
+  .carta[aria-pressed="true"] .frente { opacity: 0; }
+  .carta[aria-pressed="true"] .dorso { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .carta > span { transition: none; } }
+
+  /* El buscador */
+  .hub { margin-top: 24px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .hub { grid-template-columns: 1fr; } }
+  .hub input { width: 100%; min-width: 0; padding: 11px 14px; background: var(--fondo); color: var(--texto); border: 1px solid var(--linea); border-radius: 11px; font-family: var(--cuerpo); font-size: 0.92rem; }
+  .hub input:focus { outline: none; border-color: var(--naranja); }
+  .hub-lista { display: grid; gap: 8px; margin-top: 12px; max-height: 460px; overflow-y: auto; }
+  .hub-item { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--linea); background: var(--fondo); color: var(--texto); cursor: pointer; font: inherit; }
+  .hub-item small { grid-column: 1 / -1; color: var(--tenue); font-size: 0.8rem; }
+  .hub-item.on { border-color: var(--naranja); }
+  .sello { display: inline-block; justify-self: start; font-family: var(--dato); font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--linea); color: var(--tenue); }
+  .sello-oficial { border-color: var(--acierto); color: var(--acierto); }
+  .sello-verificado { border-color: var(--naranja); color: var(--naranja); }
+  .sello-oss { border-color: var(--alerta); color: var(--alerta); }
+  .sello-comunidad { border-style: dashed; }
+
+  /* Los puertos */
+  .pt-dibujo { margin-top: 18px; display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: center; }
+  @media (max-width: 760px) { .pt-dibujo { grid-template-columns: 1fr; } .pt-flecha { transform: rotate(90deg); justify-self: center; } }
+  .pt-caja { padding: 14px; border-radius: 12px; background: var(--fondo); border: 1px solid var(--linea); text-align: center; min-width: 0; }
+  .pt-caja.mio { border-color: var(--naranja); }
+  .pt-caja .rot { display: block; font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--tenue); }
+  .pt-caja b { display: block; margin-top: 4px; font-family: var(--dato); }
+  .pt-caja small { font-size: 0.78rem; color: var(--tenue); }
+  .pt-flecha { font-family: var(--dato); color: var(--naranja); font-size: 1.2rem; }
+  .pt-cmd, .pt-nota { grid-column: 1 / -1; font-size: 0.9rem; }
+  .pt-campos { display: grid; grid-template-columns: repeat(2, minmax(0, 160px)); gap: 14px; }
 
   /* El volumen */
-  .vol { margin-top: 26px; display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: center; }
+  .vol { margin-top: 20px; display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: center; }
   @media (max-width: 760px) { .vol { grid-template-columns: 1fr; } .vol-flecha { transform: rotate(90deg); justify-self: center; } }
   .vol > div:not(.vol-flecha) { padding: 16px; border-radius: 14px; background: var(--fondo); border: 1px solid var(--linea); text-align: center; min-width: 0; }
   .vol .rot { display: block; font-family: var(--dato); font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tenue); }
@@ -645,50 +697,45 @@
   .vol .off { opacity: 0.55; border-style: dashed; }
   .vol-flecha { font-family: var(--dato); color: var(--naranja); font-size: 1.3rem; }
 
-  /* El armador */
-  .armador { margin-top: 26px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-  @media (max-width: 960px) { .armador { grid-template-columns: 1fr; } }
-  .archivo-ar { font-family: var(--dato); font-size: 0.76rem; line-height: 1.55; background: var(--fondo); border: 1px solid var(--linea); border-radius: 12px; padding: 12px 8px; margin-top: 10px; overflow-x: auto; }
-  .linea-ar { display: block; width: 100%; text-align: left; white-space: pre; padding: 1px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--texto); font: inherit; cursor: pointer; }
-  .linea-ar.quieta { cursor: default; color: var(--tenue); }
-  .linea-ar:hover:not(.quieta) { background: var(--sup2); }
-  .linea-ar.on { background: var(--brasa); color: var(--naranja); }
-  .ar-expl { position: sticky; top: 90px; padding: 18px 20px; border-radius: 14px; background: var(--sup); border: 1px solid var(--linea); border-left: 2px solid var(--naranja); box-shadow: var(--sombra); }
-  @media (max-width: 960px) { .ar-expl { position: static; } }
-  .ar-expl .rot { font-family: var(--dato); font-size: 0.7rem; color: var(--naranja); }
-  .ar-expl p { margin-top: 8px; font-size: 0.92rem; }
-  .cabeza-ar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
-  .cabeza-ar code { font-size: 0.9rem; }
+  /* La terminal de práctica */
+  .practica-dk { margin-top: 24px; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 960px) { .practica-dk { grid-template-columns: 1fr; } }
+  .dk-term { background: var(--fondo); border: 1px solid var(--linea); border-radius: 14px; overflow: hidden; }
+  .dk-salida { font-family: var(--dato); font-size: 0.74rem; line-height: 1.55; padding: 14px 16px; height: 380px; overflow: auto; }
+  .dk-salida .t-cmd { color: var(--naranja); margin-top: 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .dk-salida .t-cmd span { color: var(--tenue); }
+  .dk-salida .t-sal { color: var(--texto); white-space: pre; }
+  .dk-salida .t-err { color: var(--fallo); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .dk-salida .t-nota { color: var(--tenue); font-family: var(--cuerpo); font-size: 0.82rem; white-space: pre-wrap; margin: 6px 0; }
+  .dk-form { display: flex; gap: 8px; border-top: 1px solid var(--linea); padding: 10px 12px; align-items: center; }
+  .dk-form span { font-family: var(--dato); color: var(--tenue); }
+  .dk-form input { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--texto); font-family: var(--dato); font-size: 0.84rem; }
+  .dk-form input:focus { outline: none; }
+  .dk-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .dk-chips button { font-family: var(--dato); font-size: 0.72rem; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--linea); background: transparent; color: var(--tenue); cursor: pointer; }
+  .dk-chips button:hover { color: var(--naranja); border-color: var(--naranja); }
+  .dk-ej { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+  .dk-ej li { position: relative; padding: 9px 12px 9px 34px; border-radius: 10px; background: var(--fondo); border: 1px solid var(--linea); font-size: 0.86rem; color: var(--tenue); }
+  .dk-ej li::before { content: '○'; position: absolute; left: 12px; top: 9px; font-family: var(--dato); color: var(--tenue); }
+  .dk-ej li.hecho { color: var(--texto); border-color: var(--acierto); }
+  .dk-ej li.hecho::before { content: '✓'; color: var(--acierto); }
+  .dk-ej code { font-size: 0.78rem; }
+  .nav-tab { border: 1px solid var(--linea); border-radius: 12px; overflow: hidden; margin-top: 10px; }
+  .nav-barra { font-family: var(--dato); font-size: 0.74rem; padding: 7px 12px; background: var(--sup2); color: var(--tenue); }
+  .nav-cuerpo { padding: 18px; background: var(--fondo); }
+  .nav-cuerpo h4 { font-size: 1.2rem; margin-bottom: 6px; }
+  .nav-cuerpo p { font-size: 0.86rem; }
 
-  /* La terminal */
-  .terminal { margin-top: 26px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-  @media (max-width: 900px) { .terminal { grid-template-columns: 1fr; } }
-  .term { font-family: var(--dato); font-size: 0.76rem; line-height: 1.6; background: var(--fondo); border: 1px solid var(--linea); border-radius: 14px; padding: 16px 18px; min-height: 260px; max-height: 440px; overflow-y: auto; }
-  .t-cmd { color: var(--naranja); margin-top: 10px; overflow-wrap: anywhere; }
-  .t-cmd span { color: var(--tenue); }
-  .t-sal { color: var(--texto); white-space: pre-wrap; overflow-wrap: anywhere; }
-  .term-cmd { display: grid; gap: 8px; }
-  .term-cmd button { text-align: left; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--linea); background: transparent; color: var(--texto); font-family: var(--cuerpo); font-size: 0.88rem; cursor: pointer; }
-  .term-cmd button:disabled { opacity: 0.4; cursor: not-allowed; }
-  .term-cmd button[aria-pressed="true"] { border-color: var(--acierto); }
-  .term-expl { margin-top: 14px; font-size: 0.9rem; }
-
-  /* El cifrado */
-  .cifrado { margin-top: 26px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-  @media (max-width: 900px) { .cifrado { grid-template-columns: 1fr; } }
-  .cf-base { font-family: var(--dato); font-size: 0.72rem; color: var(--tenue); background: var(--fondo); border: 1px solid var(--linea); border-radius: 10px; padding: 12px 14px; min-height: 52px; overflow-wrap: anywhere; margin-top: 8px; }
-
-  /* Los desastres */
-  .desastres { margin-top: 26px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
-  @media (max-width: 900px) { .desastres { grid-template-columns: 1fr; } }
-  .ds-item { display: flex; gap: 10px; align-items: baseline; padding: 10px 12px; border-radius: 10px; background: var(--fondo); border: 1px solid var(--linea); font-size: 0.9rem; cursor: pointer; }
-  .ds-item input { accent-color: var(--naranja); }
-  #dsResp { display: grid; gap: 8px; }
-  .desastres .opciones { flex-direction: column; align-items: stretch; }
-  .desastres .opciones button { text-align: left; border-radius: 12px; }
-  .armador > div { min-width: 0; }
-  .campos-tres { margin-top: 22px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-  @media (max-width: 760px) { .campos-tres { grid-template-columns: 1fr; } }
+  /* Docker Desktop */
+  .dd { margin-top: 24px; display: grid; grid-template-columns: 220px minmax(0, 1fr); border: 1px solid var(--linea); border-radius: 16px; overflow: hidden; background: var(--sup); box-shadow: var(--sombra); }
+  @media (max-width: 720px) { .dd { grid-template-columns: 1fr; } }
+  .dd-menu { display: grid; align-content: start; gap: 4px; padding: 14px; background: var(--fondo); border-right: 1px solid var(--linea); }
+  .dd-menu button { text-align: left; padding: 9px 12px; border-radius: 9px; border: 0; background: transparent; color: var(--tenue); font-family: var(--cuerpo); font-size: 0.88rem; cursor: pointer; }
+  .dd-menu button[aria-pressed="true"] { background: var(--brasa); color: var(--texto); }
+  .dd-panel { padding: 22px; min-height: 240px; }
+  .dd-panel .rot { font-family: var(--dato); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--naranja); }
+  .dd-prueba { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--fondo); border-left: 2px solid var(--acierto); font-size: 0.88rem; }
+  #capArrancar[hidden], #edRuido[hidden] { display: none; }
 </style>
 </head>
 <body>
@@ -712,8 +759,8 @@
 
 <div class="envoltura portada">
   <span class="rotulo">Clase 15 · Módulo 5 · Orquestar y alojar</span>
-  <h1>Self-hosting e instancia propia</h1>
-  <p class="intro">En la clase 13 tu n8n se abrió a una IA de afuera, y en la 14 tus documentos viajaron a servidores ajenos. Hoy le damos la vuelta: n8n en una máquina tuya. Vas a ver qué cambia, qué te toca hacer a vos y cómo se hace sin perder nada. Ser tu propio proveedor tiene un precio, que no se cobra en euros sino en tareas.</p>
+  <h1>Docker, máquinas virtuales y servidores</h1>
+  <p class="intro">Hablamos de «alojar», «servidor», «contenedor» y «VPS» como si fueran obvios. Hoy los desarmamos. Qué es una máquina virtual y qué es un contenedor, qué alquilás cuando alquilás un VPS y qué cuando alquilás un servidor dedicado, dónde se consiguen los programas empaquetados y cómo se corren en tu propia computadora con Docker Desktop. Sin instalar nada para entenderlo: todo se toca en esta página.</p>
   <div class="meta">
     <span>4 de noviembre de 2026</span>
     <span>Miércoles · 18 a 21:30 h</span>
@@ -721,257 +768,282 @@
   </div>
 </div>
 
-<!-- ─────────── Lo que trajiste ─────────── -->
 <section class="bloque">
   <div class="envoltura">
     <span class="rotulo">Empezamos por vos</span>
-    <h2>Quién lo cuida, qué no sale y qué te traerías</h2>
-    <p class="intro">Las últimas dos actividades preguntaban lo mismo desde dos lados: qué datos no deberían salir de la organización y quién se haría cargo de tenerlos adentro.</p>
+    <h2>«En mi máquina anda»</h2>
+    <p class="intro">Es la frase más famosa de la informática. El programa anda en la computadora de quien lo hizo y no en la de al lado, porque la de al lado tiene otra versión de algo. Las máquinas virtuales y los contenedores nacieron para que eso deje de pasar, y los servidores que se alquilan son el lugar donde después vive todo.</p>
     <div class="traido" id="traido"></div>
   </div>
 </section>
 
-<!-- ─────────── Por qué ─────────── -->
+<!-- ─────────── Capas ─────────── -->
 <section class="bloque revelar">
   <div class="envoltura">
-    <span class="rotulo">Por qué</span>
-    <h2>Cuatro razones para alojarlo vos, y una para no hacerlo</h2>
-    <div class="ops">
-      <div class="op destacada"><b>Los datos no salen</b><p>Lo que procesa n8n queda en una máquina que controlás. Si un documento no puede salir, el que lo procesa tiene que estar adentro.</p></div>
-      <div class="op destacada"><b>Sin límite de ejecuciones</b><p>En Cloud pagás por ejecución. En tu instancia, el límite es lo que aguante la máquina.</p></div>
-      <div class="op destacada"><b>Lo que sólo anda adentro</b><p>Nodos de comunidad que n8n no verificó, Python en el nodo Code, las métricas de la instancia, y modelos o bases de datos que corren en tu misma red.</p></div>
-      <div class="op destacada"><b>Nadie te cambia las reglas</b><p>Ni el precio, ni el plan, ni dónde están tus datos. La versión la elegís vos y la cambiás cuando estás listo.</p></div>
-      <div class="op"><b>La razón para no hacerlo</b><p>Desde hoy el soporte sos vos. Instalar, actualizar, respaldar y arreglar un viernes a la noche. Si nadie puede hacerlo, el riesgo es más grande que el que se quería evitar.</p></div>
+    <span class="rotulo">La idea</span>
+    <h2>Tres maneras de repartir una computadora</h2>
+    <p class="intro">Tocá cada una y mirá qué capas hay entre la máquina y los programas. Después, arrancá tres aplicaciones y compará.</p>
+    <div class="opciones" id="capOpc" style="margin-top:20px">
+      <button type="button" data-m="nada" aria-pressed="true">Una computadora</button>
+      <button type="button" data-m="vm" aria-pressed="false">Con máquinas virtuales</button>
+      <button type="button" data-m="contenedor" aria-pressed="false">Con contenedores</button>
     </div>
-    <p class="cita">Instancia propia quiere decir ser tu propio proveedor. Todo lo que n8n Cloud hacía en silencio, ahora tiene nombre y responsable.</p>
-  </div>
-</section>
-
-<!-- ─────────── La escalera ─────────── -->
-<section class="bloque revelar">
-  <div class="envoltura">
-    <span class="rotulo">Dónde puede vivir</span>
-    <h2>Cuatro escalones, y quién se ocupa de qué en cada uno</h2>
-    <p class="intro">No es Cloud o servidor propio: hay escalones en el medio. Tocá cada uno y mirá cómo las tareas se van pasando de n8n a vos.</p>
-    <div class="opciones" id="escOpc" style="margin-top:22px"></div>
-    <div class="tabla-caja"><table class="escalera-t" id="escTabla"></table></div>
-    <div class="esc-txt" id="escTxt" aria-live="polite"></div>
-    <p class="nota-pie">El taller de OAuth de la cursada usa el escalón 2: un pod en PikaPods, que hoy ofrece n8n desde USD 3,7 por mes (verificado el 4 de noviembre de 2026 en pikapods.com). Los escalones 3 y 4 son los de esta clase.</p>
-  </div>
-</section>
-
-<!-- ─────────── Decisor y cuenta ─────────── -->
-<section class="bloque revelar">
-  <div class="envoltura">
-    <span class="rotulo">Decidir con criterios</span>
-    <h2>¿Cloud o propio? Cuatro preguntas y una cuenta</h2>
-    <div class="decisor" id="decPreg"></div>
-    <div class="veredicto" id="decVeredicto" hidden aria-live="polite" style="margin-top:14px"></div>
-
-    <h3 style="margin-top:44px;font-size:1.1rem">La cuenta, con tus números</h3>
-    <p style="margin-top:8px">Cloud cobra por ejecuciones. Lo propio cuesta el servidor más tus horas. Los precios de servidor cambian mucho de un proveedor a otro: poné el que te pasaron.</p>
-    <div class="calc">
-      <div class="cuenta-campos">
-        <div class="calc-campo"><label for="ctEjec">Ejecuciones por mes · <b id="ctEjecV"></b></label><input id="ctEjec" type="range" min="500" max="20000" step="500" value="3000"></div>
-        <div class="calc-campo"><label for="ctServidor">Servidor, USD por mes</label><input id="ctServidor" type="number" min="0" step="0.5" placeholder="lo que cotizaste"></div>
-        <div class="calc-campo"><label for="ctHoras">Tus horas por mes</label><input id="ctHoras" type="number" min="0" step="0.5" placeholder="actualizar, respaldar, mirar"></div>
-        <div class="calc-campo"><label for="ctValorHora">Tu hora, en USD</label><input id="ctValorHora" type="number" min="0" step="1" placeholder="lo que vale tu tiempo"></div>
+    <div class="capas">
+      <div class="cap-dibujo" id="capDibujo"></div>
+      <div>
+        <div class="cap-txt" id="capTxt"></div>
+        <div style="margin-top:14px"><button type="button" class="boton" id="capArrancar" hidden>Arrancar las tres aplicaciones</button></div>
+        <div id="capRes" aria-live="polite"></div>
       </div>
-      <div class="calc-res" id="ctRes"></div>
     </div>
-    <p class="nota-pie" id="ctNota"></p>
+
+    <h3 style="margin-top:44px;font-size:1.1rem">Máquina virtual o contenedor, lado a lado</h3>
+    <div class="tabla-caja">
+      <table class="datos">
+        <thead><tr><th></th><th>Máquina virtual</th><th>Contenedor</th></tr></thead>
+        <tbody>
+          <tr><td><b>Qué es</b></td><td>Una computadora entera hecha de software, con su sistema operativo.</td><td>Una aplicación empaquetada con lo justo para correr, que comparte el sistema de la máquina.</td></tr>
+          <tr><td><b>Pesa</b></td><td>Gigas: lleva un sistema operativo completo.</td><td>De unos pocos megas a algunos cientos.</td></tr>
+          <tr><td><b>Arranca en</b></td><td>Lo que tarda en prender un sistema: minutos.</td><td>Lo que tarda en abrir un programa: segundos.</td></tr>
+          <tr><td><b>Aislamiento</b></td><td>Muy fuerte: cada una es otra computadora.</td><td>Fuerte, pero comparten el corazón del sistema operativo.</td></tr>
+          <tr><td><b>Otro sistema operativo</b></td><td>Sí: un Windows adentro de una Mac.</td><td>No: un contenedor de Linux necesita un Linux debajo.</td></tr>
+          <tr><td><b>Ejemplos</b></td><td>VirtualBox, VMware, Hyper-V, Parallels.</td><td>Docker, Podman.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="nota-pie" id="notaVm"></p>
   </div>
 </section>
 
-<!-- ─────────── Docker ─────────── -->
+<!-- ─────────── Servidores ─────────── -->
 <section class="bloque revelar">
   <div class="envoltura">
-    <span class="rotulo">Docker en tres ideas</span>
-    <h2>La receta, la torta y la heladera</h2>
-    <p class="intro">Docker es la manera de instalar n8n en una máquina propia. Con tres palabras se entiende todo lo demás.</p>
-    <div class="escalones">
-      <div class="escalon"><div class="n">1</div><h3>Imagen = la receta</h3><p>Un paquete cerrado con n8n y todo lo que necesita para correr, publicado por n8n. Es igual para todo el mundo. Cada versión de n8n es una imagen distinta.</p></div>
-      <div class="escalon"><div class="n">2</div><h3>Contenedor = la torta</h3><p>Lo que corre de verdad, hecho a partir de la imagen. Se tira y se vuelve a hacer cada vez que actualizás. Nada que te importe puede vivir sólo ahí adentro.</p></div>
-      <div class="escalon"><div class="n">3</div><h3>Volumen = la heladera</h3><p>Una carpeta que vive fuera del contenedor y sobrevive cuando el contenedor se tira. Ahí quedan tus flujos, tus credenciales y tu configuración.</p></div>
+    <span class="rotulo">Dónde vive el software</span>
+    <h2>VPS, servidor dedicado o nube: departamento, casa u hotel</h2>
+    <p class="intro">Cuando un programa tiene que estar prendido todo el día y accesible desde internet, no vive en tu notebook: vive en un servidor, en el centro de datos de un proveedor. La pregunta es cuánto de ese servidor es tuyo.</p>
+    <div class="opciones" id="edOpc" style="margin-top:20px">
+      <button type="button" data-m="vps" aria-pressed="true">VPS</button>
+      <button type="button" data-m="dedicado" aria-pressed="false">Servidor dedicado</button>
+      <button type="button" data-m="nube" aria-pressed="false">Instancia en la nube</button>
+    </div>
+    <div class="edificio">
+      <div class="ed-dibujo" id="edDibujo"></div>
+      <div>
+        <div class="cap-txt" id="edTxt"></div>
+        <button type="button" class="boton hueco" id="edRuido" aria-pressed="false" style="margin-top:12px">Que el vecino use todo el procesador</button>
+        <div class="ed-vel" id="edVelocidad"></div>
+      </div>
     </div>
 
-    <div class="sim-panel" style="margin-top:30px">
-      <span class="rot" style="display:block;font-family:var(--dato);font-size:0.66rem;letter-spacing:0.13em;text-transform:uppercase;color:var(--naranja);margin-bottom:12px">Probá: creá flujos, borrá el contenedor y volvé a levantarlo</span>
+    <div class="tabla-caja" style="margin-top:30px">
+      <table class="datos">
+        <thead><tr><th></th><th>VPS</th><th>Servidor dedicado</th></tr></thead>
+        <tbody>
+          <tr><td><b>Qué alquilás</b></td><td>Una máquina virtual en un servidor que comparten varios clientes.</td><td>Una máquina física entera.</td></tr>
+          <tr><td><b>Lo bueno</b></td><td>Barato, se crea en minutos y se agranda cuando hace falta.</td><td>Toda la potencia, sin vecinos, el hardware sólo con tus datos.</td></tr>
+          <tr><td><b>Lo que cuesta</b></td><td>Compartís hardware: en los planes compartidos, un vecino ruidoso se puede sentir.</td><td>Más caro, se entrega en horas o días, y agrandarlo es cambiar de máquina.</td></tr>
+          <tr><td><b>Para qué</b></td><td>La mayoría de los sistemas chicos y medianos.</td><td>Mucho procesamiento, datos muy sensibles o reglas que exigen hardware propio.</td></tr>
+          <tr><td><b>Desde</b></td><td id="precioVps">—</td><td id="precioDed">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="nota-pie" id="notaPrecios"></p>
+    <p class="intro" style="margin-top:22px">Y en cualquiera de los dos, lo de adentro se instala igual: con Docker. Un mismo contenedor corre en tu notebook, en un VPS o en un dedicado. Por eso lo aprendemos en tu computadora.</p>
+  </div>
+</section>
+
+<!-- ─────────── Glosario ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Las palabras</span>
+    <h2>Ocho palabras y ya hablás Docker</h2>
+    <p class="intro">Tocá cada carta para darla vuelta.</p>
+    <div class="glosario" id="glosario"></div>
+  </div>
+</section>
+
+<!-- ─────────── Dónde se consiguen ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Dónde se consiguen</span>
+    <h2>Las imágenes se bajan de un registro</h2>
+    <p class="intro">Nadie arma una imagen de cero para empezar: se bajan, ya hechas, de un <b>registro</b>. El más usado es <b>Docker Hub</b>. Ahí hay imágenes de casi todo, y no todas son igual de confiables: fijate en el sello.</p>
+    <div class="hub">
+      <div class="banco-panel">
+        <input id="hubQ" type="text" placeholder="Buscá: base de datos, web, python…" aria-label="Buscar una imagen">
+        <div class="hub-lista" id="hubLista"></div>
+      </div>
+      <div class="banco-panel" id="hubDetalle" aria-live="polite"></div>
+    </div>
+    <div class="ops" style="margin-top:24px" id="sellosOps"></div>
+
+    <h3 style="margin-top:40px;font-size:1.1rem">No es el único</h3>
+    <div class="ops" id="otrosRegistros"></div>
+
+    <div class="trampa">
+      <span class="rot">Dos cosas que conviene saber</span>
+      <p><b>La etiqueta <code>latest</code> no quiere decir «la estable»</b>: es la que el autor marcó como última, y cambia sin avisar. Para algo que tiene que seguir andando, se elige una versión: <code>postgres:18</code> en lugar de <code>postgres</code>.</p>
+      <p id="txtLimites"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── Puertos y volúmenes ─────────── -->
+<section class="bloque revelar">
+  <div class="envoltura">
+    <span class="rotulo">Las dos conexiones con afuera</span>
+    <h2>Por dónde se entra y dónde quedan los datos</h2>
+    <p class="intro">Un contenedor está cerrado. Para usarlo hay que abrirle dos cosas: una <b>puerta</b>, para llegar desde el navegador, y una <b>heladera</b>, para que lo que guarda sobreviva cuando se lo borra.</p>
+
+    <h3 style="margin-top:30px;font-size:1.1rem">Los puertos: <code>-p afuera:adentro</code></h3>
+    <div class="sim-panel" style="margin-top:14px">
+      <div class="pt-campos">
+        <div class="campo"><label for="ptH">Puerto de tu máquina</label><input id="ptH" type="number" value="8080" min="1" max="65535"></div>
+        <div class="campo"><label for="ptC">Puerto del contenedor</label><input id="ptC" type="number" value="80" min="1" max="65535"></div>
+      </div>
+      <div class="pt-dibujo" id="ptDibujo" aria-live="polite"></div>
+    </div>
+
+    <h3 style="margin-top:40px;font-size:1.1rem">Los volúmenes: lo que sobrevive</h3>
+    <div class="sim-panel" style="margin-top:14px">
       <div class="opciones">
         <button type="button" id="volCon" aria-pressed="true">Con volumen</button>
         <button type="button" id="volSin" aria-pressed="false">Sin volumen</button>
       </div>
       <div class="vol" id="volCaja"></div>
       <div class="sim-acciones" style="margin-top:18px">
-        <button type="button" class="boton" id="volCrear">Crear un flujo</button>
+        <button type="button" class="boton" id="volCrear">Cargar un cliente</button>
         <button type="button" class="boton hueco" id="volBorrar">Borrar el contenedor</button>
         <button type="button" class="boton hueco" id="volLevantar">Levantar uno nuevo</button>
       </div>
       <div class="bitacora" id="volLog" aria-live="polite"></div>
     </div>
-    <p class="intro" style="margin-top:22px">Y un cuarto nombre: <b>Docker Compose</b>, un archivo que describe todos los contenedores que van juntos —n8n, la base de datos— y con un comando los levanta a todos. Es lo que armamos ahora.</p>
   </div>
 </section>
 
-<!-- ─────────── El armador ─────────── -->
+<!-- ─────────── Docker Desktop ─────────── -->
 <section class="bloque revelar">
   <div class="envoltura">
-    <span class="rotulo">Armá tu instalación</span>
-    <h2>Dos archivos, y cada línea con su porqué</h2>
-    <p class="intro">Completá los datos y tocá cualquier línea de los archivos para ver qué hace. Esta página no guarda nada y no tiene ningún campo para claves: las claves se generan en tu servidor, con el comando de abajo.</p>
-    <div class="campos-tres">
-      <div class="campo"><label for="arDominio">Tu dominio</label><input id="arDominio" type="text" placeholder="n8n.tu-dominio.com" spellcheck="false"></div>
-      <div class="campo"><label for="arZona">Zona horaria</label><input id="arZona" type="text" placeholder="America/Argentina/Buenos_Aires" spellcheck="false"></div>
-      <div class="campo"><label for="arVersion">Versión de n8n</label><input id="arVersion" type="text" placeholder="" spellcheck="false"></div>
-    </div>
-    <div class="opciones" id="arBase" style="margin-top:14px">
-      <button type="button" data-b="sqlite" aria-pressed="true">Base SQLite (la que viene)</button>
-      <button type="button" data-b="postgres" aria-pressed="false">Base Postgres (para producción)</button>
-    </div>
-    <div class="armador">
-      <div>
-        <div class="cabeza-ar"><code>docker-compose.yml</code><button type="button" class="boton hueco" id="arBajarCompose">Descargar</button></div>
-        <div class="archivo-ar" id="arCompose"></div>
-        <div class="cabeza-ar"><code>.env</code><button type="button" class="boton hueco" id="arBajarEnv">Descargar</button></div>
-        <div class="archivo-ar" id="arEnv"></div>
+    <span class="rotulo">En tu computadora</span>
+    <h2>Docker Desktop: Docker con ventanas</h2>
+    <p class="intro" id="txtDesktop"></p>
+
+    <h3 style="margin-top:30px;font-size:1.1rem">Instalarlo</h3>
+    <div class="ops" id="instalar"></div>
+
+    <h3 style="margin-top:40px;font-size:1.1rem">¿Es gratis para vos?</h3>
+    <div class="decisor" id="licPreg">
+      <div class="decisor-p"><b>¿Para qué lo vas a usar?</b>
+        <div class="opciones">
+          <button type="button" data-k="uso" data-v="personal" aria-pressed="false">Uso personal</button>
+          <button type="button" data-k="uso" data-v="educacion" aria-pressed="false">Estudio o docencia</button>
+          <button type="button" data-k="uso" data-v="abierto" aria-pressed="false">Un proyecto de código abierto, sin fines comerciales</button>
+          <button type="button" data-k="uso" data-v="empresa" aria-pressed="false">Trabajo en una empresa</button>
+        </div>
       </div>
-      <div class="ar-expl" id="arExpl" aria-live="polite"></div>
+      <div class="decisor-p" data-si="empresa" hidden><b id="licPregTam"></b>
+        <div class="opciones">
+          <button type="button" data-k="tam" data-v="chica" aria-pressed="false">Sí, es chica</button>
+          <button type="button" data-k="tam" data-v="grande" aria-pressed="false">No, la supera en alguna de las dos</button>
+        </div>
+      </div>
+      <div class="veredicto" id="licVer" hidden aria-live="polite"></div>
     </div>
-    <div class="prompt" style="margin-top:22px">
-      <div class="cabeza"><b>La clave de cifrado se genera en el servidor, no acá</b><button type="button" class="boton hueco" data-copiar="cmdClave">Copiar</button></div>
-<pre id="cmdClave">openssl rand -hex 32</pre>
-      <p style="margin-top:10px;font-size:0.88rem;color:var(--tenue)">Lo que devuelve va en <code>N8N_ENCRYPTION_KEY</code>, y una copia en un lugar seguro fuera del servidor, como un gestor de contraseñas. Para Postgres, generá otra para la clave de la base.</p>
+    <p class="nota-pie" id="notaLicencia"></p>
+
+    <h3 style="margin-top:40px;font-size:1.1rem">Un recorrido por la ventana</h3>
+    <p style="margin-top:6px">Un dibujo de las secciones principales. Tocá cada una.</p>
+    <div class="dd">
+      <div class="dd-menu" id="ddMenu"></div>
+      <div class="dd-panel" id="ddPanel" aria-live="polite"></div>
     </div>
-    <p class="nota-pie" id="arNota"></p>
+    <p class="nota-pie" id="notaDesktop"></p>
   </div>
 </section>
 
 <!-- ─────────── La terminal ─────────── -->
 <section class="bloque revelar">
   <div class="envoltura">
-    <span class="rotulo">El primer arranque</span>
-    <h2>Cinco comandos, en orden</h2>
-    <p class="intro">Con los dos archivos en una carpeta del servidor, esto es lo que se escribe. Tocá cada comando para ver qué contesta y para qué sirve.</p>
-    <div class="terminal">
-      <div class="term" id="term" aria-live="polite"></div>
+    <span class="rotulo">Manos a la obra</span>
+    <h2>La terminal de práctica</h2>
+    <p class="intro">Docker Desktop tiene ventanas, pero todo el mundo usa comandos: son cortos y se copian. Esta terminal entiende los de todos los días. Escribí, o tocá un comando de abajo para que se escriba solo. Los ejercicios se van tildando cuando los hacés.</p>
+    <div class="practica-dk">
       <div>
-        <div class="term-cmd" id="termCmd"></div>
-        <div class="term-expl" id="termExpl"></div>
-        <div class="sim-acciones" style="margin-top:14px"><button type="button" class="boton hueco" id="termReset">Empezar de nuevo</button></div>
-      </div>
-    </div>
-    <p class="nota-pie" id="termNota"></p>
-  </div>
-</section>
-
-<!-- ─────────── La clave de cifrado ─────────── -->
-<section class="bloque revelar">
-  <div class="envoltura">
-    <span class="rotulo">Credenciales</span>
-    <h2>La única clave que no se puede perder</h2>
-    <p class="intro">Cada credencial que cargás —la de Gmail, la del modelo, la de Telegram— n8n la guarda cifrada en su base, con la clave de cifrado. Si la clave cambia o se pierde, las credenciales siguen ahí pero no se pueden leer. Probalo con cifrado de verdad: lo hace tu navegador y no sale de esta página.</p>
-    <div class="cifrado">
-      <div class="banco-panel">
-        <div class="campo"><label for="cfToken">Una credencial de mentira</label><input id="cfToken" type="text" value="token-de-ejemplo-123" spellcheck="false"></div>
-        <div class="campo" style="margin-top:12px"><label for="cfClave">La clave de cifrado de tu n8n</label><input id="cfClave" type="text" readonly spellcheck="false"></div>
-        <div class="sim-acciones" style="margin-top:14px"><button type="button" class="boton" id="cfCifrar">Guardar la credencial</button></div>
-        <span class="rot-chica" style="margin-top:16px;display:block">Lo que queda en la base de datos</span>
-        <div class="cf-base" id="cfBase">—</div>
-      </div>
-      <div class="banco-panel">
-        <div class="campo"><label for="cfOtra">Otra clave: la de un n8n reinstalado sin la original</label><input id="cfOtra" type="text" readonly spellcheck="false"></div>
-        <div class="sim-acciones" style="margin-top:14px">
-          <button type="button" class="boton hueco" id="cfMisma">Abrir con la misma clave</button>
-          <button type="button" class="boton hueco" id="cfDistinta">Abrir con la otra clave</button>
-          <button type="button" class="boton hueco" id="cfNueva">Otra clave al azar</button>
+        <div class="dk-term">
+          <div class="dk-salida" id="dkSalida" aria-live="polite"></div>
+          <form class="dk-form" id="dkForm"><span>$</span><input id="dkEntrada" type="text" autocomplete="off" spellcheck="false" placeholder="docker run hello-world" aria-label="Comando"></form>
         </div>
-        <div id="cfRes" style="margin-top:16px" aria-live="polite"></div>
+        <div class="dk-chips" id="dkChips">
+          <button type="button" data-c="docker run hello-world">docker run hello-world</button>
+          <button type="button" data-c="docker images">docker images</button>
+          <button type="button" data-c="docker run -d -p 8080:80 --name web nginx">docker run -d -p 8080:80 --name web nginx</button>
+          <button type="button" data-c="docker ps">docker ps</button>
+          <button type="button" data-c="docker logs web">docker logs web</button>
+          <button type="button" data-c="docker run -d -p 8080:80 httpd">docker run -d -p 8080:80 httpd</button>
+          <button type="button" data-c="docker stop web">docker stop web</button>
+          <button type="button" data-c="docker rm web">docker rm web</button>
+          <button type="button" data-c="docker ps -a">docker ps -a</button>
+          <button type="button" data-c="docker run -d --name base postgres:18">docker run -d --name base postgres:18</button>
+          <button type="button" data-c="docker run -d --name base2 -e POSTGRES_PASSWORD=secreta -v datos:/var/lib/postgresql/data postgres:18">… con contraseña y volumen</button>
+          <button type="button" data-c="docker compose up -d">docker compose up -d</button>
+          <button type="button" data-c="ayuda">ayuda</button>
+        </div>
+        <div class="sim-acciones" style="margin-top:12px"><button type="button" class="boton hueco" id="dkReset">Empezar de cero</button></div>
+      </div>
+      <div>
+        <div class="banco-panel">
+          <span class="rot-chica">Ejercicios · <b id="dkProgreso"></b></span>
+          <ol class="dk-ej" id="dkEjercicios">
+            <li data-h="hello">Corré tu primer contenedor: <code>docker run hello-world</code>. Leé lo que contesta.</li>
+            <li data-h="images">Mirá qué imágenes bajaste: <code>docker images</code>.</li>
+            <li data-h="web">Levantá un servidor web en segundo plano en el puerto 8080, y mirá el navegador de abajo.</li>
+            <li data-h="ps">Listá lo que está corriendo: <code>docker ps</code>.</li>
+            <li data-h="puerto">Intentá levantar otro en el mismo puerto 8080. ¿Qué pasa?</li>
+            <li data-h="logs">Leé lo que cuenta el contenedor: <code>docker logs web</code>.</li>
+            <li data-h="stop">Pará el contenedor.</li>
+            <li data-h="rm">Borralo.</li>
+            <li data-h="env">Corré una base de datos sin contraseña y leé por qué se cae.</li>
+            <li data-h="volumen">Corré la base con contraseña y con un volumen.</li>
+            <li data-h="compose">Levantá dos contenedores juntos con <code>docker compose up -d</code>.</li>
+          </ol>
+        </div>
+        <div class="banco-panel" style="margin-top:16px">
+          <span class="rot-chica">El navegador</span>
+          <div id="dkNavegador"></div>
+        </div>
       </div>
     </div>
-    <p class="nota-pie" id="cfNota"></p>
-  </div>
-</section>
-
-<!-- ─────────── Respaldos ─────────── -->
-<section class="bloque revelar">
-  <div class="envoltura">
-    <span class="rotulo">Respaldos</span>
-    <h2>Lo que no está copiado en otro lado no existe</h2>
-    <p class="intro">La regla de siempre: <b>tres copias, en dos lugares distintos, una fuera del edificio</b>. Elegí qué respaldás y probá qué pasa en cada desastre.</p>
-    <div class="desastres">
-      <div class="banco-panel">
-        <span class="rot-chica" style="margin-bottom:12px">Lo que respaldás</span>
-        <div id="dsResp"></div>
-        <div class="sim-acciones" style="margin-top:12px"><button type="button" class="boton hueco" id="dsTodo">Marcar todo</button></div>
-      </div>
-      <div class="banco-panel">
-        <span class="rot-chica" style="margin-bottom:12px">El desastre</span>
-        <div class="opciones" id="dsDesastre"></div>
-        <div class="veredicto" id="dsRes" style="margin-top:16px" aria-live="polite"></div>
-      </div>
-    </div>
-
-    <h3 style="margin-top:44px;font-size:1.1rem">Cómo se respalda en n8n</h3>
-    <div id="cmdRespaldo"></div>
+    <p class="nota-pie" id="notaTerminal"></p>
 
     <div class="caso">
-      <span class="n">El flujo de la clase</span>
-      <h3>Respaldo diario de los flujos</h3>
-<pre>TODOS los días a las 3 de la mañana:
-    pedirle a n8n la lista de todos los flujos
-    PARA cada flujo:
-        convertirlo en un archivo JSON
-        guardarlo en la carpeta de respaldos, con la fecha
-FIN</pre>
-      <p style="font-size:0.92rem">Usa el nodo de n8n que habla con la API de tu propia instancia y el que escribe archivos en el disco. En Cloud el disco no es tuyo; en tu instancia, la carpeta de respaldos es una carpeta de tu servidor, montada en el docker-compose de arriba. Respalda los flujos, no las credenciales: esas van con el comando de arriba y con la clave guardada aparte.</p>
-      <div class="acciones"><a class="boton" href="workflows/15-respaldo-diario-de-flujos-n8n.json" download>Descargar el flujo de respaldo</a></div>
+      <span class="n">El último comando de los ejercicios</span>
+      <h3>Docker Compose: varios contenedores en un archivo</h3>
+<pre>services:
+  web:
+    image: nginx:1.30
+    ports:
+      - "8081:80"
+  db:
+    image: postgres:18
+    environment:
+      - POSTGRES_PASSWORD=cambiala
+    volumes:
+      - datos:/var/lib/postgresql/data
+
+volumes:
+  datos:</pre>
+      <p style="font-size:0.92rem">Un archivo <code>compose.yaml</code> describe todos los contenedores que van juntos —acá, una web y una base de datos— con sus puertos, sus variables y sus volúmenes. <code>docker compose up -d</code> los levanta a todos; <code>docker compose down</code> los baja. Es la manera en que se instala casi todo lo que vas a ver en un servidor.</p>
     </div>
-    <p class="nota-pie" id="respNota"></p>
   </div>
 </section>
 
-<!-- ─────────── Versiones y entornos ─────────── -->
+<!-- ─────────── Prueba final ─────────── -->
 <section class="bloque revelar">
   <div class="envoltura">
-    <span class="rotulo">Cambiar sin romper</span>
-    <h2>Actualizar con red, y probar antes de producción</h2>
-    <div class="dos-col" style="margin-top:20px">
-      <div>
-        <h3 style="font-size:1.1rem;margin-bottom:10px">Actualizar n8n</h3>
-        <ol class="pasos-lista" id="pasosActualizar"></ol>
-      </div>
-      <div>
-        <h3 style="font-size:1.1rem;margin-bottom:10px">Entornos: desarrollo y producción</h3>
-        <p id="txtEntornos"></p>
-      </div>
-    </div>
-    <p class="nota-pie" id="versNota"></p>
-  </div>
-</section>
-
-<!-- ─────────── Diagnóstico ─────────── -->
-<section class="bloque revelar">
-  <div class="envoltura">
-    <span class="rotulo">Cuando algo falla</span>
-    <h2>Seis síntomas y su causa</h2>
-    <p class="intro">Lo primero, siempre: <code>docker compose logs -f n8n</code>. Casi todo lo que sale mal en una instancia nueva es una variable de entorno. Elegí la causa de cada síntoma.</p>
-    <div class="prueba" id="diag"></div>
-    <p class="prueba-total" id="diagTotal"></p>
-  </div>
-</section>
-
-<!-- ─────────── Lo de la 14 en casa ─────────── -->
-<section class="bloque revelar">
-  <div class="envoltura">
-    <span class="rotulo">Y lo de la clase 14</span>
-    <h2>Dify, los modelos y la base de vectores, también adentro</h2>
-    <p class="intro">Si tu respuesta de la clase 14 fue «todo adentro», la receta es la misma: más contenedores en el mismo servidor, y una máquina más grande.</p>
-    <div class="ops">
-      <div class="op"><b>Dify</b><p>Su versión Community se instala con Docker Compose, igual que n8n. Pide al menos 2 núcleos y 4 GiB de memoria, sólo para Dify.</p></div>
-      <div class="op"><b>Modelos locales</b><p>Ollama corre modelos en tu máquina, y n8n y Dify tienen cómo conectarse a él. Un modelo bueno pide mucha más memoria que n8n, y si es posible, una placa de video.</p></div>
-      <div class="op"><b>La base de vectores</b><p>El Simple Vector Store de la 14 se borraba al reiniciar. Adentro, una base de verdad: Postgres con PGVector, la misma base de n8n con una extensión, o Qdrant en su contenedor.</p></div>
-    </div>
-    <p class="nota-pie">Requisitos de Dify verificados el 28 de octubre de 2026 en docs.dify.ai.</p>
+    <span class="rotulo">Para comprobar</span>
+    <h2>¿Contenedor, máquina virtual, VPS o dedicado?</h2>
+    <div class="prueba" id="final"></div>
+    <p class="prueba-total" id="finalTotal"></p>
   </div>
 </section>
 
@@ -979,16 +1051,16 @@ FIN</pre>
 <section class="bloque revelar">
   <div class="envoltura">
     <span class="rotulo">Para el miércoles</span>
-    <h2>Dos cosas antes de la clase 16</h2>
-    <p class="intro">La clase que viene junta todo: tu instancia, expuesta como servidor MCP, y un agente de código que crea, corrige y despliega flujos desde afuera. Antes de darle esa llave conviene decidir qué le vas a pedir y dónde.</p>
+    <h2>Ahora en tu computadora</h2>
+    <p class="intro">Instalá Docker Desktop y hacé de verdad los primeros ejercicios de la terminal: <code>docker run hello-world</code> y el servidor web en el puerto 8080, abierto en tu navegador. La clase que viene vuelve a n8n, con un agente de código que lo maneja desde afuera, y lo que aprendiste hoy es dónde y cómo corre todo eso.</p>
     <div class="actividad" style="margin-top:30px">
       <div class="pregunta">
-        <label for="q1"><b>Una tarea de mantenimiento para un agente</b><span>De lo que vimos hoy —respaldar, actualizar, revisar los registros, corregir un flujo que falla— ¿qué le darías a un agente de código? ¿Cómo sabrías que lo hizo bien? Acordate de los casos de la clase 12.</span></label>
-        <textarea id="q1" placeholder="Por ejemplo: que revise el flujo de error todas las mañanas y me proponga la corrección, probándola con mis casos…"></textarea>
+        <label for="q1"><b>Lo que te contestó tu máquina</b><span>Pegá lo que devolvió <code>docker ps</code> con el servidor web corriendo. Si algo falló, pegá el error: lo miramos en clase.</span></label>
+        <textarea id="q1" placeholder="CONTAINER ID   IMAGE   COMMAND   …"></textarea>
       </div>
       <div class="pregunta">
-        <label for="q2"><b>¿Desarrollo o producción?</b><span>Si tuvieras dos instancias, una para probar y una que usa la organización, ¿a cuál dejarías entrar al agente? ¿Con qué permisos? ¿Quién pasa lo probado a producción?</span></label>
-        <textarea id="q2" placeholder="Al agente, sólo la de pruebas; a producción lo paso yo después de correr los casos…"></textarea>
+        <label for="q2"><b>Algo que probarías en un contenedor</b><span>Un programa que en tu trabajo nunca te animaste a instalar, o que te gustaría probar sin ensuciar tu computadora. Buscalo en Docker Hub: ¿tiene imagen? ¿con qué sello?</span></label>
+        <textarea id="q2" placeholder="Por ejemplo: Metabase, para hacer tableros; tiene imagen, del propio proyecto…"></textarea>
       </div>
       <div class="guardado" id="guardado"></div>
     </div>
@@ -997,7 +1069,7 @@ FIN</pre>
 
 <div class="envoltura cierre">
   <h2>Nos vemos el miércoles 11 de noviembre</h2>
-  <p class="intro" style="margin:0 auto">Hoy tu n8n se mudó a una máquina tuya y aprendiste lo que eso cuesta: una clave que no se pierde, copias que viven en otro lado y actualizaciones con red. La clase que viene le da esa instancia a un agente de código, para que la maneje desde afuera.</p>
+  <p class="intro" style="margin:0 auto">Hoy aprendiste a leer las palabras que se usan para hablar de dónde corre el software: máquina virtual, contenedor, imagen, registro, VPS, dedicado. Y corriste tus primeros contenedores. La clase que viene los pone a trabajar.</p>
   <div class="acciones">
     <a class="boton" href="cronograma.html">Ver el cronograma completo</a>
     <a class="boton hueco" href="14.html">Volver a la clase 14</a>

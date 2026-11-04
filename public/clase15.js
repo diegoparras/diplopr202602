@@ -1,14 +1,14 @@
-/* Clase 15 — Self-hosting e instancia propia: Docker, credenciales y backups
-   Piezas: lo que trajo de las clases 13 y 14, la escalera de dónde vive
-   n8n, el decisor con la cuenta de costos, Docker en tres ideas con el
-   simulador del volumen, el armador de la instalación, la terminal del
-   primer arranque, la clave de cifrado con cifrado de verdad en el
-   navegador, el simulador de desastres, el diagnóstico y la actividad.
+/* Clase 15 — Docker, máquinas virtuales y servidores
+   Una clase general: qué es un contenedor, qué es una máquina virtual,
+   qué es un VPS y qué es un servidor dedicado, dónde se consiguen las
+   imágenes y cómo se corren en tu máquina con Docker Desktop.
 
-   Nada se dibuja con colores leídos desde JavaScript: todo sale de las
-   variables de estilo.css. El armador sólo maneja valores que no son
-   secretos y no guarda nada: la clave de cifrado se genera en tu máquina
-   con un comando, nunca en esta página. */
+   Piezas: las capas (computadora, máquinas virtuales, contenedores), el
+   edificio (VPS, dedicado), el glosario que se da vuelta, el buscador de
+   imágenes, los puertos, el volumen, la terminal de práctica con su
+   navegador, el recorrido por Docker Desktop, la licencia, la prueba final
+   y la actividad. Nada se dibuja con colores leídos desde JavaScript: todo
+   sale de las variables de estilo.css. Nada se descarga ni se instala. */
 
 exigirSesion();
 document.getElementById('salir').addEventListener('click', e => { e.preventDefault(); cerrarSesion(); });
@@ -27,178 +27,345 @@ function escapar(t) {
 function marcar(grupo, boton) {
   grupo.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b === boton)));
 }
-function copiar(texto, boton) {
-  const original = boton.textContent;
-  const listo = ok => { boton.textContent = ok ? 'Copiado' : 'Seleccioná y copiá a mano'; setTimeout(() => { boton.textContent = original; }, 1800); };
-  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(texto).then(() => listo(true), () => listo(false));
-  else listo(false);
-}
-function bajar(nombre, texto) {
-  const url = URL.createObjectURL(new Blob([texto], { type: 'text/plain;charset=utf-8' }));
-  const a = document.createElement('a');
-  a.href = url; a.download = nombre;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-document.querySelectorAll('[data-copiar]').forEach(b => b.addEventListener('click', () => copiar(document.getElementById(b.dataset.copiar).textContent, b)));
 
-// Datos verificados de n8n que usan varias piezas. Salen de la documentación
-// y del paquete de la versión estable; la fecha está en las notas al pie.
-const N8N = {
- "estable": "2.46.6",
- "edadEjecuciones": 336,
- "planes": [
-  {
-   "nombre": "Starter",
-   "euros": 20,
-   "ejecuciones": 2500
+// Datos verificados: catálogo de la terminal, recorrido de Docker Desktop,
+// licencia, distintivos de Docker Hub y textos con fecha.
+const DOCKER = {
+ "catalogo": {
+  "hello-world": {
+   "tags": [
+    "latest",
+    "linux"
+   ],
+   "tam": "<1MB",
+   "servicio": false,
+   "comando": "/hello",
+   "salida": "Hello from Docker!\nThis message shows that your installation appears to be working correctly.\n\nTo generate this message, Docker took the following steps:\n 1. The Docker client contacted the Docker daemon.\n 2. The Docker daemon pulled the \"hello-world\" image from the Docker Hub.\n    (amd64)\n 3. The Docker daemon created a new container from that image which runs the\n    executable that produces the output you are currently reading.\n 4. The Docker daemon streamed that output to the Docker client, which sent it\n    to your terminal.\n\nTo try something more ambitious, you can run an Ubuntu container with:\n $ docker run -it ubuntu bash"
   },
-  {
-   "nombre": "Pro",
-   "euros": 50,
-   "ejecuciones": 10000
+  "nginx": {
+   "tags": [
+    "latest",
+    "stable",
+    "mainline",
+    "1.30",
+    "1.31"
+   ],
+   "tam": "64MB",
+   "servicio": true,
+   "comando": "/docker-entrypoint.…",
+   "logs": "/docker-entrypoint.sh: Configuration complete; ready for start up",
+   "pagina": "<h4>Welcome to nginx!</h4><p>La página que trae nginx de fábrica. Si la ves, el servidor web anda: lo que sigue es reemplazarla por tu sitio.</p>"
+  },
+  "httpd": {
+   "tags": [
+    "latest",
+    "2.4",
+    "2"
+   ],
+   "tam": "45MB",
+   "servicio": true,
+   "comando": "httpd-foreground",
+   "logs": "AH00094: Command line: 'httpd -D FOREGROUND'",
+   "pagina": "<h4>It works!</h4><p>La página de fábrica de Apache httpd, otro servidor web.</p>"
+  },
+  "postgres": {
+   "tags": [
+    "latest",
+    "18",
+    "17",
+    "16"
+   ],
+   "tam": "162MB",
+   "servicio": true,
+   "comando": "docker-entrypoint.s…",
+   "necesita": "POSTGRES_PASSWORD=",
+   "sinEnv": "Error: Database is uninitialized and superuser password is not specified.\n       You must specify POSTGRES_PASSWORD to a non-empty value for the\n       superuser. For example, \"-e POSTGRES_PASSWORD=password\" on \"docker run\".",
+   "logs": "database system is ready to accept connections"
+  },
+  "mysql": {
+   "tags": [
+    "latest",
+    "lts"
+   ],
+   "tam": "299MB",
+   "servicio": true,
+   "comando": "docker-entrypoint.s…",
+   "necesita": "MYSQL_ROOT_PASSWORD=",
+   "sinEnv": "error: database is uninitialized and password option is not specified\n    You need to specify one of the following as an environment variable:\n    - MYSQL_ROOT_PASSWORD\n    - MYSQL_ALLOW_EMPTY_PASSWORD\n    - MYSQL_RANDOM_ROOT_PASSWORD",
+   "logs": "ready for connections"
+  },
+  "redis": {
+   "tags": [
+    "latest",
+    "8.8"
+   ],
+   "tam": "56MB",
+   "servicio": true,
+   "comando": "docker-entrypoint.s…",
+   "logs": "Ready to accept connections tcp"
+  },
+  "wordpress": {
+   "tags": [
+    "latest"
+   ],
+   "tam": "275MB",
+   "servicio": true,
+   "comando": "docker-entrypoint.s…",
+   "logs": "apache2 -D FOREGROUND",
+   "pagina": "<h4>WordPress</h4><p>La pantalla de instalación: elegir el idioma y crear el sitio. (Para guardar algo necesitaría una base de datos al lado: un trabajo para Compose.)</p>"
+  },
+  "alpine": {
+   "tags": [
+    "latest",
+    "3.24"
+   ],
+   "tam": "4MB",
+   "servicio": false,
+   "comando": "/bin/sh",
+   "salida": ""
+  },
+  "ubuntu": {
+   "tags": [
+    "latest",
+    "noble"
+   ],
+   "tam": "42MB",
+   "servicio": false,
+   "comando": "/bin/bash",
+   "salida": ""
+  },
+  "python": {
+   "tags": [
+    "latest",
+    "3.13",
+    "3.13-slim"
+   ],
+   "tam": "419MB",
+   "servicio": false,
+   "comando": "python3",
+   "salida": ""
   }
- ],
- "errorClave": "n8n muestra «Credentials could not be decrypted. The likely reason is that a different \"encryptionKey\" was used to encrypt the data.»",
- "explicaciones": {
-  "image": "La receta. <code>n8nio/n8n</code> es la imagen oficial, y la versión sale de <code>N8N_VERSION</code> en el .env. Fijar la versión quiere decir que nada cambia hasta que vos la cambies; <code>latest</code> te actualiza sin avisar.",
-  "N8N_VERSION": "La versión que corre. Hoy la estable es la 2.46.6. La 3.0 existe desde el 27 de octubre como acceso anticipado, sólo en Docker: para producción, esperá a que la marquen estable.",
-  "restart": "Si el contenedor se cae o el servidor se reinicia, Docker lo vuelve a levantar solo. Salvo que lo hayas parado vos a propósito.",
-  "ports": "n8n escucha en el puerto 5678, pero sólo para la propia máquina (127.0.0.1). Desde internet se entra por HTTPS a través de un proxy que pone el certificado; la guía oficial de n8n usa Traefik. Abrir el 5678 directo a internet es dejar el editor sin cifrar.",
-  "env_file": "Todas las variables viven en el archivo .env, al lado. Así el docker-compose.yml se puede compartir y los secretos no.",
-  "volumes": "La heladera: el volumen <code>n8n_data</code> guarda todo lo de <code>/home/node/.n8n</code>, que es donde n8n escribe flujos, credenciales, la base SQLite y su configuración. Sin esta línea, cada actualización empieza de cero.",
-  "respaldos": "Una carpeta del servidor, <code>./respaldos</code>, montada donde n8n deja escribir archivos (<code>/home/node/.n8n-files</code>, lo que viene desde la 2.0). Ahí escribe el flujo de respaldo de la clase.",
-  "depends_on": "n8n arranca después de la base de datos.",
-  "N8N_HOST": "El nombre con el que se llega a tu n8n desde afuera. n8n lo usa para armar sus propias direcciones.",
-  "N8N_PROTOCOL": "https: detrás del proxy que pone el certificado. Con http, el navegador no guarda la sesión, porque n8n pide cookies seguras por defecto (<code>N8N_SECURE_COOKIE=true</code>).",
-  "N8N_WEBHOOK_URL": "La dirección pública de los webhooks. Sin ella, detrás de un proxy n8n muestra <code>http://localhost:5678/...</code> y nadie de afuera puede llamarte. Reemplaza a <code>WEBHOOK_URL</code>, que desde la 2.35 está deprecada.",
-  "N8N_PROXY_HOPS": "Le dice a n8n que hay un proxy adelante (uno), para que lea bien la dirección real de quien llama.",
-  "GENERIC_TIMEZONE": "La zona horaria de los nodos que trabajan con horarios, como el Schedule Trigger. Si no la ponés, n8n usa la de Nueva York y tu «todos los días a las 9» corre a otra hora.",
-  "TZ": "La zona horaria del sistema dentro del contenedor: la de los registros y la de los comandos.",
-  "N8N_ENCRYPTION_KEY": "La clave con la que n8n cifra cada credencial. Si no la ponés, n8n inventa una y la guarda dentro del volumen; si después pierde el volumen o la cambiás, ninguna credencial se puede leer. Generala con el comando de abajo, ponela acá y guardá una copia fuera del servidor. Si el valor de acá no coincide con el que n8n ya guardó, no arranca: «Mismatching encryption keys».",
-  "EXECUTIONS_DATA_PRUNE": "Borrar las ejecuciones viejas. Viene prendido. Cada ejecución guarda los datos que pasaron por cada nodo, y sin poda el disco se llena.",
-  "EXECUTIONS_DATA_MAX_AGE": "Cuántas horas se guardan las ejecuciones: 336 son 14 días, el valor que trae n8n. Además se guardan, como mucho, 10.000.",
-  "DB_TYPE": "Postgres en lugar de SQLite. n8n usa SQLite si no le decís nada y recomienda Postgres para producción: soporta las versiones 17 y 18.",
-  "DB_POSTGRESDB_HOST": "El nombre del servicio de Postgres en este mismo compose. Entre contenedores se llaman por su nombre.",
-  "DB_POSTGRESDB_DATABASE": "El nombre de la base.",
-  "DB_POSTGRESDB_USER": "El usuario de la base.",
-  "DB_POSTGRESDB_PASSWORD": "La clave de la base. Generala igual que la de cifrado y no la repitas.",
-  "pgimage": "La imagen oficial de Postgres, versión 18, la misma que usa el compose oficial de n8n.",
-  "pgenv": "Postgres crea la base y el usuario la primera vez que arranca.",
-  "pgpass": "La misma clave de la base, tomada del .env: se escribe una sola vez.",
-  "pgdata": "Dónde guarda Postgres sus datos adentro del contenedor. El compose oficial de n8n lo fija así para que coincida con el volumen.",
-  "pgvol": "El volumen de Postgres: la heladera de la base. Con Postgres, el respaldo de la base se hace con sus propias herramientas."
  },
- "terminal": [
+ "sellos": {
+  "oficial": {
+   "nombre": "Docker Official Image",
+   "que": "Un conjunto curado de imágenes que Docker revisa y mantiene al día. Es el punto de partida más seguro."
+  },
+  "verificado": {
+   "nombre": "Verified Publisher",
+   "que": "La publica una empresa que Docker verificó: sabés que viene de quien dice."
+  },
+  "oss": {
+   "nombre": "Sponsored OSS",
+   "que": "La publica y mantiene un proyecto de código abierto que Docker patrocina."
+  },
+  "hardened": {
+   "nombre": "Hardened",
+   "que": "Imágenes reforzadas por Docker: mínimas, con menos cosas que puedan fallar. La versión Community es gratis."
+  },
+  "comunidad": {
+   "nombre": "Sin sello",
+   "que": "Cualquiera puede subir una imagen. Sin sello no quiere decir mala: quiere decir que Docker no la verificó. Mirá quién la publica y cuánta gente la usa."
+  }
+ },
+ "hub": [
   {
-   "rot": "Levantar todo",
-   "cmd": "docker compose up -d",
-   "sal": "[+] Running 3/3\n ✔ Volume \"n8n_data\"   Created\n ✔ Container n8n        Started",
-   "expl": "Lee el docker-compose.yml, baja la imagen si no la tiene, crea el volumen y arranca el contenedor. La <code>-d</code> lo deja corriendo en segundo plano."
+   "nombre": "nginx",
+   "desc": "Servidor web: sirve páginas y hace de puerta de entrada a otras aplicaciones.",
+   "sello": "oficial",
+   "ejemplo": "nginx:1.30",
+   "nota": "Hoy la rama estable es la 1.30 y la principal, la 1.31."
   },
   {
-   "rot": "Ver qué está corriendo",
-   "cmd": "docker compose ps",
-   "sal": "NAME   IMAGE              STATUS         PORTS\nn8n    n8nio/n8n:2.46.6   Up 20 seconds  127.0.0.1:5678->5678/tcp",
-   "expl": "«Up» quiere decir que está corriendo. Si dice «Restarting» una y otra vez, algo falla al arrancar: el paso siguiente te dice qué."
+   "nombre": "postgres",
+   "desc": "Base de datos relacional, de las más usadas.",
+   "sello": "oficial",
+   "ejemplo": "postgres:18",
+   "nota": "Pide una contraseña para arrancar: se la pasás con -e POSTGRES_PASSWORD=…"
   },
   {
-   "rot": "Leer los registros",
-   "cmd": "docker compose logs -f n8n",
-   "sal": "n8n  | Editor is now accessible via:\nn8n  | https://n8n.tu-dominio.com",
-   "expl": "Lo que n8n va contando. Es lo primero que se mira cuando algo no anda. Con <code>Ctrl+C</code> dejás de mirar; n8n sigue corriendo."
+   "nombre": "httpd",
+   "desc": "Apache HTTP Server, el otro servidor web clásico.",
+   "sello": "oficial",
+   "ejemplo": "httpd:2.4",
+   "nota": "Su página de fábrica dice «It works!»."
   },
   {
-   "rot": "Preguntarle si está vivo",
-   "cmd": "curl -sf http://localhost:5678/healthz",
-   "sal": "(responde con el código 200: la instancia está viva)",
-   "expl": "<code>/healthz</code> contesta si la instancia responde. <code>/healthz/readiness</code>, además, si la base de datos está conectada. Es lo que mira un servicio de monitoreo."
+   "nombre": "redis",
+   "desc": "Base de datos en memoria, muy rápida, para guardar datos de paso.",
+   "sello": "oficial",
+   "ejemplo": "redis:8.8",
+   "nota": "La misma empresa publica también imágenes propias, con sello de Verified Publisher."
   },
   {
-   "rot": "Abrir el navegador",
-   "cmd": "https://n8n.tu-dominio.com",
-   "sal": "Set up owner account",
-   "expl": "La primera vez, n8n pide crear la cuenta de dueño. Es la cuenta que administra la instancia: usá una clave fuerte. Si querés lo gratis de Community registrada (carpetas, depurar en el editor), registrala con tu correo."
+   "nombre": "wordpress",
+   "desc": "El gestor de sitios web más usado.",
+   "sello": "oficial",
+   "ejemplo": "wordpress",
+   "nota": "Necesita una base de datos al lado: es el ejemplo típico de Docker Compose."
+  },
+  {
+   "nombre": "python",
+   "desc": "El lenguaje Python, listo para correr programas.",
+   "sello": "oficial",
+   "ejemplo": "python:3.13-slim",
+   "nota": "Las variantes «slim» pesan mucho menos que la completa."
+  },
+  {
+   "nombre": "grafana/grafana",
+   "desc": "Tableros y gráficos sobre datos.",
+   "sello": "verificado",
+   "ejemplo": "grafana/grafana",
+   "nota": "Fijate el nombre: «grafana/» adelante quiere decir que la publica la cuenta de Grafana, no Docker."
+  },
+  {
+   "nombre": "portainer/portainer-ce",
+   "desc": "Una interfaz web para manejar contenedores en un servidor.",
+   "sello": "verificado",
+   "ejemplo": "portainer/portainer-ce",
+   "nota": "Útil en un VPS, donde no hay Docker Desktop."
+  },
+  {
+   "nombre": "ollama/ollama",
+   "desc": "Corre modelos de lenguaje en tu propia máquina.",
+   "sello": "oss",
+   "ejemplo": "ollama/ollama",
+   "nota": "Un modelo pide mucha más memoria que el contenedor mismo."
+  },
+  {
+   "nombre": "dhi/nginx",
+   "desc": "nginx en su versión reforzada por Docker.",
+   "sello": "hardened",
+   "ejemplo": "dhi.io/nginx",
+   "nota": "Para producción. Para aprender, alcanza con la oficial."
+  },
+  {
+   "nombre": "metabase/metabase",
+   "desc": "Tableros y preguntas sobre bases de datos, sin programar.",
+   "sello": "comunidad",
+   "ejemplo": "metabase/metabase",
+   "nota": "La publica la cuenta del propio proyecto, pero esta imagen no tiene sello. Por eso conviene mirar quién la publica, y no sólo el sello."
   }
  ],
- "diagnosticoOpciones": [
+ "glosario": [
   [
-   "webhook",
-   "N8N_WEBHOOK_URL"
+   "Imagen",
+   "Un paquete cerrado con un programa y todo lo que necesita para correr. Es la receta: se baja una vez y se usa muchas veces.",
+   "nginx, postgres, python"
   ],
   [
-   "clave",
-   "La clave de cifrado"
+   "Contenedor",
+   "Lo que corre de verdad, hecho a partir de una imagen. Se crea, se para y se borra; de una imagen salen muchos contenedores.",
+   "docker run nginx"
   ],
   [
-   "zona",
-   "GENERIC_TIMEZONE"
+   "Registro",
+   "El lugar de donde se bajan las imágenes. El más usado es Docker Hub.",
+   "hub.docker.com, ghcr.io"
   ],
   [
-   "volumen",
-   "El volumen"
+   "Etiqueta (tag)",
+   "La versión de una imagen, después de los dos puntos. Si no ponés ninguna, Docker usa «latest».",
+   "postgres:18"
   ],
   [
-   "poda",
-   "La poda de ejecuciones"
+   "Puerto",
+   "La puerta por donde se llega al contenedor desde afuera. Se abre con -p afuera:adentro.",
+   "-p 8080:80"
   ],
   [
-   "https",
-   "HTTPS"
+   "Volumen",
+   "Una carpeta que vive fuera del contenedor y sobrevive cuando se lo borra. Ahí van los datos.",
+   "-v datos:/var/lib/postgresql/data"
+  ],
+  [
+   "Dockerfile",
+   "El archivo con las instrucciones para fabricar una imagen propia. Para empezar no hace falta: se usan las que ya existen.",
+   "FROM python:3.13-slim"
+  ],
+  [
+   "Compose",
+   "Un archivo que describe varios contenedores que van juntos, y un comando que los levanta a todos.",
+   "docker compose up -d"
   ]
  ],
- "diagnostico": [
+ "desktop": [
   {
-   "t": "El Webhook de tu flujo muestra la dirección <code>http://localhost:5678/webhook/...</code> y el formulario de afuera no llega nunca.",
-   "ok": "webhook",
-   "por": "Detrás de un proxy, n8n arma la dirección con su propio host y puerto. <code>N8N_WEBHOOK_URL</code> le dice cuál es la pública."
+   "nombre": "Containers",
+   "que": "Los contenedores que están corriendo y los que paraste. Desde acá se arrancan, se paran, se borran, se leen sus registros y se abre una terminal adentro.",
+   "prueba": "Después de correr nginx, tocá el puerto 8080 que aparece al lado: abre el navegador."
   },
   {
-   "t": "Reinstalaste n8n en otro servidor, importaste todo, y cada flujo falla con «Credentials could not be decrypted».",
-   "ok": "clave",
-   "por": "Las credenciales se cifraron con otra clave. Sin la original, hay que volver a cargarlas."
+   "nombre": "Images",
+   "que": "Las imágenes que bajaste. Se pueden correr con un botón, ver sus vulnerabilidades conocidas y borrar las que no usás para liberar espacio.",
+   "prueba": "Borrá hello-world cuando termines: no hace falta guardarla."
   },
   {
-   "t": "n8n no arranca y en los registros dice «Mismatching encryption keys».",
-   "ok": "clave",
-   "por": "La clave del .env no coincide con la que n8n ya había guardado en el volumen. Una de las dos está mal copiada."
+   "nombre": "Volumes",
+   "que": "Los volúmenes: las heladeras. Se pueden crear, mirar por dentro, clonar, exportar y borrar.",
+   "prueba": "Mirá adentro del volumen de una base de datos: ahí están sus archivos."
   },
   {
-   "t": "El flujo «todos los días a las 9» corre a las 10 de la mañana.",
-   "ok": "zona",
-   "por": "Sin <code>GENERIC_TIMEZONE</code>, n8n usa la hora de Nueva York."
+   "nombre": "Builds",
+   "que": "El historial de las imágenes que fabricaste vos con un Dockerfile.",
+   "prueba": null
   },
   {
-   "t": "Actualizaste n8n y apareció vacío, como recién instalado.",
-   "ok": "volumen",
-   "por": "Los datos estaban adentro del contenedor, sin volumen, o alguien corrió <code>docker compose down -v</code>, que borra los volúmenes."
+   "nombre": "Docker Hub",
+   "que": "El buscador de Docker Hub adentro de la aplicación: buscás una imagen, ves su sello y la bajás.",
+   "prueba": "Buscá postgres y fijate el sello de Docker Official Image."
   },
   {
-   "t": "El disco del servidor se llena cada semana, aunque tenés pocos flujos.",
-   "ok": "poda",
-   "por": "Cada ejecución guarda sus datos. Revisá que la poda esté prendida y achicá cuánto tiempo se guardan."
+   "nombre": "Models",
+   "que": "Modelos de lenguaje que corren en tu máquina, bajados como si fueran imágenes.",
+   "prueba": null
   },
   {
-   "t": "Entrás al editor por <code>http://</code>, ponés tu clave y te vuelve a pedir que entres.",
-   "ok": "https",
-   "por": "n8n pide cookies seguras por defecto, que sólo viajan por HTTPS. La solución es el certificado, no apagar la protección."
+   "nombre": "MCP Toolkit",
+   "que": "Servidores MCP, los de la clase 13, empaquetados en contenedores y listos para conectar a tu asistente.",
+   "prueba": null
+  },
+  {
+   "nombre": "Gordon",
+   "que": "El asistente con IA de Docker: le preguntás en lenguaje común y te sugiere comandos.",
+   "prueba": null
+  },
+  {
+   "nombre": "Extensions",
+   "que": "Herramientas de terceros que se suman a la aplicación.",
+   "prueba": null
+  },
+  {
+   "nombre": "Settings",
+   "que": "La configuración. Lo más importante para empezar: Resources, cuánta memoria y procesador le das a Docker.",
+   "prueba": "Si la notebook se pone lenta con Docker abierto, bajale la memoria acá."
   }
  ],
+ "version": "Client:\n Version:   29.9\nServer: Docker Desktop 4.98.0\n Engine:\n  Version:  29.9\n(simulación)",
+ "bienvenida": "Una terminal de práctica: entiende docker run, ps, images, pull, stop, start, rm, rmi, logs, exec, volume y compose. Las respuestas imitan a las de verdad, resumidas. Escribí «ayuda» para ver la lista.",
+ "ayuda": "docker run [-d] [-p 8080:80] [--name web] [-e CLAVE=valor] [-v volumen:/ruta] IMAGEN\ndocker ps            lo que está corriendo   (docker ps -a: también lo parado)\ndocker images        las imágenes que bajaste\ndocker pull IMAGEN   bajar una imagen sin correrla\ndocker logs NOMBRE   lo que cuenta un contenedor\ndocker stop NOMBRE   pararlo          docker start NOMBRE   volver a arrancarlo\ndocker rm NOMBRE     borrarlo         docker rmi IMAGEN     borrar una imagen\ndocker volume ls     los volúmenes\ndocker compose up -d / docker compose down\nlimpiar              borrar la pantalla\nImágenes de esta práctica: hello-world, nginx, httpd, postgres, mysql, redis, wordpress, alpine, ubuntu, python.",
+ "licencia": {
+  "chica": "Una empresa con menos de 250 personas y menos de USD 10 millones de facturación anual usa Docker Desktop gratis.",
+  "grande": "Una empresa más grande, o un organismo público, necesita una suscripción paga para usar Docker Desktop en el trabajo: Pro, Team o Business, desde USD 9 a 24 por persona y por mes.",
+  "alternativa": "Docker Engine, el motor sin ventanas que se usa en los servidores Linux, es de código abierto y gratis para todos. Y hay alternativas a Docker Desktop: Podman Desktop y Rancher Desktop son de código abierto."
+ },
  "textos": {
-  "ctNota": "Precios de n8n Cloud de la grilla de n8n.io, con facturación anual, verificados el 4 de noviembre de 2026. El plan Business (667 € y 40.000 ejecuciones) es sólo para instancia propia. Las ejecuciones manuales y los flujos de error no cuentan.",
-  "arNota": "Verificado el 4 de noviembre de 2026 en docs.n8n.io, Docker Hub y el código de la versión estable (n8n 2.46.6). Es para entender cada línea. Para instalar de verdad, n8n ofrece un script oficial, <code>curl -fsSL https://get.n8n.io | sh</code>, que arma estos archivos con los secretos ya generados y con los <i>task runners</i> en un contenedor aparte, que es lo que recomienda para producción. La guía oficial con HTTPS usa Traefik y pide al menos 2 núcleos y 4 GB de memoria.",
-  "termNota": "Las salidas están abreviadas y su texto exacto cambia entre versiones. Verificado el 4 de noviembre de 2026 en docs.n8n.io, Docker Hub y el código de la versión estable.",
-  "cfNota": "Si no definís la clave, n8n la genera en el primer arranque y la guarda en el archivo <code>config</code> de la carpeta <code>.n8n</code>, dentro del volumen. Con la 3.0 se suma una segunda capa de claves que se pueden rotar desde Settings, y una advertencia: después de rotarlas, no vuelvas a una versión anterior. Verificado el 4 de noviembre de 2026 en docs.n8n.io, Docker Hub y el código de la versión estable.",
-  "cmdRespaldo": "<div class=\"prompt\"><div class=\"cabeza\"><b>Exportar flujos y credenciales (las credenciales salen cifradas)</b></div><pre>docker compose exec -u node n8n n8n export:workflow --backup --output=/home/node/.n8n-files/flujos/\ndocker compose exec -u node n8n n8n export:credentials --backup --output=/home/node/.n8n-files/credenciales/</pre><p style=\"margin-top:10px;font-size:0.88rem;color:var(--tenue)\">Quedan en la carpeta <code>respaldos</code> del servidor. Con <code>--decrypted</code> las credenciales salen legibles: no lo uses salvo para mudarte, y borrá el archivo después. Usá carpetas distintas para flujos y credenciales. Para importar: <code>import:workflow --separate --input=…</code> e <code>import:credentials --separate --input=…</code>; los flujos importados quedan sin publicar.</p></div><div class=\"prompt\"><div class=\"cabeza\"><b>La instancia entera, de una</b></div><pre>docker compose exec -u node n8n n8n export:entities --outputDir=/home/node/.n8n-files/instancia/</pre><p style=\"margin-top:10px;font-size:0.88rem;color:var(--tenue)\">Exporta todo lo de la base, y sirve para pasar de SQLite a Postgres con <code>import:entities</code>. Existe desde n8n 1.116. Con Postgres, la base se respalda además con sus propias herramientas, y con SQLite, parando n8n y copiando la carpeta <code>.n8n</code>.</p></div>",
-  "respNota": "Comandos y advertencias de la página de respaldo y restauración de docs.n8n.io. Usuarios, ejecuciones y la configuración de la instancia no viajan en las exportaciones de flujos y credenciales. Verificado el 4 de noviembre de 2026 en docs.n8n.io, Docker Hub y el código de la versión estable.",
-  "pasosActualizar": "<li><b>Leé las notas de la versión</b> a la que vas. n8n recomienda actualizar al menos una vez por mes.</li><li><b>Respaldá todo</b>: exportaciones y base de datos. Antes de un salto grande como la 3.0, es obligatorio.</li><li><b>Cambiá <code>N8N_VERSION</code></b> en el .env.</li><li><code>docker compose pull</code>, <code>docker compose down</code> y <code>docker compose up -d</code>. Nunca <code>down -v</code>: la <code>-v</code> borra los volúmenes.</li><li><b>Probá</b> tus flujos importantes. Si algo se rompió, volvés a la versión anterior y restaurás la copia de la base.</li>",
-  "txtEntornos": "Lo sano es tener dos instancias: una para probar y otra que usa la organización. Lo probado pasa a producción, nunca al revés. Con Git, n8n lo resuelve en los planes Business y Enterprise (<i>Environments</i>: cada instancia en su rama, con push y pull). En Community se hace a mano: exportar de una e importar en la otra, o con los paquetes <code>.n8np</code> y la n8n CLI, que están en Preview. Y antes de pasar algo, se corre con los casos de la clase 12.",
-  "versNota": "La 3.0 salió el 27 de octubre de 2026 como acceso anticipado, sólo como imagen de Docker (ya va por la 3.1), y las etiquetas <code>latest</code> y <code>stable</code> todavía apuntan a la 2.46.6. Antes de pasar, revisá Settings → Migration Report, que lista lo que se rompe en tus flujos. Entre otras cosas, el nodo Code pasa a cortar a los 60 segundos y los nodos de comunidad sin verificar vienen apagados. Verificado el 4 de noviembre de 2026 en docs.n8n.io, Docker Hub y el código de la versión estable."
+  "notaVm": "Definiciones de la documentación de Docker, verificado el 4 de noviembre de 2026: una máquina virtual «es un sistema operativo entero con su propio kernel»; un contenedor «es un proceso aislado con todos los archivos que necesita», y todos comparten el mismo kernel. Los tamaños y tiempos de la tabla son órdenes de magnitud, no mediciones. Docker Desktop, en Mac y en Windows, corre los contenedores adentro de una pequeña máquina virtual Linux: las dos ideas conviven.",
+  "precioVps": "USD 4 por mes en DigitalOcean (1 vCPU y 512 MB) · 3,81 € + IVA en OVHcloud (2 vCPU y 4 GB)",
+  "precioDed": "59 € + IVA por mes en Hetzner (AX41: 6 núcleos y 64 GB)",
+  "notaPrecios": "Precios de las páginas de cada proveedor, verificado el 4 de noviembre de 2026. No son una recomendación: son para ver el orden de magnitud. Cambian seguido —Hetzner, por ejemplo, subió sus precios dos veces en 2026— y algunos planes figuran agotados. Antes de contratar, mirá el precio del día y si incluye impuestos.",
+  "sellosOps": "<div class=\"op\"><b><span class=\"sello sello-oficial\">Docker Official Image</span></b><p>Un conjunto curado de imágenes que Docker revisa y mantiene al día. Es el punto de partida más seguro.</p></div><div class=\"op\"><b><span class=\"sello sello-verificado\">Verified Publisher</span></b><p>La publica una empresa que Docker verificó: sabés que viene de quien dice.</p></div><div class=\"op\"><b><span class=\"sello sello-oss\">Sponsored OSS</span></b><p>La publica y mantiene un proyecto de código abierto que Docker patrocina.</p></div><div class=\"op\"><b><span class=\"sello sello-hardened\">Hardened</span></b><p>Imágenes reforzadas por Docker: mínimas, con menos cosas que puedan fallar. La versión Community es gratis.</p></div><div class=\"op\"><b><span class=\"sello sello-comunidad\">Sin sello</span></b><p>Cualquiera puede subir una imagen. Sin sello no quiere decir mala: quiere decir que Docker no la verificó. Mirá quién la publica y cuánta gente la usa.</p></div>",
+  "otrosRegistros": "<div class=\"op\"><b>GitHub Container Registry</b><p><code>ghcr.io</code>: imágenes publicadas junto al código en GitHub. Las públicas se bajan sin cuenta.</p></div><div class=\"op\"><b>Amazon ECR Public</b><p>El registro público de Amazon Web Services.</p></div><div class=\"op\"><b>Google Artifact Registry</b><p>El de Google Cloud, para imágenes y otros paquetes.</p></div><div class=\"op\"><b>Microsoft Artifact Registry</b><p><code>mcr.microsoft.com</code>: las imágenes oficiales de Microsoft.</p></div>",
+  "txtLimites": "<b>Docker Hub limita cuántas imágenes bajás</b>: sin cuenta, 100 cada 6 horas por dirección de internet; con una cuenta gratuita y la sesión iniciada, 200. En un aula con una sola conexión, mejor que cada uno inicie sesión. Verificado en la documentación de Docker el 4 de noviembre de 2026.",
+  "txtDesktop": "Docker Desktop es una aplicación para Windows, Mac y Linux que trae todo lo necesario para correr contenedores en tu computadora: el motor de Docker, los comandos, Compose y una ventana para verlo todo sin escribir. La versión de hoy es la 4.98.0, del 3 de noviembre de 2026.",
+  "instalar": "<div class=\"op destacada\"><b>Windows</b><p>Windows 10 22H2 o Windows 11 23H2 en adelante, de 64 bits. Usa WSL 2, que el instalador configura. La virtualización tiene que estar activada en la BIOS, y Docker pide 8 GB de memoria.</p></div><div class=\"op destacada\"><b>Mac</b><p>Hay un instalador para Apple silicon (M1 en adelante) y otro para Intel. Funciona con la versión actual de macOS y las dos anteriores. Al menos 4 GB de memoria.</p></div><div class=\"op destacada\"><b>Linux</b><p>Ubuntu, Debian, Fedora o RHEL. En un servidor no hace falta Docker Desktop: se instala Docker Engine solo, sin ventanas.</p></div>",
+  "licPregTam": "¿La empresa tiene menos de 250 personas y factura menos de USD 10 millones por año?",
+  "notaLicencia": "Licencia y precios de docs.docker.com y docker.com/pricing, verificado el 4 de noviembre de 2026.",
+  "notaDesktop": "Las secciones salen de la documentación de Docker Desktop 4.98, verificado el 4 de noviembre de 2026. La barra lateral se puede personalizar, así que en tu computadora el orden puede ser otro.",
+  "notaTerminal": "Es una simulación: nada se descarga y nada se instala. Los tamaños son los de descarga que muestra Docker Hub hoy; en tu máquina, <code>docker images</code> muestra el tamaño ya descomprimido, que es mayor, y desde Docker Engine 29 su tabla se ve un poco distinta. Los textos de hello-world y de los errores de las bases de datos son los que muestran las imágenes reales."
  }
 };
-
-// Las notas y los textos que llevan cifras de n8n salen del mismo objeto.
-Object.entries(N8N.textos).forEach(([id, html]) => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
+Object.entries(DOCKER.textos).forEach(([id, html]) => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
 
 
 /* ══════════════════════════════════════════════════════════
@@ -208,431 +375,512 @@ Object.entries(N8N.textos).forEach(([id, html]) => { const el = document.getElem
 (function traido() {
   const cont = document.getElementById('traido');
   if (!cont) return;
-  const partes = [
-    { clave: 'clase13-q2', rot: 'Si tu n8n viviera en una máquina de la organización (clase 13)',
-      hoy: 'Quién lo cuida y qué pasa un viernes a la noche: hoy le ponemos nombre a cada tarea, y la mayoría se resuelve con un respaldo bien hecho.' },
-    { clave: 'clase14-q1', rot: 'Los documentos que no saldrían nunca (clase 14)',
-      hoy: 'Esta es la razón más fuerte para alojar adentro: si el documento no puede salir, el que lo procesa tiene que estar adentro.' },
-    { clave: 'clase14-q2', rot: 'Lo que te traerías a casa (clase 14)',
-      hoy: 'En el decisor de más abajo vas a ver qué cuesta cada pieza que traigas.' }
-  ].map(p => ({ ...p, texto: leerGuardado(p.clave) }));
-  if (!partes.some(p => p.texto)) {
-    cont.innerHTML = `
-      <span class="rot">Todavía no hay nada guardado acá</span>
-      <p class="vacio" style="margin-top:12px">Las actividades de las clases 13 y 14 preguntaban quién cuidaría un n8n propio, qué documentos no saldrían nunca y qué te traerías a una máquina de la organización. Si las hiciste en otro dispositivo no las voy a ver. Podés completarlas en <a href="13.html">la 13</a> y <a href="14.html">la 14</a>, o traerlas pensadas.</p>`;
-    return;
-  }
-  cont.innerHTML = '<span class="rot">Lo que escribiste en las últimas dos clases</span>' +
-    partes.filter(p => p.texto).map(p => `
-      <div class="linea">
-        <b>${p.rot}</b>
-        <p style="white-space:pre-wrap">${escapar(p.texto)}</p>
-        <p style="font-size:0.84rem;color:var(--tenue);margin-top:4px">${p.hoy}</p>
-      </div>`).join('');
+  const q = leerGuardado('clase14-q2');
+  cont.innerHTML = q
+    ? `<span class="rot">Lo que escribiste el miércoles</span>
+       <div class="linea"><b>Qué te traerías a una máquina de la organización</b><p style="white-space:pre-wrap">${escapar(q)}</p>
+       <p style="font-size:0.84rem;color:var(--tenue);margin-top:4px">Para traer cualquiera de esas cosas hace falta saber tres cosas: en qué máquina, cómo se instala y cómo se separa de lo demás. Es la clase de hoy.</p></div>`
+    : `<span class="rot">Todavía no hay nada guardado acá</span>
+       <p class="vacio" style="margin-top:12px">La actividad de la clase 14 preguntaba qué te traerías a una máquina de la organización. Si la hiciste en otro dispositivo no la voy a ver. Pensalo mientras avanzamos: hoy vemos qué máquina y cómo.</p>`;
 })();
 
 
 /* ══════════════════════════════════════════════════════════
-   2 · LA ESCALERA: QUIÉN SE OCUPA DE QUÉ
+   2 · LAS CAPAS: UNA COMPUTADORA, MÁQUINAS VIRTUALES, CONTENEDORES
    ══════════════════════════════════════════════════════════ */
 
-(function escalera() {
-  const $t = document.getElementById('escTabla');
-  if (!$t) return;
-  const $opc = document.getElementById('escOpc');
-  const $txt = document.getElementById('escTxt');
-  const ESCALONES = [
-    { id: 'cloud', nom: 'n8n Cloud', t: 'n8n se ocupa de casi todo. Pagás por ejecuciones y tus datos viven en sus servidores. Es donde arrancó la cursada.' },
-    { id: 'pod', nom: 'Hosting administrado', t: 'Un proveedor corre el contenedor por vos, como PikaPods en el taller de OAuth. La instancia es tuya y sin límite de ejecuciones; las actualizaciones y los respaldos dependen del proveedor y de vos.' },
-    { id: 'vps', nom: 'Servidor propio en la nube', t: 'Alquilás un servidor (un VPS) y le instalás Docker y n8n. Todo es tuyo: la instalación, el certificado, las actualizaciones, los respaldos y la seguridad del servidor.' },
-    { id: 'casa', nom: 'Una máquina de la organización', t: 'Lo mismo que el servidor propio, pero la máquina está en la oficina. Los datos no salen del edificio; para que te lleguen webhooks de afuera hay que abrir una puerta a internet, y eso es otro trabajo.' }
-  ];
-  const TAREAS = [
-    ['Instalar n8n', ['n8n', 'Proveedor', 'Vos', 'Vos']],
-    ['Actualizar a cada versión', ['n8n', 'Proveedor o vos', 'Vos', 'Vos']],
-    ['Respaldar flujos y credenciales', ['n8n', 'Proveedor y vos', 'Vos', 'Vos']],
-    ['Certificado HTTPS y dominio', ['n8n', 'Proveedor', 'Vos', 'Vos']],
-    ['Seguridad del servidor', ['n8n', 'Proveedor', 'Vos', 'Vos']],
-    ['Dónde quedan los datos', ['Servidores de n8n', 'Servidores del proveedor', 'El servidor que alquilás', 'Tu edificio']],
-    ['Límite de ejecuciones', ['El del plan', 'Ninguno', 'Ninguno', 'Ninguno']],
-    ['Nodos que sólo andan en instancia propia', ['No', 'Sí', 'Sí', 'Sí']]
-  ];
-  let sel = 0;
-  function pintar() {
-    $t.innerHTML = `<thead><tr><th></th>${ESCALONES.map((e, i) => `<th class="${i === sel ? 'on' : ''}">${e.nom}</th>`).join('')}</tr></thead>
-      <tbody>${TAREAS.map(([t, v]) => `<tr><td><b>${t}</b></td>${v.map((x, i) => `<td class="${i === sel ? 'on' : ''}${/^Vos$/.test(x) ? ' vos' : ''}">${x}</td>`).join('')}</tr>`).join('')}</tbody>`;
-    $txt.innerHTML = `<p>${ESCALONES[sel].t}</p>`;
-    marcar($opc, $opc.querySelectorAll('button')[sel]);
-  }
-  $opc.innerHTML = ESCALONES.map((e, i) => `<button type="button" data-i="${i}" aria-pressed="false">${i + 1} · ${e.nom}</button>`).join('');
-  $opc.addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (b) { sel = +b.dataset.i; pintar(); } });
-  pintar();
-})();
-
-
-/* ══════════════════════════════════════════════════════════
-   3 · EL DECISOR Y LA CUENTA
-   Los precios de Cloud son los de la grilla, con fecha. Lo de la
-   instancia propia lo pone cada uno: no hay un precio de servidor que
-   valga para todos.
-   ══════════════════════════════════════════════════════════ */
-
-(function decisor() {
-  const $d = document.getElementById('decPreg');
-  if (!$d) return;
-  const $v = document.getElementById('decVeredicto');
-  const PREGUNTAS = [
-    { k: 'datos', t: '¿Hay datos o documentos que no pueden salir de la organización?', o: [['si', 'Sí'], ['no', 'No']] },
-    { k: 'quien', t: '¿Hay alguien que pueda ocuparse del servidor, también un viernes a la noche?', o: [['si', 'Sí'], ['no', 'No, nadie']] },
-    { k: 'volumen', t: '¿Cuántas ejecuciones de producción por mes esperás?', o: [['poco', 'Menos de 2.500'], ['medio', 'Hasta 10.000'], ['mucho', 'Más de 10.000']] },
-    { k: 'nodos', t: '¿Necesitás algo que sólo anda en instancia propia, como nodos de comunidad que n8n no verificó o Python en el nodo Code?', o: [['si', 'Sí'], ['no', 'No']] }
-  ];
-  const r = {};
-  $d.innerHTML = PREGUNTAS.map(p => `
-    <div class="decisor-p"><b>${p.t}</b><div class="opciones">${p.o.map(([v, t]) => `<button type="button" data-k="${p.k}" data-v="${v}" aria-pressed="false">${t}</button>`).join('')}</div></div>`).join('');
-  function decidir() {
-    if (Object.keys(r).length < PREGUNTAS.length) { $v.hidden = true; return; }
-    const razones = [];
-    let cual;
-    if (r.datos === 'si' && r.quien === 'si') { cual = 'Instancia propia'; razones.push('Los datos no pueden salir, y hay quien la cuide.'); }
-    else if (r.datos === 'si' && r.quien === 'no') { cual = 'Todavía no: primero, alguien que la cuide'; razones.push('Los datos piden quedarse adentro, pero una instancia sin quien la actualice y la respalde es un riesgo mayor que el que se quiere evitar.', 'Mientras tanto: Cloud para lo que no es sensible, y lo sensible a mano.'); }
-    else if (r.quien === 'no') { cual = 'n8n Cloud'; razones.push('Nadie va a poder ocuparse del servidor. Cloud cobra justamente por eso.'); }
-    else if (r.nodos === 'si' || r.volumen === 'mucho') { cual = 'Instancia propia, o un hosting administrado'; razones.push(r.nodos === 'si' ? 'Lo que necesitás no anda en Cloud.' : 'Con más de 10.000 ejecuciones por mes, en Cloud ya no alcanza el plan Pro.'); }
-    else { cual = 'Cualquiera de las dos: decide la cuenta'; razones.push('No hay nada que obligue. Hacé la cuenta de abajo con tus números, incluyendo tus horas.'); }
-    if (r.volumen === 'mucho' && cual === 'n8n Cloud') razones.push('Ojo: con más de 10.000 ejecuciones por mes, en Cloud el siguiente paso es Enterprise, a precio de consulta.');
-    $v.hidden = false;
-    $v.innerHTML = `<div class="cual">${cual}</div>${razones.map(x => `<p>${x}</p>`).join('')}`;
-  }
-  $d.addEventListener('click', e => {
-    const b = e.target.closest('button[data-k]');
-    if (!b) return;
-    r[b.dataset.k] = b.dataset.v;
-    $d.querySelectorAll(`button[data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    decidir();
-  });
-})();
-
-(function cuenta() {
-  const $e = document.getElementById('ctEjec');
-  if (!$e) return;
-  const $s = document.getElementById('ctServidor');
-  const $h = document.getElementById('ctHoras');
-  const $vh = document.getElementById('ctValorHora');
-  const $res = document.getElementById('ctRes');
-  const num = el => { const v = parseFloat(String(el.value).replace(',', '.')); return isFinite(v) && v >= 0 ? v : null; };
-  const plata = (v, mon) => `${mon === '€' ? '' : 'USD '}${v.toLocaleString('es-AR', { maximumFractionDigits: 0 })}${mon === '€' ? ' €' : ''}`;
-  function pintar() {
-    const ej = num($e);
-    document.getElementById('ctEjecV').textContent = ej === null ? '—' : ej.toLocaleString('es-AR');
-    const plan = N8N.planes.find(p => ej !== null && ej <= p.ejecuciones);
-    const cloud = plan
-      ? `<div class="calc-tile"><span>n8n Cloud</span><b>${plata(plan.euros, '€')}</b><p>Plan ${plan.nombre}, hasta ${plan.ejecuciones.toLocaleString('es-AR')} ejecuciones por mes, facturación anual.</p></div>`
-      : `<div class="calc-tile"><span>n8n Cloud</span><b>A consultar</b><p>Más de ${N8N.planes[N8N.planes.length - 1].ejecuciones.toLocaleString('es-AR')} ejecuciones por mes: Enterprise, a precio de consulta.</p></div>`;
-    const s = num($s), h = num($h), vh = num($vh);
-    let propio;
-    if (s === null || h === null || vh === null) {
-      propio = `<div class="calc-tile"><span>Instancia propia</span><b>—</b><p>Completá el costo del servidor, tus horas y cuánto vale tu hora.</p></div>`;
-    } else {
-      const total = s + h * vh;
-      propio = `<div class="calc-tile"><span>Instancia propia</span><b>${plata(total)}</b><p>${plata(s)} de servidor y ${plata(h * vh)} de tu tiempo (${h} ${h === 1 ? 'hora' : 'horas'}). Sin límite de ejecuciones.</p></div>`;
+(function capas() {
+  const $opc = document.getElementById('capOpc');
+  if (!$opc) return;
+  const $dib = document.getElementById('capDibujo');
+  const $txt = document.getElementById('capTxt');
+  const $arr = document.getElementById('capArrancar');
+  const $res = document.getElementById('capRes');
+  const MODOS = {
+    nada: {
+      capas: [['apps', ['Planilla', 'Navegador', 'Sistema de ventas']], ['so', ['Sistema operativo']], ['hw', ['La computadora: procesador, memoria, disco']]],
+      t: 'Una sola máquina, un solo sistema operativo, y todos los programas mezclados adentro. Si el sistema de ventas necesita una versión de algo y la planilla otra, se pelean. Si uno rompe algo, rompe a todos.'
+    },
+    vm: {
+      capas: [['apps', ['App A', 'App B', 'App C']], ['guest', ['Sistema completo', 'Sistema completo', 'Sistema completo']], ['hyp', ['Hipervisor']], ['hw', ['La computadora']]],
+      t: 'Una <b>máquina virtual</b> es una computadora entera hecha de software: su propio sistema operativo, su memoria reservada, su disco. El <b>hipervisor</b> reparte la máquina real entre varias virtuales. Cada una está muy aislada de las otras, pero cada una carga un sistema operativo completo.'
+    },
+    contenedor: {
+      capas: [['apps', ['App A', 'App B', 'App C']], ['libs', ['Lo que necesita A', 'Lo que necesita B', 'Lo que necesita C']], ['motor', ['Docker']], ['so', ['Un solo sistema operativo']], ['hw', ['La computadora']]],
+      t: 'Un <b>contenedor</b> empaqueta una aplicación con lo justo que necesita para correr, y comparte el corazón del sistema operativo de la máquina con los demás contenedores. No arranca un sistema entero: arranca un programa, aislado. Por eso pesa menos y prende más rápido.'
     }
-    $res.innerHTML = cloud + propio + `<div class="calc-tile"><span>Lo que no entra en la cuenta</span><b>Riesgo</b><p>Si nadie respalda ni actualiza, el costo no es mensual: llega todo junto el día que se rompe.</p></div>`;
+  };
+  let modo = 'nada';
+  function pintar() {
+    const m = MODOS[modo];
+    $dib.innerHTML = m.capas.map(([k, cajas]) => `<div class="capa capa-${k}">${cajas.map(c => `<span>${c}</span>`).join('')}</div>`).join('');
+    $txt.innerHTML = `<p>${m.t}</p>`;
+    $arr.hidden = modo === 'nada';
+    $res.innerHTML = '';
   }
-  [$e, $s, $h, $vh].forEach(el => el.addEventListener('input', pintar));
+  $opc.addEventListener('click', e => { const b = e.target.closest('button[data-m]'); if (!b) return; modo = b.dataset.m; marcar($opc, b); pintar(); });
+  $arr.addEventListener('click', () => {
+    const vm = modo === 'vm';
+    const filas = ['App A', 'App B', 'App C'].map(a => `<div class="arranque"><span>${a}</span><div class="barra-ctx"><i style="width:${reducido ? 100 : 0}%"></i></div><b>${reducido ? (vm ? 'lista, después de arrancar su sistema' : 'lista') : ''}</b></div>`).join('');
+    $res.innerHTML = filas + `<p class="nota-pie">${vm ? 'Cada máquina virtual tiene que arrancar un sistema operativo entero antes de poder abrir la aplicación: hablamos de minutos.' : 'Cada contenedor arranca sólo el programa: hablamos de segundos o menos.'} Es un orden de magnitud, no una medición.</p>`;
+    if (reducido) return;
+    const dur = vm ? 2600 : 500;
+    setTimeout(() => $res.querySelectorAll('.arranque').forEach((f, i) => {
+      const barra = f.querySelector('i');
+      barra.style.transition = `width ${dur + i * (vm ? 500 : 120)}ms ease-out`;
+      barra.style.width = '100%';
+      setTimeout(() => { f.querySelector('b').textContent = vm ? 'lista, después de arrancar su sistema' : 'lista'; }, dur + i * (vm ? 500 : 120));
+    }), 40);
+  });
   pintar();
 })();
 
 
 /* ══════════════════════════════════════════════════════════
-   4 · DOCKER EN TRES IDEAS: EL VOLUMEN
+   3 · EL EDIFICIO: VPS Y SERVIDOR DEDICADO
+   ══════════════════════════════════════════════════════════ */
+
+(function edificio() {
+  const $opc = document.getElementById('edOpc');
+  if (!$opc) return;
+  const $ed = document.getElementById('edDibujo');
+  const $txt = document.getElementById('edTxt');
+  const $ruido = document.getElementById('edRuido');
+  const $velo = document.getElementById('edVelocidad');
+  let modo = 'vps', ruido = false;
+  const TXT = {
+    vps: 'Un <b>VPS</b> (servidor privado virtual) es una máquina virtual en un servidor físico del proveedor, que comparte con otros clientes. Es como un departamento: tus paredes, tu llave, tu espacio reservado; pero el edificio, los caños y el ascensor son de todos.',
+    dedicado: 'Un <b>servidor dedicado</b> es una máquina física entera para vos. Es como una casa: nadie más vive ahí, toda la potencia es tuya, y también lo son el mantenimiento y el precio de todo el terreno.',
+    nube: 'Una <b>instancia en la nube</b> es un VPS que se alquila por hora y se agranda o se achica con un clic. Es como un hotel: entrás, usás lo que necesitás y pagás por noche.'
+  };
+  function pintar() {
+    const pisos = modo === 'dedicado' ? 1 : 6;
+    const mio = modo === 'dedicado' ? 0 : 3;
+    $ed.innerHTML = `<div class="techo">Un servidor físico, en el centro de datos del proveedor</div>` +
+      Array.from({ length: pisos }, (_, i) => `<div class="piso${i === mio ? ' mio' : ''}${ruido && modo !== 'dedicado' && i === 1 ? ' ruidoso' : ''}">${modo === 'dedicado' ? 'Todo el servidor: tuyo' : i === mio ? (modo === 'nube' ? 'Tu instancia, por hora' : 'Tu VPS') : ruido && i === 1 ? 'Un vecino usando todo el procesador' : 'Otro cliente'}</div>`).join('');
+    $txt.innerHTML = `<p>${TXT[modo]}</p>`;
+    $ruido.hidden = modo === 'dedicado';
+    const vel = modo === 'dedicado' ? 100 : ruido ? 55 : 92;
+    $velo.innerHTML = `<span class="rot">Lo que rinde tu servidor</span><div class="barra-ctx"><i style="width:${vel}%"></i></div><p>${modo === 'dedicado' ? 'Siempre todo: no hay vecinos.' : ruido ? 'Un vecino ruidoso: cuando otro cliente usa mucho la máquina física, a veces lo sentís en la tuya. Los proveedores lo limitan, pero en los planes compartidos puede pasar.' : 'Casi todo, casi siempre.'}</p>`;
+    $ruido.setAttribute('aria-pressed', String(ruido));
+  }
+  $opc.addEventListener('click', e => { const b = e.target.closest('button[data-m]'); if (!b) return; modo = b.dataset.m; ruido = false; marcar($opc, b); pintar(); });
+  $ruido.addEventListener('click', () => { ruido = !ruido; pintar(); });
+  pintar();
+})();
+
+
+/* ══════════════════════════════════════════════════════════
+   4 · EL GLOSARIO QUE SE DA VUELTA
+   ══════════════════════════════════════════════════════════ */
+
+(function glosario() {
+  const $g = document.getElementById('glosario');
+  if (!$g) return;
+  $g.innerHTML = DOCKER.glosario.map(([t, def, ej], i) => `
+    <button type="button" class="carta" aria-pressed="false" data-i="${i}">
+      <span class="frente"><b>${t}</b><small>Tocá para ver qué es</small></span>
+      <span class="dorso"><b>${t}</b><span>${def}</span>${ej ? `<em>${ej}</em>` : ''}</span>
+    </button>`).join('');
+  $g.addEventListener('click', e => { const b = e.target.closest('.carta'); if (b) b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); });
+})();
+
+
+/* ══════════════════════════════════════════════════════════
+   5 · EL BUSCADOR DE IMÁGENES
+   ══════════════════════════════════════════════════════════ */
+
+(function buscador() {
+  const $q = document.getElementById('hubQ');
+  if (!$q) return;
+  const $lista = document.getElementById('hubLista');
+  const $det = document.getElementById('hubDetalle');
+  const IM = DOCKER.hub;
+  function pintar() {
+    const q = $q.value.trim().toLowerCase();
+    const res = IM.filter(i => !q || (i.nombre + ' ' + i.desc).toLowerCase().includes(q));
+    $lista.innerHTML = res.length ? res.map(i => `
+      <button type="button" class="hub-item" data-n="${i.nombre}">
+        <b>${escapar(i.nombre)}</b><span class="sello sello-${i.sello}">${DOCKER.sellos[i.sello].nombre}</span><small>${escapar(i.desc)}</small>
+      </button>`).join('') : '<p class="sim-vacia">No hay nada con ese nombre en esta lista de ejemplo.</p>';
+  }
+  $lista.addEventListener('click', e => {
+    const b = e.target.closest('.hub-item');
+    if (!b) return;
+    const i = IM.find(x => x.nombre === b.dataset.n);
+    $lista.querySelectorAll('.hub-item').forEach(x => x.classList.toggle('on', x === b));
+    const s = DOCKER.sellos[i.sello];
+    $det.innerHTML = `<span class="rot">${escapar(i.nombre)}</span>
+      <p style="margin-top:6px">${escapar(i.desc)}</p>
+      <p style="margin-top:10px"><span class="sello sello-${i.sello}">${s.nombre}</span> ${s.que}</p>
+      <span class="rot-chica" style="margin-top:14px;display:block">Para bajarla</span>
+      <pre class="codigo">docker pull ${escapar(i.ejemplo)}</pre>
+      <p style="font-size:0.86rem;color:var(--tenue)">${i.nota}</p>`;
+  });
+  $q.addEventListener('input', pintar);
+  pintar();
+  $lista.querySelector('.hub-item').click();
+})();
+
+
+/* ══════════════════════════════════════════════════════════
+   6 · LOS PUERTOS
+   ══════════════════════════════════════════════════════════ */
+
+(function puertos() {
+  const $h = document.getElementById('ptH');
+  if (!$h) return;
+  const $c = document.getElementById('ptC');
+  const $d = document.getElementById('ptDibujo');
+  function pintar() {
+    const h = parseInt($h.value, 10), c = parseInt($c.value, 10);
+    const ok = h > 0 && h < 65536 && c > 0 && c < 65536;
+    const reservado = h > 0 && h < 1024;
+    $d.innerHTML = ok ? `
+      <div class="pt-caja"><span class="rot">Tu navegador</span><b>localhost:${h}</b></div>
+      <div class="pt-flecha">→</div>
+      <div class="pt-caja mio"><span class="rot">Tu máquina</span><b>puerto ${h}</b><small>la puerta de afuera</small></div>
+      <div class="pt-flecha">→</div>
+      <div class="pt-caja"><span class="rot">El contenedor</span><b>puerto ${c}</b><small>la puerta de adentro</small></div>
+      <p class="pt-cmd"><code>docker run -d -p ${h}:${c} nginx</code></p>
+      <p class="pt-nota">${c === 80 ? 'nginx escucha en el 80 adentro del contenedor.' : 'nginx escucha en el 80 adentro: con ' + c + ' la puerta de adentro no lleva a ningún lado y la página no carga.'} ${reservado ? 'Los puertos por debajo de 1024 suelen estar reservados en tu máquina: mejor uno alto, como 8080.' : ''}</p>`
+      : '<p class="sim-vacia">Los puertos van de 1 a 65535.</p>';
+  }
+  [$h, $c].forEach(el => el.addEventListener('input', pintar));
+  pintar();
+})();
+
+
+/* ══════════════════════════════════════════════════════════
+   7 · EL VOLUMEN
    ══════════════════════════════════════════════════════════ */
 
 (function volumen() {
   const $c = document.getElementById('volCaja');
   if (!$c) return;
   const $log = document.getElementById('volLog');
-  let conVolumen = true, corriendo = true, flujos = 0, guardados = 0;
+  let conVolumen = true, corriendo = true, filas = 0, guardadas = 0;
   function pintar() {
     $c.innerHTML = `
-      <div class="vol-img"><span class="rot">Imagen</span><b>n8nio/n8n</b><small>la receta: siempre igual</small></div>
+      <div><span class="rot">Imagen</span><b>postgres</b><small>la receta: siempre igual</small></div>
       <div class="vol-flecha">→</div>
-      <div class="vol-cont ${corriendo ? 'on' : 'off'}"><span class="rot">Contenedor</span><b>${corriendo ? 'n8n corriendo' : 'borrado'}</b><small>${corriendo ? `${flujos} ${flujos === 1 ? 'flujo' : 'flujos'} en memoria` : '—'}</small></div>
+      <div class="${corriendo ? 'on' : 'off'}"><span class="rot">Contenedor</span><b>${corriendo ? 'base de datos corriendo' : 'borrado'}</b><small>${corriendo ? `${filas} ${filas === 1 ? 'cliente cargado' : 'clientes cargados'}` : '—'}</small></div>
       <div class="vol-flecha">${conVolumen ? '⇄' : '✕'}</div>
-      <div class="vol-vol ${conVolumen ? 'on' : 'off'}"><span class="rot">Volumen</span><b>${conVolumen ? 'n8n_data' : 'sin volumen'}</b><small>${conVolumen ? `${guardados} ${guardados === 1 ? 'flujo guardado' : 'flujos guardados'}` : 'nada sobrevive afuera'}</small></div>`;
+      <div class="${conVolumen ? 'on' : 'off'}"><span class="rot">Volumen</span><b>${conVolumen ? 'datos' : 'sin volumen'}</b><small>${conVolumen ? `${guardadas} guardados afuera` : 'nada sobrevive al contenedor'}</small></div>`;
     document.getElementById('volCon').setAttribute('aria-pressed', String(conVolumen));
     document.getElementById('volSin').setAttribute('aria-pressed', String(!conVolumen));
   }
   function anotar(t, k) { $log.insertAdjacentHTML('afterbegin', `<div class="bit ${k}"><i>${k === 'ok' ? '✓' : k === 'mal' ? '✗' : '·'}</i><span>${t}</span></div>`); }
-  document.getElementById('volCon').addEventListener('click', () => { conVolumen = true; flujos = 0; guardados = 0; corriendo = true; $log.innerHTML = ''; pintar(); });
-  document.getElementById('volSin').addEventListener('click', () => { conVolumen = false; flujos = 0; guardados = 0; corriendo = true; $log.innerHTML = ''; pintar(); });
+  const reiniciar = con => { conVolumen = con; corriendo = true; filas = 0; guardadas = 0; $log.innerHTML = ''; pintar(); };
+  document.getElementById('volCon').addEventListener('click', () => reiniciar(true));
+  document.getElementById('volSin').addEventListener('click', () => reiniciar(false));
   document.getElementById('volCrear').addEventListener('click', () => {
-    if (!corriendo) { anotar('No hay contenedor: primero levantalo de nuevo.', 'mal'); return; }
-    flujos++; if (conVolumen) guardados = flujos;
-    anotar(`Creaste un flujo. ${conVolumen ? 'Queda escrito en el volumen.' : 'Queda adentro del contenedor, y en ningún otro lado.'}`, 'ok'); pintar();
+    if (!corriendo) { anotar('No hay contenedor: primero levantá uno nuevo.', 'mal'); return; }
+    filas++; if (conVolumen) guardadas = filas;
+    anotar(conVolumen ? 'Cargaste un cliente. Queda escrito en el volumen.' : 'Cargaste un cliente. Queda adentro del contenedor, y en ningún otro lado.', 'ok'); pintar();
   });
-  document.getElementById('volBorrar').addEventListener('click', () => {
-    if (!corriendo) return;
-    corriendo = false; flujos = 0;
-    anotar('Borraste el contenedor, como pasa en cada actualización.', 'rep'); pintar();
-  });
+  document.getElementById('volBorrar').addEventListener('click', () => { if (!corriendo) return; corriendo = false; filas = 0; anotar('Borraste el contenedor. Pasa cada vez que actualizás a una versión nueva de la imagen.', 'rep'); pintar(); });
   document.getElementById('volLevantar').addEventListener('click', () => {
     if (corriendo) { anotar('Ya está corriendo.', 'rep'); return; }
-    corriendo = true; flujos = conVolumen ? guardados : 0;
-    anotar(conVolumen ? `Levantaste un contenedor nuevo con la misma imagen y el mismo volumen: aparecen tus ${guardados} ${guardados === 1 ? 'flujo' : 'flujos'}.` : 'Levantaste un contenedor nuevo: n8n arranca vacío. Todo lo que habías hecho se perdió con el contenedor viejo.', conVolumen ? 'ok' : 'mal');
-    pintar();
+    corriendo = true; filas = conVolumen ? guardadas : 0;
+    anotar(conVolumen ? `Contenedor nuevo, mismo volumen: aparecen tus ${guardadas} clientes.` : 'Contenedor nuevo: la base arranca vacía. Lo que habías cargado se fue con el contenedor viejo.', conVolumen ? 'ok' : 'mal'); pintar();
   });
   pintar();
 })();
 
 
 /* ══════════════════════════════════════════════════════════
-   5 · EL ARMADOR DE LA INSTALACIÓN
-   Sólo valores que no son secretos. No se guarda nada.
-   ══════════════════════════════════════════════════════════ */
-
-(function armador() {
-  const $dom = document.getElementById('arDominio');
-  if (!$dom) return;
-  const $tz = document.getElementById('arZona');
-  const $ver = document.getElementById('arVersion');
-  const $base = document.getElementById('arBase');
-  const $compose = document.getElementById('arCompose');
-  const $env = document.getElementById('arEnv');
-  const $expl = document.getElementById('arExpl');
-  let base = 'sqlite';
-
-  function lineas() {
-    const dominio = $dom.value.trim().replace(/^https?:\/\//, '').replace(/\/.*$/, '') || 'n8n.tu-dominio.com';
-    const zona = $tz.value.trim() || 'America/Argentina/Buenos_Aires';
-    const version = $ver.value.trim() || N8N.estable;
-    const env = [
-      ['# Copiá este archivo como .env, al lado del docker-compose.yml.', null],
-      ['# No lo subas a GitHub ni lo mandes por chat.', null],
-      ['', null],
-      [`N8N_VERSION=${version}`, 'N8N_VERSION'],
-      [`N8N_HOST=${dominio}`, 'N8N_HOST'],
-      ['N8N_PROTOCOL=https', 'N8N_PROTOCOL'],
-      [`N8N_WEBHOOK_URL=https://${dominio}/`, 'N8N_WEBHOOK_URL'],
-      ['N8N_PROXY_HOPS=1', 'N8N_PROXY_HOPS'],
-      [`GENERIC_TIMEZONE=${zona}`, 'GENERIC_TIMEZONE'],
-      [`TZ=${zona}`, 'TZ'],
-      ['N8N_ENCRYPTION_KEY=PEGAR_ACA_LA_CLAVE_GENERADA', 'N8N_ENCRYPTION_KEY'],
-      ['EXECUTIONS_DATA_PRUNE=true', 'EXECUTIONS_DATA_PRUNE'],
-      [`EXECUTIONS_DATA_MAX_AGE=${N8N.edadEjecuciones}`, 'EXECUTIONS_DATA_MAX_AGE']
-    ];
-    if (base === 'postgres') env.push(
-      ['', null],
-      ['DB_TYPE=postgresdb', 'DB_TYPE'],
-      ['DB_POSTGRESDB_HOST=postgres', 'DB_POSTGRESDB_HOST'],
-      ['DB_POSTGRESDB_DATABASE=n8n', 'DB_POSTGRESDB_DATABASE'],
-      ['DB_POSTGRESDB_USER=n8n', 'DB_POSTGRESDB_USER'],
-      ['DB_POSTGRESDB_PASSWORD=PEGAR_ACA_OTRA_CLAVE_GENERADA', 'DB_POSTGRESDB_PASSWORD']
-    );
-    const compose = [
-      ['services:', null],
-      ['  n8n:', null],
-      ['    image: n8nio/n8n:${N8N_VERSION}', 'image'],
-      ['    restart: unless-stopped', 'restart'],
-      ['    ports:', null],
-      ['      - "127.0.0.1:5678:5678"', 'ports'],
-      ['    env_file: .env', 'env_file'],
-      ['    volumes:', null],
-      ['      - n8n_data:/home/node/.n8n', 'volumes'],
-      ['      - ./respaldos:/home/node/.n8n-files', 'respaldos'],
-      ...(base === 'postgres' ? [['    depends_on:', null], ['      - postgres', 'depends_on']] : []),
-      ...(base === 'postgres' ? [
-        ['', null],
-        ['  postgres:', null],
-        ['    image: postgres:18', 'pgimage'],
-        ['    restart: unless-stopped', 'restart'],
-        ['    environment:', null],
-        ['      - POSTGRES_DB=n8n', 'pgenv'],
-        ['      - POSTGRES_USER=n8n', 'pgenv'],
-        ['      - POSTGRES_PASSWORD=${DB_POSTGRESDB_PASSWORD}', 'pgpass'],
-        ['      - PGDATA=/var/lib/postgresql/data', 'pgdata'],
-        ['    volumes:', null],
-        ['      - postgres_data:/var/lib/postgresql/data', 'pgvol']
-      ] : []),
-      ['', null],
-      ['volumes:', null],
-      ['  n8n_data:', 'volumes'],
-      ...(base === 'postgres' ? [['  postgres_data:', 'pgvol']] : [])
-    ];
-    return { env, compose };
-  }
-  function pintarArchivo($el, ls) {
-    $el.innerHTML = ls.map(([t, k]) => k ? `<button type="button" class="linea-ar" data-k="${k}">${escapar(t)}</button>` : `<span class="linea-ar quieta">${escapar(t) || ' '}</span>`).join('');
-  }
-  function pintar() {
-    const { env, compose } = lineas();
-    pintarArchivo($compose, compose);
-    pintarArchivo($env, env);
-    $compose.dataset.texto = compose.map(l => l[0]).join('\n') + '\n';
-    $env.dataset.texto = env.map(l => l[0]).join('\n') + '\n';
-  }
-  function explicar(k) {
-    const e = N8N.explicaciones[k];
-    if (!e) return;
-    $expl.innerHTML = `<span class="rot">${escapar(k)}</span><p>${e}</p>`;
-    document.querySelectorAll('.linea-ar').forEach(b => b.classList.toggle('on', b.dataset.k === k));
-  }
-  [$compose, $env].forEach($el => $el.addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (b) explicar(b.dataset.k); }));
-  $ver.placeholder = N8N.estable;
-  [$dom, $tz, $ver].forEach(el => el.addEventListener('input', pintar));
-  $base.addEventListener('click', e => {
-    const b = e.target.closest('button[data-b]');
-    if (!b) return;
-    base = b.dataset.b; marcar($base, b); pintar();
-  });
-  document.getElementById('arBajarCompose').addEventListener('click', () => bajar('docker-compose.yml', $compose.dataset.texto));
-  document.getElementById('arBajarEnv').addEventListener('click', () => bajar('env-de-ejemplo.txt', $env.dataset.texto));
-  pintar();
-  explicar('N8N_ENCRYPTION_KEY');
-})();
-
-
-/* ══════════════════════════════════════════════════════════
-   6 · LA TERMINAL DEL PRIMER ARRANQUE
+   LA TERMINAL DE PRÁCTICA
+   Un Docker de mentira que entiende los comandos de todos los días.
+   Las respuestas imitan a las de verdad, resumidas. Nada se descarga.
    ══════════════════════════════════════════════════════════ */
 
 (function terminal() {
-  const $t = document.getElementById('term');
-  if (!$t) return;
-  const $cmd = document.getElementById('termCmd');
-  const $exp = document.getElementById('termExpl');
-  const COMANDOS = N8N.terminal;
-  let n = 0;
-  function pintarBotones() {
-    $cmd.innerHTML = COMANDOS.map((c, i) => `<button type="button" data-i="${i}" ${i > n ? 'disabled' : ''} aria-pressed="${i < n}">${i + 1} · ${escapar(c.rot)}</button>`).join('');
+  const $out = document.getElementById('dkSalida');
+  if (!$out) return;
+  const $in = document.getElementById('dkEntrada');
+  const $form = document.getElementById('dkForm');
+  const $nav = document.getElementById('dkNavegador');
+  const $ej = document.getElementById('dkEjercicios');
+  const $chips = document.getElementById('dkChips');
+
+  const CATALOGO = DOCKER.catalogo;
+  const estado = { imagenes: [], contenedores: [], volumenes: [], historial: [], pos: 0, hechos: new Set() };
+  const hexa = n => [...crypto.getRandomValues(new Uint8Array(n))].map(x => x.toString(16).padStart(2, '0')).join('');
+  const ADJ = ['amable', 'curiosa', 'veloz', 'tranquila', 'valiente', 'prolija', 'astuta', 'serena'];
+  const SUS = ['borges', 'storni', 'favaloro', 'houssay', 'leloir', 'milstein', 'sadosky', 'quino'];
+  const nombreAzar = () => ADJ[Math.floor(Math.random() * ADJ.length)] + '_' + SUS[Math.floor(Math.random() * SUS.length)];
+
+  function linea(t, k) { $out.insertAdjacentHTML('beforeend', `<div class="t-${k || 'sal'}">${t}</div>`); $out.scrollTop = $out.scrollHeight; }
+  function sal(t) { linea(escapar(t)); }
+  function err(t) { linea(escapar(t), 'err'); }
+  function tabla(cab, filas) {
+    const anchos = cab.map((c, i) => Math.max(c.length, ...filas.map(f => String(f[i]).length)) + 3);
+    const fmt = f => f.map((x, i) => String(x).padEnd(anchos[i])).join('').trimEnd();
+    sal([fmt(cab), ...filas.map(fmt)].join('\n'));
   }
-  $cmd.addEventListener('click', e => {
-    const b = e.target.closest('button[data-i]');
+  function separarRef(ref) {
+    const [repo, tag] = ref.includes(':') ? ref.split(':') : [ref, 'latest'];
+    return { repo: repo.toLowerCase(), tag: tag || 'latest' };
+  }
+  function buscarImagen(ref) { const { repo, tag } = separarRef(ref); return estado.imagenes.find(i => i.repo === repo && i.tag === tag); }
+  function buscarCont(x) { return estado.contenedores.find(c => c.nombre === x || c.id.startsWith(x)); }
+  function hace(t) { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? `${s} seconds ago` : `${Math.round(s / 60)} minutes ago`; }
+
+  function bajar(ref, silencioso) {
+    const { repo, tag } = separarRef(ref);
+    const c = CATALOGO[repo];
+    if (!c) { err(`Error response from daemon: pull access denied for ${repo}, repository does not exist or may require 'docker login'`); return null; }
+    if (!c.tags.includes(tag)) { err(`Error response from daemon: manifest for ${repo}:${tag} not found: manifest unknown`); return null; }
+    let img = buscarImagen(ref);
+    if (img) { if (!silencioso) sal(`${tag}: Pulling from library/${repo}\nStatus: Image is up to date for ${repo}:${tag}`); return img; }
+    img = { repo, tag, id: hexa(6), creada: Date.now(), tam: c.tam };
+    estado.imagenes.push(img);
+    sal(`${tag}: Pulling from library/${repo}\n${hexa(6)}: Pull complete\n${hexa(6)}: Pull complete\nDigest: sha256:${hexa(32)}\nStatus: Downloaded newer image for ${repo}:${tag}`);
+    return img;
+  }
+
+  function parsear(texto) {
+    const t = []; let act = '', comilla = null;
+    for (const ch of texto) {
+      if (comilla) { if (ch === comilla) comilla = null; else act += ch; }
+      else if (ch === '"' || ch === "'") comilla = ch;
+      else if (/\s/.test(ch)) { if (act) { t.push(act); act = ''; } }
+      else act += ch;
+    }
+    if (act) t.push(act);
+    return t;
+  }
+
+  function puertoOcupado(h) { return estado.contenedores.find(c => c.estado === 'up' && c.puertos.some(p => p.h === h)); }
+
+  function run(args) {
+    const op = { d: false, puertos: [], nombre: null, env: [], vols: [], rm: false };
+    let i = 0;
+    for (; i < args.length; i++) {
+      const a = args[i];
+      if (a === '-d' || a === '--detach') op.d = true;
+      else if (a === '-it' || a === '-ti' || a === '-i' || a === '-t') op.it = true;
+      else if (a === '--rm') op.rm = true;
+      else if (a === '-p' || a === '--publish') { const v = args[++i] || ''; const m = v.match(/^(\d+):(\d+)$/); if (!m) { err(`invalid argument "${v}" for "-p" flag: el formato es puerto_de_tu_máquina:puerto_del_contenedor, por ejemplo 8080:80`); return; } op.puertos.push({ h: +m[1], c: +m[2] }); }
+      else if (a === '--name') op.nombre = args[++i];
+      else if (a === '-e' || a === '--env') op.env.push(args[++i]);
+      else if (a === '-v' || a === '--volume') { const v = args[++i] || ''; const m = v.match(/^([^:]+):(\/.+)$/); if (!m) { err(`invalid argument "${v}" for "-v" flag: el formato es volumen:/ruta/adentro, por ejemplo datos:/var/lib/postgresql/data`); return; } op.vols.push({ v: m[1], ruta: m[2] }); }
+      else if (a.startsWith('-')) { err(`unknown flag: ${a}`); return; }
+      else break;
+    }
+    const ref = args[i];
+    if (!ref) { err('"docker run" requires at least 1 argument.\nUsage:  docker run [OPTIONS] IMAGE [COMMAND] [ARG...]'); return; }
+    if (op.nombre && estado.contenedores.some(c => c.nombre === op.nombre)) { err(`docker: Error response from daemon: Conflict. The container name "/${op.nombre}" is already in use. You have to remove (or rename) that container to be able to reuse that name.`); return; }
+    for (const p of op.puertos) { const o = puertoOcupado(p.h); if (o) { err(`docker: Error response from daemon: Bind for 0.0.0.0:${p.h} failed: port is already allocated.`); estado.hechos.add('puerto'); marcarEjercicios(); return; } }
+    let img = buscarImagen(ref);
+    if (!img) { const { repo, tag } = separarRef(ref); if (CATALOGO[repo]) sal(`Unable to find image '${repo}:${tag}' locally`); img = bajar(ref, true); if (!img) return; }
+    const c = CATALOGO[img.repo];
+    if (c.necesita && !op.env.some(e => e.startsWith(c.necesita.split('=')[0] + '='))) {
+      const cont = crearCont(img, op, 'exited');
+      sal(c.sinEnv); cont.salida = 1; estado.hechos.add('env'); marcarEjercicios(); return;
+    }
+    op.vols.forEach(v => { if (!estado.volumenes.includes(v.v)) estado.volumenes.push(v.v); });
+    const queda = c.servicio ? 'up' : 'exited';
+    const cont = crearCont(img, op, queda);
+    if (op.vols.length) estado.hechos.add('volumen');
+    if (!c.servicio) { sal(c.salida); if (op.rm) estado.contenedores = estado.contenedores.filter(x => x !== cont); }
+    else if (op.d) sal(cont.idLargo);
+    else { sal(c.logs); linea('(En una terminal de verdad, quedaría mostrando estos mensajes hasta Ctrl+C. Con -d corre en segundo plano.)', 'nota'); }
+    if (img.repo === 'hello-world') estado.hechos.add('hello');
+    if (c.servicio && op.puertos.length && op.d) estado.hechos.add('web');
+    pintarNavegador(); marcarEjercicios();
+  }
+  function crearCont(img, op, est) {
+    const id = hexa(32);
+    const cont = { id: id.slice(0, 12), idLargo: id, nombre: op.nombre || nombreAzar(), imagen: `${img.repo}${img.tag === 'latest' ? '' : ':' + img.tag}`, img, estado: est, puertos: est === 'up' ? op.puertos : op.puertos, creado: Date.now(), comando: CATALOGO[img.repo].comando, vols: op.vols };
+    estado.contenedores.push(cont);
+    return cont;
+  }
+
+  const COMANDOS = {
+    ps(args) {
+      const todos = args.includes('-a') || args.includes('--all');
+      const lista = estado.contenedores.filter(c => todos || c.estado === 'up');
+      tabla(['CONTAINER ID', 'IMAGE', 'COMMAND', 'CREATED', 'STATUS', 'PORTS', 'NAMES'],
+        lista.map(c => [c.id, c.imagen, `"${c.comando}"`, hace(c.creado), c.estado === 'up' ? 'Up' : `Exited (${c.salida || 0})`, c.estado === 'up' ? c.puertos.map(p => `0.0.0.0:${p.h}->${p.c}/tcp`).join(', ') : '', c.nombre]));
+      estado.hechos.add(todos ? 'psa' : 'ps'); marcarEjercicios();
+    },
+    images() {
+      tabla(['REPOSITORY', 'TAG', 'IMAGE ID', 'SIZE'], estado.imagenes.map(i => [i.repo, i.tag, i.id, i.tam]));
+      estado.hechos.add('images'); marcarEjercicios();
+    },
+    pull(args) { if (!args[0]) { err('"docker pull" requires exactly 1 argument.'); return; } bajar(args[0]); },
+    run,
+    stop(args) {
+      if (!args.length) { err('"docker stop" requires at least 1 argument.'); return; }
+      args.forEach(x => { const c = buscarCont(x); if (!c) { err(`Error response from daemon: No such container: ${x}`); return; } c.estado = 'exited'; c.salida = 0; sal(x); });
+      estado.hechos.add('stop'); pintarNavegador(); marcarEjercicios();
+    },
+    start(args) {
+      args.forEach(x => { const c = buscarCont(x); if (!c) { err(`Error response from daemon: No such container: ${x}`); return; }
+        const o = c.puertos.map(p => puertoOcupado(p.h)).find(Boolean);
+        if (o && o !== c) { err(`Error response from daemon: Bind for 0.0.0.0:${c.puertos[0].h} failed: port is already allocated.`); return; }
+        if (CATALOGO[c.img.repo].servicio) c.estado = 'up'; sal(x); });
+      pintarNavegador();
+    },
+    rm(args) {
+      const forzar = args.includes('-f') || args.includes('--force');
+      args.filter(a => !a.startsWith('-')).forEach(x => { const c = buscarCont(x); if (!c) { err(`Error response from daemon: No such container: ${x}`); return; }
+        if (c.estado === 'up' && !forzar) { err(`Error response from daemon: cannot remove container "/${c.nombre}": container is running: stop the container before removing or force remove`); return; }
+        estado.contenedores = estado.contenedores.filter(y => y !== c); sal(x); estado.hechos.add('rm'); });
+      pintarNavegador(); marcarEjercicios();
+    },
+    rmi(args) {
+      args.forEach(x => { const img = buscarImagen(x); if (!img) { err(`Error response from daemon: No such image: ${x}`); return; }
+        const usa = estado.contenedores.find(c => c.img === img);
+        if (usa) { err(`Error response from daemon: conflict: unable to remove repository reference "${x}" (must force) - container ${usa.id} is using its referenced image ${img.id}`); return; }
+        estado.imagenes = estado.imagenes.filter(y => y !== img); sal(`Untagged: ${img.repo}:${img.tag}\nDeleted: sha256:${img.id}${hexa(26)}`); });
+    },
+    logs(args) { const c = buscarCont(args.filter(a => !a.startsWith('-'))[0] || ''); if (!c) { err(`Error response from daemon: No such container: ${args[0] || ''}`); return; } sal(CATALOGO[c.img.repo].logs || CATALOGO[c.img.repo].salida || ''); estado.hechos.add('logs'); marcarEjercicios(); },
+    exec(args) { const x = args.filter(a => !a.startsWith('-'))[0]; const c = buscarCont(x || ''); if (!c) { err(`Error response from daemon: No such container: ${x || ''}`); return; } if (c.estado !== 'up') { err(`Error response from daemon: container ${c.id} is not running`); return; } linea(`(Entrarías a una terminal adentro de «${escapar(c.nombre)}»: su propio sistema de archivos, sus propios programas. Se sale con exit.)`, 'nota'); },
+    volume(args) {
+      if (args[0] === 'ls') tabla(['DRIVER', 'VOLUME NAME'], estado.volumenes.map(v => ['local', v]));
+      else if (args[0] === 'create' && args[1]) { if (!estado.volumenes.includes(args[1])) estado.volumenes.push(args[1]); sal(args[1]); }
+      else err('Usage:  docker volume COMMAND (ls | create NOMBRE)');
+    },
+    version() { sal(DOCKER.version); },
+    compose(args) {
+      if (args[0] === 'up') {
+        ['web', 'db'].forEach(n => { if (estado.contenedores.some(c => c.nombre === 'tienda-' + n + '-1')) return;
+          const ref = n === 'web' ? 'nginx:1.30' : 'postgres:18';
+          const img = buscarImagen(ref) || bajar(ref, true);
+          crearCont(img, { nombre: 'tienda-' + n + '-1', puertos: n === 'web' ? [{ h: 8081, c: 80 }] : [], vols: n === 'db' ? [{ v: 'tienda_datos', ruta: '/var/lib/postgresql/data' }] : [] }, 'up'); });
+        if (!estado.volumenes.includes('tienda_datos')) estado.volumenes.push('tienda_datos');
+        sal('[+] Running 4/4\n ✔ Network tienda_default    Created\n ✔ Volume "tienda_datos"     Created\n ✔ Container tienda-db-1     Started\n ✔ Container tienda-web-1    Started');
+        estado.hechos.add('compose'); pintarNavegador(); marcarEjercicios();
+      } else if (args[0] === 'down') {
+        estado.contenedores = estado.contenedores.filter(c => !c.nombre.startsWith('tienda-'));
+        sal('[+] Running 3/3\n ✔ Container tienda-web-1    Removed\n ✔ Container tienda-db-1     Removed\n ✔ Network tienda_default    Removed' + (args.includes('-v') ? '\n ✔ Volume tienda_datos       Removed' : ''));
+        if (args.includes('-v')) estado.volumenes = estado.volumenes.filter(v => v !== 'tienda_datos');
+        pintarNavegador();
+      } else err('En esta práctica: docker compose up -d  o  docker compose down');
+    }
+  };
+  COMANDOS.image = args => args[0] === 'ls' ? COMANDOS.images() : err('Usage:  docker image ls');
+  COMANDOS.container = args => args[0] === 'ls' ? COMANDOS.ps(args.slice(1)) : err('Usage:  docker container ls');
+
+  function ejecutar(texto) {
+    linea(`<span>$</span> ${escapar(texto)}`, 'cmd');
+    const t = parsear(texto.trim());
+    if (!t.length) return;
+    if (t[0] === 'clear' || t[0] === 'limpiar') { $out.innerHTML = ''; return; }
+    if (t[0] === 'help' || t[0] === 'ayuda') { sal(DOCKER.ayuda); return; }
+    if (t[0] !== 'docker') { err(`${t[0]}: command not found. Los comandos empiezan con «docker». Probá «ayuda».`); return; }
+    const sub = t[1], f = COMANDOS[sub];
+    if (!sub) { sal(DOCKER.ayuda); return; }
+    if (!f) { err(`docker: '${sub}' is not a docker command.\nSee 'docker --help'`); return; }
+    f(t.slice(2));
+  }
+
+  function pintarNavegador() {
+    const vivos = estado.contenedores.filter(c => c.estado === 'up' && c.puertos.length);
+    $nav.innerHTML = vivos.length ? vivos.map(c => c.puertos.map(p => {
+      const pag = CATALOGO[c.img.repo].pagina;
+      return `<div class="nav-tab"><div class="nav-barra">localhost:${p.h}</div><div class="nav-cuerpo">${pag ? pag : `<p class="sim-vacia">${escapar(c.img.repo)} no muestra una página web: es un servicio que usan otros programas.</p>`}</div></div>`;
+    }).join('')).join('') : '<p class="sim-vacia">Ningún contenedor publica un puerto todavía. Cuando corras uno con <code>-p 8080:80</code>, su página aparece acá, como si abrieras <code>localhost:8080</code> en el navegador.</p>';
+  }
+
+  function marcarEjercicios() {
+    $ej.querySelectorAll('[data-h]').forEach(li => li.classList.toggle('hecho', estado.hechos.has(li.dataset.h)));
+    const n = $ej.querySelectorAll('.hecho').length, tot = $ej.querySelectorAll('[data-h]').length;
+    document.getElementById('dkProgreso').textContent = `${n} de ${tot}`;
+  }
+
+  $form.addEventListener('submit', e => {
+    e.preventDefault();
+    const v = $in.value;
+    if (!v.trim()) return;
+    estado.historial.push(v); estado.pos = estado.historial.length;
+    ejecutar(v); $in.value = '';
+  });
+  $in.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp' && estado.pos > 0) { estado.pos--; $in.value = estado.historial[estado.pos]; e.preventDefault(); }
+    if (e.key === 'ArrowDown') { estado.pos = Math.min(estado.historial.length, estado.pos + 1); $in.value = estado.historial[estado.pos] || ''; e.preventDefault(); }
+  });
+  $chips.addEventListener('click', e => { const b = e.target.closest('button[data-c]'); if (!b) return; $in.value = b.dataset.c; $in.focus(); });
+  document.getElementById('dkReset').addEventListener('click', () => {
+    estado.imagenes = []; estado.contenedores = []; estado.volumenes = []; estado.hechos.clear();
+    $out.innerHTML = ''; linea(DOCKER.bienvenida, 'nota'); pintarNavegador(); marcarEjercicios();
+  });
+  linea(DOCKER.bienvenida, 'nota');
+  pintarNavegador(); marcarEjercicios();
+})();
+
+
+
+/* ══════════════════════════════════════════════════════════
+   9 · EL RECORRIDO POR DOCKER DESKTOP
+   Un dibujo hecho con la página, no una captura.
+   ══════════════════════════════════════════════════════════ */
+
+(function desktop() {
+  const $m = document.getElementById('ddMenu');
+  if (!$m) return;
+  const $p = document.getElementById('ddPanel');
+  $m.innerHTML = DOCKER.desktop.map((s, i) => `<button type="button" data-i="${i}" aria-pressed="${i === 0}">${escapar(s.nombre)}</button>`).join('');
+  function pintar(i) {
+    const s = DOCKER.desktop[i];
+    $p.innerHTML = `<span class="rot">${escapar(s.nombre)}</span><p style="margin-top:8px">${s.que}</p>${s.prueba ? `<p class="dd-prueba"><b>Probá:</b> ${s.prueba}</p>` : ''}`;
+  }
+  $m.addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (!b) return; marcar($m, b); pintar(+b.dataset.i); });
+  pintar(0);
+})();
+
+
+/* ══════════════════════════════════════════════════════════
+   10 · ¿DOCKER DESKTOP ES GRATIS PARA VOS?
+   ══════════════════════════════════════════════════════════ */
+
+(function licencia() {
+  const $d = document.getElementById('licPreg');
+  if (!$d) return;
+  const $v = document.getElementById('licVer');
+  const r = {};
+  function decidir() {
+    let v = null;
+    if (r.uso === 'personal' || r.uso === 'educacion' || r.uso === 'abierto') v = ['Gratis', 'Uso personal, educación o un proyecto de código abierto sin fines comerciales: Docker Desktop no se paga.'];
+    else if (r.uso === 'empresa' && r.tam === 'chica') v = ['Gratis', DOCKER.licencia.chica];
+    else if (r.uso === 'empresa' && r.tam === 'grande') v = ['Con suscripción paga', DOCKER.licencia.grande];
+    $d.querySelector('[data-si="empresa"]').hidden = r.uso !== 'empresa';
+    $v.hidden = !v;
+    if (v) $v.innerHTML = `<div class="cual">${v[0]}</div><p>${v[1]}</p><p style="color:var(--tenue);font-size:0.86rem">${DOCKER.licencia.alternativa}</p>`;
+  }
+  $d.addEventListener('click', e => {
+    const b = e.target.closest('button[data-k]');
     if (!b) return;
-    const i = +b.dataset.i, c = COMANDOS[i];
-    $t.insertAdjacentHTML('beforeend', `<div class="t-cmd"><span>$</span> ${escapar(c.cmd)}</div><div class="t-sal">${escapar(c.sal)}</div>`);
-    $t.scrollTop = $t.scrollHeight;
-    $exp.innerHTML = `<p>${c.expl}</p>`;
-    if (i === n) n = Math.min(COMANDOS.length, n + 1);
-    pintarBotones();
+    r[b.dataset.k] = b.dataset.v;
+    if (b.dataset.k === 'uso') delete r.tam;
+    $d.querySelectorAll(`button[data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    if (b.dataset.k === 'uso') $d.querySelectorAll('button[data-k="tam"]').forEach(x => x.setAttribute('aria-pressed', 'false'));
+    decidir();
   });
-  document.getElementById('termReset').addEventListener('click', () => { n = 0; $t.innerHTML = '<div class="t-sal">Una terminal en el servidor, en la carpeta donde están docker-compose.yml y .env.</div>'; $exp.innerHTML = ''; pintarBotones(); });
-  document.getElementById('termReset').click();
+  decidir();
 })();
 
 
 /* ══════════════════════════════════════════════════════════
-   7 · LA CLAVE DE CIFRADO, CON CIFRADO DE VERDAD
-   AES-GCM del navegador. Nada sale de esta página y nada se guarda.
+   11 · LA PRUEBA FINAL
    ══════════════════════════════════════════════════════════ */
 
-(function cifrado() {
-  const $tok = document.getElementById('cfToken');
-  if (!$tok) return;
-  const $k1 = document.getElementById('cfClave');
-  const $k2 = document.getElementById('cfOtra');
-  const $base = document.getElementById('cfBase');
-  const $res = document.getElementById('cfRes');
-  const enc = new TextEncoder(), dec = new TextDecoder();
-  const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
-  const azar = n => hex(crypto.getRandomValues(new Uint8Array(n)));
-  let guardado = null;
-
-  async function llave(texto) {
-    const material = await crypto.subtle.digest('SHA-256', enc.encode(texto));
-    return crypto.subtle.importKey('raw', material, 'AES-GCM', false, ['encrypt', 'decrypt']);
-  }
-  if (!window.crypto || !crypto.subtle) {
-    $res.innerHTML = '<p class="sim-vacia">Este navegador no permite cifrar desde la página. Lo de abajo se entiende igual leyéndolo.</p>';
-    return;
-  }
-  $k1.value = azar(16);
-  $k2.value = azar(16);
-  document.getElementById('cfNueva').addEventListener('click', () => { $k2.value = azar(16); });
-  document.getElementById('cfCifrar').addEventListener('click', async () => {
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const c = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await llave($k1.value), enc.encode($tok.value));
-    guardado = { iv, c };
-    $base.textContent = hex(iv) + ':' + hex(c);
-    $res.innerHTML = '<div class="bit ok"><i>✓</i><span>Guardado. En la base de datos queda esto, que sin la clave no se puede leer. Es lo mismo que hace n8n con cada credencial.</span></div>';
-  });
-  async function abrir(clave, rot) {
-    if (!guardado) { $res.innerHTML = '<div class="bit rep"><i>·</i><span>Primero guardá la credencial.</span></div>'; return; }
-    try {
-      const p = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: guardado.iv }, await llave(clave), guardado.c);
-      $res.innerHTML = `<div class="bit ok"><i>✓</i><span>${rot}: se descifra. n8n lee <b>${escapar(dec.decode(p))}</b> y el flujo anda.</span></div>`;
-    } catch (e) {
-      $res.innerHTML = `<div class="bit mal"><i>✗</i><span>${rot}: no se puede descifrar. ${N8N.errorClave} Los flujos están, las credenciales también, pero ninguna sirve hasta que vuelva la clave original.</span></div>`;
-    }
-  }
-  document.getElementById('cfMisma').addEventListener('click', () => abrir($k1.value, 'Con la misma clave'));
-  document.getElementById('cfDistinta').addEventListener('click', () => abrir($k2.value, 'Con otra clave'));
-})();
-
-
-/* ══════════════════════════════════════════════════════════
-   8 · EL SIMULADOR DE DESASTRES
-   ══════════════════════════════════════════════════════════ */
-
-(function desastres() {
-  const $r = document.getElementById('dsResp');
-  if (!$r) return;
-  const $d = document.getElementById('dsDesastre');
-  const $res = document.getElementById('dsRes');
-  const RESPALDOS = [
-    ['flujos', 'Exportar los flujos todos los días'],
-    ['credenciales', 'Exportar las credenciales'],
-    ['clave', 'Guardar la clave de cifrado aparte, fuera del servidor'],
-    ['base', 'Copiar la base de datos completa (el volumen o un volcado de Postgres)'],
-    ['afuera', 'Que las copias vivan en otro lugar, no en el mismo servidor']
-  ];
-  const DESASTRES = [
-    { id: 'disco', t: 'Se murió el disco del servidor', necesita: ['afuera', 'clave'], y: ['flujos', 'base'],
-      ok: 'Levantás un servidor nuevo, ponés la misma clave en el .env y recuperás desde la copia que estaba afuera.',
-      falta: { afuera: 'Las copias estaban en el mismo disco que se murió.', clave: 'Recuperás flujos y credenciales, pero las credenciales no se descifran sin la clave original.', y: 'No tenías ni los flujos ni la base copiados.' } },
-    { id: 'borre', t: 'Borraste un flujo por error', necesita: [], y: ['flujos', 'base'],
-      ok: 'Lo importás de la exportación de ayer y listo. Con el historial de versiones del flujo, si tu plan lo tiene, a veces ni hace falta.',
-      falta: { y: 'Sin exportación ni copia de la base, el flujo se rehace de memoria.' } },
-    { id: 'actualice', t: 'Actualizaste n8n y algo dejó de andar', necesita: ['base'], y: [],
-      ok: 'Volvés a la versión anterior de la imagen y restaurás la copia de la base de antes de actualizar. Por eso se copia antes de cada actualización.',
-      falta: { base: 'La versión nueva ya modificó la base. Sin una copia de antes, volver atrás puede no andar.' } },
-    { id: 'env', t: 'Perdiste el archivo .env', necesita: ['clave'], y: [],
-      ok: 'Rearmás el .env con la clave que guardaste aparte. Todo vuelve a andar.',
-      falta: { clave: 'Sin la clave, las credenciales guardadas no se pueden descifrar: hay que volver a cargarlas una por una, en cada servicio.' } },
-    { id: 'robo', t: 'Se robaron la notebook donde estaba todo', necesita: ['afuera', 'clave'], y: ['flujos', 'base'],
-      ok: 'Las copias y la clave estaban en otro lado: armás todo en otra máquina. Y cambiás las credenciales, porque alguien tiene una copia.',
-      falta: { afuera: 'Las copias estaban en la misma notebook.', clave: 'Sin la clave aparte, las credenciales de las copias no se pueden usar.', y: 'No había ninguna copia.' } }
-  ];
-  const tengo = new Set();
-  let desastre = DESASTRES[0];
-  $r.innerHTML = RESPALDOS.map(([k, t]) => `<label class="ds-item"><input type="checkbox" data-k="${k}"> ${t}</label>`).join('');
-  $d.innerHTML = DESASTRES.map((x, i) => `<button type="button" data-i="${i}" aria-pressed="${i === 0}">${x.t}</button>`).join('');
-  function evaluar() {
-    const faltan = desastre.necesita.filter(k => !tengo.has(k));
-    const sinNinguno = desastre.y.length && !desastre.y.some(k => tengo.has(k));
-    if (!faltan.length && !sinNinguno) {
-      $res.innerHTML = `<div class="cual" style="color:var(--acierto)">✓ Recuperás todo</div><p>${desastre.ok}</p>`;
-    } else {
-      const motivos = [...faltan.map(k => desastre.falta[k]), ...(sinNinguno ? [desastre.falta.y] : [])].filter(Boolean);
-      $res.innerHTML = `<div class="cual" style="color:var(--fallo)">✗ Perdés algo</div>${motivos.map(m => `<p>${m}</p>`).join('')}`;
-    }
-  }
-  $r.addEventListener('change', e => { const c = e.target.closest('input[data-k]'); if (!c) return; c.checked ? tengo.add(c.dataset.k) : tengo.delete(c.dataset.k); evaluar(); });
-  $d.addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (!b) return; desastre = DESASTRES[+b.dataset.i]; marcar($d, b); evaluar(); });
-  document.getElementById('dsTodo').addEventListener('click', () => { $r.querySelectorAll('input').forEach(c => { c.checked = true; tengo.add(c.dataset.k); }); evaluar(); });
-  evaluar();
-})();
-
-
-/* ══════════════════════════════════════════════════════════
-   9 · PRUEBAS RÁPIDAS: EL DIAGNÓSTICO
-   ══════════════════════════════════════════════════════════ */
-
-(function diagnostico() {
-  const $c = document.getElementById('diag');
+(function prueba() {
+  const $c = document.getElementById('final');
   if (!$c) return;
-  const $total = document.getElementById('diagTotal');
-  const CASOS = N8N.diagnostico;
-  const OPC = N8N.diagnosticoOpciones;
+  const $total = document.getElementById('finalTotal');
+  const OPC = [['contenedor', 'Un contenedor'], ['vm', 'Una máquina virtual'], ['vps', 'Un VPS'], ['dedicado', 'Un servidor dedicado']];
+  const CASOS = [
+    { t: 'Querés probar una base de datos en tu notebook, sin instalarla, y borrarla cuando termines.', ok: 'contenedor', por: 'Un contenedor: se baja la imagen, se corre y se borra. Tu notebook queda como estaba.' },
+    { t: 'Necesitás usar un programa que sólo existe para Windows, y tu computadora es una Mac.', ok: 'vm', por: 'Una máquina virtual: un Windows entero adentro de la Mac. Un contenedor comparte el sistema de la máquina, así que no sirve para correr otro sistema operativo.' },
+    { t: 'Una pyme quiere tener su sistema funcionando las 24 horas, accesible desde internet, sin comprar hardware y gastando poco.', ok: 'vps', por: 'Un VPS: una máquina virtual en el centro de datos de un proveedor, que se paga por mes y está siempre prendida.' },
+    { t: 'Un estudio contable con datos muy sensibles y mucho procesamiento no quiere compartir el hardware con nadie.', ok: 'dedicado', por: 'Un servidor dedicado: la máquina física entera es suya. Más caro, sin vecinos.' },
+    { t: 'Tu sistema funciona en tu máquina pero no en la del compañero, porque él tiene otra versión de algo.', ok: 'contenedor', por: 'Un contenedor: la aplicación viaja con todo lo que necesita, y corre igual en cualquier máquina que tenga Docker.' },
+    { t: 'Un proveedor te alquila «2 vCPU y 4 GB de RAM» por mes, en una máquina que también usan otros clientes.', ok: 'vps', por: 'Eso es un VPS. La «v» de vCPU quiere decir virtual: un pedazo del procesador de la máquina física.' }
+  ];
   const resp = {};
   $c.innerHTML = CASOS.map((it, i) => `
     <div class="prueba-item" data-i="${i}">
@@ -661,7 +909,7 @@ Object.entries(N8N.textos).forEach(([id, html]) => { const el = document.getElem
 
 
 /* ══════════════════════════════════════════════════════════
-   10 · ACTIVIDAD
+   12 · ACTIVIDAD
    ══════════════════════════════════════════════════════════ */
 
 (function actividad() {
@@ -678,9 +926,7 @@ Object.entries(N8N.textos).forEach(([id, html]) => { const el = document.getElem
         if (guardar('clase15-' + id, el.value)) {
           const hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
           $aviso.textContent = `Guardado en este dispositivo a las ${hora}.`;
-        } else {
-          $aviso.textContent = 'No pude guardar: el navegador tiene bloqueado el almacenamiento.';
-        }
+        } else $aviso.textContent = 'No pude guardar: el navegador tiene bloqueado el almacenamiento.';
       }, 500);
     });
   });
@@ -688,15 +934,9 @@ Object.entries(N8N.textos).forEach(([id, html]) => { const el = document.getElem
 })();
 
 
-/* ══════════════════════════════════════════════════════════
-   11 · REVELADO AL SCROLL
-   ══════════════════════════════════════════════════════════ */
-
 if (!reducido && 'IntersectionObserver' in window) {
   const ojo = new IntersectionObserver(entradas => {
-    entradas.forEach(en => {
-      if (en.isIntersecting) { en.target.classList.add('visible'); ojo.unobserve(en.target); }
-    });
+    entradas.forEach(en => { if (en.isIntersecting) { en.target.classList.add('visible'); ojo.unobserve(en.target); } });
   }, { rootMargin: '0px 0px -12% 0px' });
   document.querySelectorAll('.revelar').forEach(s => ojo.observe(s));
 } else {

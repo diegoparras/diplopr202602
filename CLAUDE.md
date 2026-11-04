@@ -101,8 +101,8 @@ con progresión de nube a instancia propia.
 3. Construir de verdad (7 a 9) — primer caso completo, APIs y webhooks, datos
 4. Contexto e inteligencia (10 a 12) — nodo de agente, ingeniería de contexto,
    primer contacto con los orquestadores
-5. Orquestar y alojar (13 a 17) — MCP, RAG con n8n y Dify, self-hosting e
-   instancia propia, orquestación desde afuera, multi-agente
+5. Orquestar y alojar (13 a 17) — MCP, RAG con n8n y Dify, Docker, máquinas
+   virtuales y servidores, orquestación desde afuera, multi-agente
 6. Evaluar y mejorar (18 a 20) — métricas, refactor, proyecto integrador
 
 Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
@@ -201,20 +201,19 @@ cargar y preguntar) y n8n que le pregunta a Dify por HTTP Request. La
 actividad alimenta la 15: qué documentos no saldrían nunca y qué te
 traerías a una máquina propia.
 
-La 15 es self-hosting e instancia propia, con muchas piezas para tocar:
-la escalera de dónde vive n8n (Cloud, hosting administrado como el
-PikaPods del taller, servidor propio, máquina de la oficina) con quién se
-ocupa de qué, un decisor y una cuenta de costos donde el servidor y las
-horas los pone cada uno (no se inventa un precio de servidor), Docker en
-tres ideas con un simulador del volumen, un armador de `docker-compose.yml`
-y `.env` con explicación por línea (sólo valores no secretos, no guarda
-nada; la clave se genera con `openssl` en el servidor), la terminal del
-primer arranque, la clave de cifrado con AES-GCM real del navegador, un
-simulador de desastres contra lo que se respalda, y un diagnóstico de
-siete síntomas. Workflow: respaldo diario de los flujos con el nodo n8n y
-Read/Write Files en `/home/node/.n8n-files`, montada en `./respaldos`.
-Deja abierta la 16: qué tarea de mantenimiento le darías a un agente y a
-qué instancia lo dejarías entrar.
+La 15 se rehízo el 4/11 por pedido del coordinador: es una clase **general,
+sin n8n**, «Docker, máquinas virtuales y servidores». Qué es una máquina
+virtual y qué un contenedor (capas interactivas y una carrera de arranque
+marcada como orden de magnitud), VPS, dedicado e instancia en la nube (el
+edificio: departamento, casa, hotel, con vecino ruidoso), un glosario de
+cartas, de dónde se bajan las imágenes (buscador con los sellos reales de
+Docker Hub, otros registros, `latest`, límites de descarga), puertos y
+volúmenes, instalar Docker Desktop y su licencia, un recorrido por la
+ventana (dibujo, no captura) y una terminal de práctica que simula Docker
+con once ejercicios y un navegador. No tiene workflow. La actividad pide
+instalar Docker Desktop, pegar el `docker ps` y buscar una imagen propia.
+La primera versión, sobre self-hosting de n8n, se descartó; sus datos
+verificados quedan en la sección del 4 de noviembre por si vuelven.
 
 El taller `taller-oauth.html` es aparte: no es una clase, no lleva número y no
 entra en `clases.js`. Se llega desde el bloque «Talleres» del cronograma, y la
@@ -521,7 +520,7 @@ Dify y Docker Hub.
   `metadata.retriever_resources`. No hay integración oficial n8n ↔ Dify;
   sí un nodo de comunidad de un particular, que no se usa.
 
-## Self-hosting, verificado el 4 de noviembre de 2026
+## Self-hosting de n8n, verificado el 4 de noviembre de 2026 (no se usa en la 15)
 
 Contra docs.n8n.io, Docker Hub, la grilla de n8n.io, pikapods.com y el
 código de la estable (`n8n` 2.46.6; beta 2.47.2).
@@ -553,6 +552,32 @@ código de la estable (`n8n` 2.46.6; beta 2.47.2).
   importar o paquetes `.n8np` (Preview). Registered Community suma
   carpetas, debug in editor y custom execution data.
 - **PikaPods** ofrece n8n desde USD 3,7 por mes.
+
+## Docker y servidores, verificado el 4 de noviembre de 2026
+
+Contra docs.docker.com, docker.com/pricing, la API de búsqueda de Docker
+Hub y las páginas de precios de cada proveedor.
+
+- **Docker Desktop 4.98.0** (3/11/2026). Gratis para uso personal,
+  educación, código abierto sin fines comerciales y empresas con menos de
+  250 personas **y** menos de USD 10 M de facturación; pago para el resto y
+  para organismos públicos (Pro 9–11, Team 15–16, Business 24 USD por
+  persona y mes). Windows 10 22H2 / 11 23H2 con WSL 2 y 8 GB; Mac Apple
+  silicon o Intel, macOS actual y dos anteriores; Linux Ubuntu, Debian,
+  Fedora, RHEL. Secciones: Containers, Images, Volumes, Builds, Docker Hub,
+  Models, MCP Toolkit, Gordon, Extensions (personalizable). Docker Engine
+  es Apache 2.0.
+- **Docker Hub.** Sellos: Docker Official Image, Verified Publisher,
+  Sponsored OSS, Hardened (Community gratis). Límite cada 6 h: 100 sin
+  cuenta por IP, 200 con cuenta gratuita. Ejemplos con sello verificado en
+  la API: nginx, postgres, httpd, redis, wordpress, python, hello-world
+  (oficiales); grafana/grafana y portainer/portainer-ce (Verified
+  Publisher); ollama/ollama (Sponsored OSS); metabase/metabase sin sello.
+  nginx estable 1.30, principal 1.31; postgres 18.
+- **Servidores** (sin IVA salvo DigitalOcean): DigitalOcean desde USD 4
+  (1 vCPU, 512 MB); OVHcloud VPS desde 3,81 € (2 vCPU, 4 GB); Hetzner AX41
+  dedicado 59 €. Hetzner subió precios dos veces en 2026 y sus planes cloud
+  más chicos figuraban agotados.
 
 ## Despliegue
 
