@@ -63,7 +63,7 @@ const CLASES = [
   { n: 14, fecha: '2026-10-28', dia: 'Miércoles', mod: 'M5', pagina: '14.html',
     titulo: 'RAG con n8n y con Dify',
     bajada: 'Lo que la organización sabe y tiene escrito: partirlo, buscarlo por significado y contestar con eso. Primer contacto con Dify.' },
-  { n: 15, fecha: '2026-11-04', dia: 'Miércoles', mod: 'M5', pagina: null,
+  { n: 15, fecha: '2026-11-04', dia: 'Miércoles', mod: 'M5', pagina: '15.html',
     titulo: 'Self-hosting e instancia propia: Docker, credenciales y backups',
     bajada: 'Por qué alojar esto adentro y qué implica: Docker, un servidor propio, variables de entorno, respaldos y qué mirar cuando algo falla.' },
   { n: 16, fecha: '2026-11-11', dia: 'Miércoles', mod: 'M5', pagina: null,

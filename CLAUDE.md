@@ -109,11 +109,11 @@ Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 14, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
+Estado: publicadas las clases 1 a 15, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
-alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13, la 13 alimenta la 14 y la 15 (la primera pregunta va a la 14, la segunda a la 15) y la 14 alimenta la 15. Con la 9 cierra el módulo 3 y quedan
+alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13, la 13 alimenta la 14 y la 15 (la primera pregunta va a la 14, la segunda a la 15) la 14 alimenta la 15 y la 15 alimenta la 16. Con la 9 cierra el módulo 3 y quedan
 saldadas las dos deudas que arrastraba: la memoria entre ejecuciones y la
 planilla usada como base de datos en el caso de la 7. La planilla no desaparece
 del caso, cambia de papel: deja de ser la memoria del flujo y queda como la
@@ -200,6 +200,21 @@ casilleros y n8n o Dify. Workflows: RAG en n8n con Simple Vector Store
 cargar y preguntar) y n8n que le pregunta a Dify por HTTP Request. La
 actividad alimenta la 15: qué documentos no saldrían nunca y qué te
 traerías a una máquina propia.
+
+La 15 es self-hosting e instancia propia, con muchas piezas para tocar:
+la escalera de dónde vive n8n (Cloud, hosting administrado como el
+PikaPods del taller, servidor propio, máquina de la oficina) con quién se
+ocupa de qué, un decisor y una cuenta de costos donde el servidor y las
+horas los pone cada uno (no se inventa un precio de servidor), Docker en
+tres ideas con un simulador del volumen, un armador de `docker-compose.yml`
+y `.env` con explicación por línea (sólo valores no secretos, no guarda
+nada; la clave se genera con `openssl` en el servidor), la terminal del
+primer arranque, la clave de cifrado con AES-GCM real del navegador, un
+simulador de desastres contra lo que se respalda, y un diagnóstico de
+siete síntomas. Workflow: respaldo diario de los flujos con el nodo n8n y
+Read/Write Files en `/home/node/.n8n-files`, montada en `./respaldos`.
+Deja abierta la 16: qué tarea de mantenimiento le darías a un agente y a
+qué instancia lo dejarías entrar.
 
 El taller `taller-oauth.html` es aparte: no es una clase, no lleva número y no
 entra en `clases.js`. Se llega desde el bloque «Talleres» del cronograma, y la
@@ -505,6 +520,39 @@ Dify y Docker Hub.
   cuerpo `inputs`, `query`, `user`, `response_mode`; respuesta `answer` y
   `metadata.retriever_resources`. No hay integración oficial n8n ↔ Dify;
   sí un nodo de comunidad de un particular, que no se usa.
+
+## Self-hosting, verificado el 4 de noviembre de 2026
+
+Contra docs.n8n.io, Docker Hub, la grilla de n8n.io, pikapods.com y el
+código de la estable (`n8n` 2.46.6; beta 2.47.2).
+
+- **n8n 3.0 salió el 27/10/2026 como acceso anticipado, sólo en Docker**
+  (3.0.0, 3.0.1, 3.1.0 el 3/11); npm no publica 3.x a propósito. Las
+  etiquetas `latest` y `stable` siguen en 2.46.6. Lo que rompe al alojar:
+  sólo Docker, Code corta a 60 s, rotación de claves de cifrado prendida
+  (no volver atrás después de rotar), nodos de comunidad sin verificar
+  apagados, `binaryData` pasa a `storage`. Antes de saltar: Settings →
+  Migration Report.
+- **Instalación.** Lo recomendado hoy: `curl -fsSL https://get.n8n.io | sh`
+  (compose, `.env` con secretos y task runners externos) o el compose
+  oficial (2 vCPU, 4 GB; Postgres 18; HTTPS con Traefik). Task runners en
+  modo externo para producción, con `n8nio/runners` de la misma versión.
+- **Variables.** `N8N_WEBHOOK_URL` (`WEBHOOK_URL` deprecada desde 2.35),
+  `N8N_PROXY_HOPS=1` detrás de un proxy, `GENERIC_TIMEZONE` (por defecto
+  America/New_York), `N8N_SECURE_COOKIE=true`, poda de ejecuciones
+  prendida con 336 h y 10.000 como máximo, `N8N_BLOCK_ENV_ACCESS_IN_NODE`
+  bloquea por defecto, `N8N_RESTRICT_FILE_ACCESS_TO` = `~/.n8n-files`.
+- **Clave de cifrado.** Si no se define, n8n la genera y la guarda en
+  `~/.n8n/config`. Distinta de la del archivo: «Mismatching encryption
+  keys» y no arranca. Perdida: «Credentials could not be decrypted».
+- **Respaldos.** `export:workflow --backup` y `export:credentials --backup`
+  (cifradas; `--decrypted` las deja legibles), en carpetas distintas;
+  `export:entities` desde 1.116; dentro de Docker con `docker compose exec
+  -u node n8n …`. Actualizar: pull, down, up -d; nunca `down -v`.
+- **Entornos con Git**: Business y Enterprise; en Community, exportar e
+  importar o paquetes `.n8np` (Preview). Registered Community suma
+  carpetas, debug in editor y custom execution data.
+- **PikaPods** ofrece n8n desde USD 3,7 por mes.
 
 ## Despliegue
 
