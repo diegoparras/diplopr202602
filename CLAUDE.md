@@ -109,11 +109,11 @@ Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 15, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
+Estado: publicadas las clases 1 a 16, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
-alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13, la 13 alimenta la 14 y la 15 (la primera pregunta va a la 14, la segunda a la 15) la 14 alimenta la 15 y la 15 alimenta la 16. Con la 9 cierra el módulo 3 y quedan
+alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13, la 13 alimenta la 14 y la 15 (la primera pregunta va a la 14, la segunda a la 15) la 14 alimenta la 15, la 15 y la 13 alimentan la 16 (el `docker ps` y los frenos) y la 16 alimenta la 17. Con la 9 cierra el módulo 3 y quedan
 saldadas las dos deudas que arrastraba: la memoria entre ejecuciones y la
 planilla usada como base de datos en el caso de la 7. La planilla no desaparece
 del caso, cambia de papel: deja de ser la memoria del flujo y queda como la
@@ -214,6 +214,23 @@ con once ejercicios y un navegador. No tiene workflow. La actividad pide
 instalar Docker Desktop, pegar el `docker ps` y buscar una imagen propia.
 La primera versión, sobre self-hosting de n8n, se descartó; sus datos
 verificados quedan en la sección del 4 de noviembre por si vuelven.
+
+La 16 cierra la 12 y la 13: el agente de código maneja n8n desde afuera por
+el servidor MCP de la instancia, en un n8n de pruebas levantado con el
+Docker de la 15. Sigue agnóstica (comandos de Claude Code, Codex y
+OpenCode). La idea que la ordena: el agente hace el trabajo pesado y no
+puede hacer lo único irreversible, publicar. Como en n8n publicar va en el
+mismo permiso que editar, el freno es una regla del lado del agente (deny
+en Claude Code, `disabled_tools` en Codex, `permissions` en OpenCode) más
+dos instancias: desarrollo local con All, producción con Read only.
+Piezas: adentro (n8n Assistant) o afuera, el ciclo pedir → vigilar con las
+herramientas MCP reales y la decisión de publicar, el mapa de herramientas
+por permiso de OAuth con su riesgo, el armador de la conexión a las dos
+instancias, un `AGENTS.md` para orquestar, seis riesgos con su freno, y
+tres pedidos de práctica con casilleros. Workflow: `16-flujo-roto-para-el-agente`,
+el probador de la 12 con un bug (5 de 6) que el agente tiene que corregir
+sin tocar los casos. La actividad alimenta la 17: cómo repartirías el
+trabajo entre dos agentes y quién aprueba qué.
 
 El taller `taller-oauth.html` es aparte: no es una clase, no lleva número y no
 entra en `clases.js`. Se llega desde el bloque «Talleres» del cronograma, y la
@@ -578,6 +595,37 @@ Hub y las páginas de precios de cada proveedor.
   (1 vCPU, 512 MB); OVHcloud VPS desde 3,81 € (2 vCPU, 4 GB); Hetzner AX41
   dedicado 59 €. Hetzner subió precios dos veces en 2026 y sus planes cloud
   más chicos figuraban agotados.
+
+## Orquestación por MCP, verificado el 11 de noviembre de 2026
+
+Contra docs.n8n.io, el código de la estable (`n8n` 2.47.4; beta 2.48.1),
+Docker Hub, code.claude.com, la documentación de Codex y opencode.ai.
+
+- **Versiones.** `latest` y `stable` = 2.47.4 en npm y Docker. La 3.x sigue
+  en acceso anticipado y sólo en Docker (3.2.0 del 10/11); npm no publica 3.x.
+- **Permisos de OAuth** (desde 2.32, julio de 2026): pantalla con presets
+  All, Read only y Custom; lo no concedido no se lista ni se llama. Las
+  conexiones previas conservan todo; el token personal no pasa por ahí.
+  Por código: `workflow:write` incluye crear, editar, archivar, restaurar,
+  **publicar y despublicar**; `workflow:execute` trae `test_workflow`,
+  `prepare_workflow_pin_data` y `execute_workflow` (modo `production` corre
+  la publicada); `execution:read`, con `includeData`, muestra los datos
+  reales. Frenos de publicación del lado de n8n (Protected instance,
+  Workflow reviews, roles propios): sólo Enterprise.
+- **Herramientas.** `test_workflow` fija disparadores, nodos con
+  credenciales y HTTP Request con datos simulados; Set, IF y Code corren.
+  `create_workflow_from_code` usa el Workflow SDK (TypeScript), exige
+  validar antes y deja el flujo con «Available in MCP» prendido.
+  `search_workflows` ve todos los flujos del usuario (vistas previas).
+  `list_credentials` nunca devuelve secretos. `restore_workflow_version`
+  deja la versión como borrador nuevo.
+- **Conexión.** URL terminada en `/mcp-server/http`; con
+  `http://localhost:5678` funciona para un agente local. Dos servidores =
+  dos nombres. Comandos: `claude mcp add --transport http …`,
+  `codex mcp add … --url` + `codex mcp login`, `opencode mcp add … --url`
+  (n8n no publica el de OpenCode).
+- **Skills** `n8n-io/skills` (Apache 2.0) para Claude Code y Codex; el
+  plugin de OpenCode está probado con la v1 y en la v2 no corre.
 
 ## Despliegue
 

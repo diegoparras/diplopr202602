@@ -66,7 +66,7 @@ const CLASES = [
   { n: 15, fecha: '2026-11-04', dia: 'Miércoles', mod: 'M5', pagina: '15.html',
     titulo: 'Docker, máquinas virtuales y servidores',
     bajada: 'Qué es un contenedor y qué una máquina virtual, VPS o servidor dedicado, de dónde se bajan las imágenes y cómo se corren en tu computadora con Docker Desktop.' },
-  { n: 16, fecha: '2026-11-11', dia: 'Miércoles', mod: 'M5', pagina: null,
+  { n: 16, fecha: '2026-11-11', dia: 'Miércoles', mod: 'M5', pagina: '16.html',
     titulo: 'Orquestación: el agente de código maneja n8n desde afuera',
     bajada: 'La instancia expuesta como servidor MCP y un agente que crea, corrige y despliega workflows.' },
   { n: 17, fecha: '2026-11-18', dia: 'Miércoles', mod: 'M5', pagina: null,
