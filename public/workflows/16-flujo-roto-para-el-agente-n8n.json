@@ -1,0 +1,162 @@
+{
+  "name": "Clase 16 - Flujo roto para que lo corrija el agente",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Clase 16 - Un flujo roto\n\nEste flujo prueba un nodo Code contra seis casos, como\nel de la clase 12. **Tiene un error**: `El veredicto`\nno da 6 de 6.\n\n```\nCUANDO lo ejecuto a mano:\n    cargar los casos { entrada, esperado }\n    PARA cada caso:\n        normalizar el número de factura\n        comparar con lo esperado\n    contar cuántos pasaron y cuáles fallaron\nFIN\n```\n\nNo lo arregles vos. Habilitalo en MCP (Settings del\nflujo → Available in MCP) y pedile al agente de código\nque lo encuentre, lo corrija y te muestre el\nveredicto. Las reglas están en la nota de al lado.",
+        "height": 640,
+        "width": 460,
+        "color": 4
+      },
+      "id": "c1600000-0000-4000-8000-000000000001",
+      "name": "Consigna",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1000,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Reglas para el agente\n\n1. Primero ejecutalo y leé el resultado de\n   `El veredicto`. Decime qué casos fallan y por qué,\n   antes de cambiar nada.\n\n2. Sólo podés cambiar el código de\n   `Normalizar el número`. **Los casos no se tocan**:\n   si un caso falla, se arregla el código.\n\n3. Después de cada cambio, ejecutalo de nuevo. No\n   termines hasta que dé 6 de 6.\n\n4. No publiques nada. Este flujo no se publica: se\n   ejecuta a mano.\n\n5. Al final, explicame en castellano qué estaba mal y\n   qué cambiaste.",
+        "height": 520,
+        "width": 420,
+        "color": 5
+      },
+      "id": "c1600000-0000-4000-8000-000000000002",
+      "name": "Reglas para el agente",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -500,
+        -200
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c1600000-0000-4000-8000-000000000003",
+      "name": "Probar",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Tus casos: una entrada y lo que esperás que salga.\n// Cambialos por los cinco que trajiste de la clase 11.\nconst casos = [\n  { entrada: \"A-0007-00004410\", esperado: \"7-4410\" },\n  { entrada: \"0001-00012345\", esperado: \"1-12345\" },\n  { entrada: \"B-0010-00000420\", esperado: \"10-420\" },\n  { entrada: \"Nº 0001-00012345\", esperado: \"1-12345\" },\n  { entrada: \"A 0001 00012345\", esperado: \"1-12345\" },\n  { entrada: \"sin número\", esperado: \"\" },\n];\n\nreturn casos.map(c => ({ json: c }));"
+      },
+      "id": "c1600000-0000-4000-8000-000000000004",
+      "name": "Los casos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Normaliza el número de factura: sin letra, sin ceros a la izquierda\n// en cada tramo y con un guion entre punto de venta y número.\nconst limpio = String($json.entrada || '').replace(/[^0-9-]/g, '');\nconst obtenido = limpio.split('-').filter(p => p).map(p => Number(p)).join('-');\n\nreturn { json: { ...$json, obtenido } };"
+      },
+      "id": "c1600000-0000-4000-8000-000000000005",
+      "name": "Normalizar el número",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1600000-0000-4000-8000-000000000101",
+              "name": "paso",
+              "value": "={{ $json.obtenido === $json.esperado }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "c1600000-0000-4000-8000-000000000006",
+      "name": "Comparar",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const filas = $input.all().map(i => i.json);\nconst fallaron = filas.filter(f => !f.paso);\n\nreturn [{\n  json: {\n    pasaron: filas.length - fallaron.length,\n    de: filas.length,\n    fallaron: fallaron.map(f => f.entrada + ' -> dio \"' + f.obtenido + '\", esperaba \"' + f.esperado + '\"'),\n  },\n}];"
+      },
+      "id": "c1600000-0000-4000-8000-000000000007",
+      "name": "El veredicto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Probar": {
+      "main": [
+        [
+          {
+            "node": "Los casos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Los casos": {
+      "main": [
+        [
+          {
+            "node": "Normalizar el número",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar el número": {
+      "main": [
+        [
+          {
+            "node": "Comparar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comparar": {
+      "main": [
+        [
+          {
+            "node": "El veredicto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
