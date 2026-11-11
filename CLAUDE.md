@@ -223,11 +223,18 @@ puede hacer lo único irreversible, publicar. Como en n8n publicar va en el
 mismo permiso que editar, el freno es una regla del lado del agente (deny
 en Claude Code, `disabled_tools` en Codex, `permissions` en OpenCode) más
 dos instancias: desarrollo local con All, producción con Read only.
-Piezas: adentro (n8n Assistant) o afuera, el ciclo pedir → vigilar con las
-herramientas MCP reales y la decisión de publicar, el mapa de herramientas
-por permiso de OAuth con su riesgo, el armador de la conexión a las dos
-instancias, un `AGENTS.md` para orquestar, seis riesgos con su freno, y
-tres pedidos de práctica con casilleros. Workflow: `16-flujo-roto-para-el-agente`,
+El mismo día se rehízo **muy guiada** por pedido del coordinador («no des
+nada por sentado»): el punto en una frase arriba, la imagen del pasante
+(la copia de la oficina, la puerta a la calle, la oficina real), de dónde
+venimos (12 → 13 → 16), ocho palabras explicadas, la sesión de ejemplo
+paso a paso con la decisión de publicar, el freno, y la práctica en trece
+pasos, cada uno con «cómo sabés que anduvo», casillero, Windows y Mac por
+separado y un selector de agente que completa los pasos 9 a 12 (guardado
+en `clase16-agente`). La práctica usa sólo la instancia de pruebas; el
+mapa de herramientas, la conexión a producción con Read only y las skills
+quedan plegados. En Claude Code el freno va en el comando de arranque
+(`--disallowedTools`), sin archivos ocultos. Hay un guion de clase
+minuto a minuto (18 a 21:30) que se le dio al coordinador en el chat. Workflow: `16-flujo-roto-para-el-agente`,
 el probador de la 12 con un bug (5 de 6) que el agente tiene que corregir
 sin tocar los casos. La actividad alimenta la 17: cómo repartirías el
 trabajo entre dos agentes y quién aprueba qué.

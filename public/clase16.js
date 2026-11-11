@@ -206,66 +206,186 @@ const MCP = {
    "texto": "<b>Para la instancia de pruebas.</b> Construye, cambia, prueba y publica. Publicar va en el mismo permiso que editar: por eso hace falta la regla en el agente."
   }
  },
- "conexion": {
+ "agentes": {
   "claude": {
    "nombre": "Claude Code",
-   "pasos": [
+   "conectar": [
     {
-     "texto": "En la carpeta desde donde vas a trabajar, una conexión por instancia:"
+     "codigo": "claude mcp add --transport http n8n-dev @@DEV@@"
     },
     {
-     "codigo": "claude mcp add --transport http n8n-dev @@DEV@@\nclaude mcp add --transport http n8n-prod @@PROD@@"
+     "texto": "Esto le anota a Claude Code que existe un servidor llamado <b>n8n-dev</b> y dónde está. Queda guardado para esta carpeta.",
+     "clase": ""
     },
     {
-     "texto": "Abrís <code>claude</code>, escribís <code>/mcp</code>, elegís cada servidor y <b>Authenticate</b>. Te abre el navegador con la pantalla de permisos de n8n: elegí <b>All</b> para n8n-dev y <b>Read only</b> para n8n-prod."
-    },
-    {
-     "texto": "La regla que le niega publicar va en <code>.claude/settings.json</code>, en la misma carpeta:"
-    },
-    {
-     "codigo": "{\n  \"permissions\": {\n    \"deny\": [\n      \"mcp__n8n-dev__publish_workflow\",\n      \"mcp__n8n-dev__unpublish_workflow\"\n    ]\n  }\n}"
+     "texto": "<b>Cómo sabés que anduvo:</b> escribí <code>claude mcp list</code> y Enter: aparece <code>n8n-dev</code>. Puede decir que falta autenticar: es normal, lo hacés en el paso 11.",
+     "clase": "ok-g"
     }
    ],
-   "nota": "Comandos de docs.n8n.io y reglas de code.claude.com, verificado el 11 de noviembre de 2026. Una herramienta negada desaparece de lo que el agente puede usar: ni siquiera la intenta. En n8n-prod no hace falta negarla: con Read only no aparece."
+   "regla": [
+    {
+     "texto": "En Claude Code, la herramienta se saca en el comando con el que lo abrís. Pegá esto: abre Claude Code <b>sin</b> las herramientas de publicar y despublicar.",
+     "clase": ""
+    },
+    {
+     "codigo": "claude --disallowedTools \"mcp__n8n-dev__publish_workflow\" \"mcp__n8n-dev__unpublish_workflow\""
+    },
+    {
+     "texto": "<b>Cómo sabés que anduvo:</b> se abre Claude Code adentro de la terminal. Dejalo abierto para el paso 11. Que la herramienta no está lo comprobás con el pedido B del paso 13.",
+     "clase": "ok-g"
+    }
+   ],
+   "autorizar": [
+    {
+     "texto": "Adentro de Claude Code, escribí <code>/mcp</code> y Enter. Elegí <b>n8n-dev</b> con las flechas, Enter, y después <b>Authenticate</b>.",
+     "clase": ""
+    }
+   ],
+   "abrir": [
+    {
+     "texto": "Claude Code ya está abierto: lo abriste en el paso 10. <b>Las próximas veces, abrilo siempre desde la carpeta clase16 y con el comando del paso 10</b>, que es el que le saca la herramienta de publicar.",
+     "clase": ""
+    }
+   ],
+   "prod": [
+    {
+     "codigo": "claude mcp add --transport http n8n-prod https://TU-N8N/mcp-server/http"
+    },
+    {
+     "texto": "Reemplazá <code>https://TU-N8N</code> por la dirección de tu n8n de verdad.",
+     "clase": ""
+    }
+   ]
   },
   "codex": {
    "nombre": "Codex",
-   "pasos": [
+   "conectar": [
     {
-     "texto": "Una conexión por instancia, y el inicio de sesión de cada una:"
+     "codigo": "codex mcp add n8n-dev --url @@DEV@@"
     },
     {
-     "codigo": "codex mcp add n8n-dev --url \"@@DEV@@\"\ncodex mcp add n8n-prod --url \"@@PROD@@\"\ncodex mcp login n8n-dev\ncodex mcp login n8n-prod"
+     "texto": "Esto le anota a Codex que existe un servidor llamado <b>n8n-dev</b> y dónde está. Queda guardado en el archivo de configuración de Codex.",
+     "clase": ""
     },
     {
-     "texto": "Te abre el navegador con la pantalla de permisos de n8n: elegí <b>All</b> para n8n-dev y <b>Read only</b> para n8n-prod. La regla que le niega publicar se agrega en <code>~/.codex/config.toml</code>, debajo del servidor que creó el comando:"
-    },
-    {
-     "codigo": "[mcp_servers.n8n-dev]\nurl = \"@@DEV@@\"\ndisabled_tools = [\"publish_workflow\", \"unpublish_workflow\"]"
+     "texto": "<b>Cómo sabés que anduvo:</b> escribí <code>codex mcp list</code> y Enter: aparece <code>n8n-dev</code>.",
+     "clase": "ok-g"
     }
    ],
-   "nota": "Comandos de docs.n8n.io y opción <code>disabled_tools</code> de la documentación de Codex, verificado el 11 de noviembre de 2026. Una herramienta en esa lista no le llega al agente."
+   "regla": [
+    {
+     "texto": "En Codex se hace en su archivo de configuración. Abrilo:",
+     "clase": ""
+    },
+    {
+     "codigo": "notepad $HOME\\.codex\\config.toml",
+     "titulo": "Windows"
+    },
+    {
+     "codigo": "open -e ~/.codex/config.toml",
+     "titulo": "Mac"
+    },
+    {
+     "texto": "Buscá el bloque que empieza con <code>[mcp_servers.n8n-dev]</code>. Abajo de la línea <code>url = ...</code> agregá esta línea, guardá y cerrá:",
+     "clase": ""
+    },
+    {
+     "codigo": "disabled_tools = [\"publish_workflow\", \"unpublish_workflow\"]",
+     "titulo": "Línea para agregar"
+    },
+    {
+     "texto": "<b>Cómo sabés que anduvo:</b> lo comprobás con el pedido B del paso 13.",
+     "clase": "ok-g"
+    }
+   ],
+   "autorizar": [
+    {
+     "codigo": "codex mcp login n8n-dev"
+    }
+   ],
+   "abrir": [
+    {
+     "codigo": "codex"
+    },
+    {
+     "texto": "Siempre desde la carpeta clase16.",
+     "clase": ""
+    }
+   ],
+   "prod": [
+    {
+     "codigo": "codex mcp add n8n-prod --url https://TU-N8N/mcp-server/http\ncodex mcp login n8n-prod"
+    },
+    {
+     "texto": "Reemplazá <code>https://TU-N8N</code> por la dirección de tu n8n de verdad.",
+     "clase": ""
+    }
+   ]
   },
   "opencode": {
    "nombre": "OpenCode",
-   "pasos": [
+   "conectar": [
     {
-     "texto": "Una conexión por instancia. Los servidores remotos usan OAuth de entrada:"
+     "codigo": "opencode mcp add n8n-dev --url @@DEV@@"
     },
     {
-     "codigo": "opencode mcp add n8n-dev --url @@DEV@@\nopencode mcp add n8n-prod --url @@PROD@@"
+     "texto": "Esto le anota a OpenCode que existe un servidor llamado <b>n8n-dev</b>. Lo guarda en un archivo de la carpeta clase16: <code>opencode.jsonc</code>.",
+     "clase": ""
     },
     {
-     "texto": "Abrís <code>opencode</code>, escribís <code>/mcps</code> y entrás en cada uno. Te abre el navegador con la pantalla de permisos de n8n: elegí <b>All</b> para n8n-dev y <b>Read only</b> para n8n-prod."
-    },
-    {
-     "texto": "La regla, en <code>opencode.jsonc</code> de la carpeta. OpenCode nombra cada herramienta <code>servidor_herramienta</code>; con el asterisco la regla vale para cualquier servidor:"
-    },
-    {
-     "codigo": "{\n  \"permissions\": [\n    { \"action\": \"*_publish_workflow\", \"resource\": \"*\", \"effect\": \"deny\" },\n    { \"action\": \"*_unpublish_workflow\", \"resource\": \"*\", \"effect\": \"deny\" }\n  ]\n}"
+     "texto": "<b>Cómo sabés que anduvo:</b> escribí <code>opencode mcp list</code> y Enter: aparece <code>n8n-dev</code>. Puede decir que necesita autenticación: es normal, lo hacés en el paso 11.",
+     "clase": "ok-g"
     }
    ],
-   "nota": "Comandos y permisos de la documentación de OpenCode v2, verificado el 11 de noviembre de 2026. n8n no publica el comando de OpenCode: sale de la documentación de OpenCode."
+   "regla": [
+    {
+     "texto": "En OpenCode se hace en ese mismo archivo. Abrilo:",
+     "clase": ""
+    },
+    {
+     "codigo": "notepad opencode.jsonc",
+     "titulo": "Windows"
+    },
+    {
+     "codigo": "open -e opencode.jsonc",
+     "titulo": "Mac"
+    },
+    {
+     "texto": "Justo después de la primera llave <code>{</code> del archivo, en una línea nueva, pegá esto. Guardá y cerrá:",
+     "clase": ""
+    },
+    {
+     "codigo": "\"permissions\": [\n  { \"action\": \"*_publish_workflow\", \"resource\": \"*\", \"effect\": \"deny\" },\n  { \"action\": \"*_unpublish_workflow\", \"resource\": \"*\", \"effect\": \"deny\" }\n],",
+     "titulo": "Líneas para agregar"
+    },
+    {
+     "texto": "<b>Cómo sabés que anduvo:</b> lo comprobás con el pedido B del paso 13.",
+     "clase": "ok-g"
+    }
+   ],
+   "autorizar": [
+    {
+     "codigo": "opencode mcp auth n8n-dev"
+    }
+   ],
+   "abrir": [
+    {
+     "codigo": "opencode"
+    },
+    {
+     "texto": "Siempre desde la carpeta clase16.",
+     "clase": ""
+    }
+   ],
+   "prod": [
+    {
+     "codigo": "opencode mcp add n8n-prod --url https://TU-N8N/mcp-server/http\nopencode mcp auth n8n-prod"
+    },
+    {
+     "texto": "Reemplazá <code>https://TU-N8N</code> por la dirección de tu n8n de verdad.",
+     "clase": ""
+    }
+   ]
   }
  },
  "riesgos": [
@@ -317,9 +437,9 @@ const MCP = {
   }
  ],
  "textos": {
-  "notaCiclo": "Las herramientas son las del servidor MCP de n8n 2.47.4, la versión estable, verificado el 11 de noviembre de 2026 contra docs.n8n.io y el código del paquete. El agente escribe el flujo con el Workflow SDK de n8n, en TypeScript, no con el JSON crudo de la clase 12. Publicar crea la versión activa a partir del borrador; volver atrás deja una versión anterior como borrador nuevo y lo anota en el historial.",
+  "notaCiclo": "Es una sesión de ejemplo, no una grabación. Las herramientas son las del servidor MCP de n8n 2.47.4, la versión estable, verificado el 11 de noviembre de 2026 contra docs.n8n.io y el código del paquete. El agente escribe el flujo con el Workflow SDK de n8n, en TypeScript, no con el JSON crudo de la clase 12. Publicar crea la versión activa a partir del borrador; volver atrás deja una versión anterior como borrador nuevo y lo anota en el historial.",
   "notaHerr": "Los permisos de OAuth existen desde n8n 2.32 (julio de 2026): All, Read only o Custom, sobre flujos, ejecuciones, credenciales, tablas y proyectos; lo que no se concede no se lista ni se puede llamar. Las conexiones hechas antes de la 2.32 conservan acceso completo, y un token personal no pasa por esa pantalla. La lista es una selección: el servidor tiene más herramientas (proyectos, carpetas, etiquetas, columnas de tablas). Del lado de n8n hay otros frenos para publicar —Protected instance, revisión de flujos, roles propios— pero son de Enterprise. Verificado el 11 de noviembre de 2026.",
-  "notaPractica": "La imagen <code>n8nio/n8n</code> sin etiqueta es hoy la 2.47.4. La 3.x sigue en acceso anticipado y sólo en Docker (la última, 3.2.0, del 10 de noviembre): para la práctica, la estable. Con un agente que corre en tu computadora, <code>http://localhost:5678</code> alcanza; un agente en la nube necesitaría una instancia publicada en internet. Verificado el 11 de noviembre de 2026 en docs.n8n.io y Docker Hub.",
+  "notaPractica": "Comandos de docs.n8n.io y de la documentación de Claude Code, Codex y OpenCode, verificado el 11 de noviembre de 2026. La imagen <code>n8nio/n8n</code> sin etiqueta es hoy la 2.47.4. La 3.x sigue en acceso anticipado y sólo en Docker (la última, 3.2.0, del 10 de noviembre): para la práctica, la estable. Con un agente que corre en tu computadora, <code>http://localhost:5678</code> alcanza; un agente en la nube necesitaría una instancia publicada en internet. Verificado el 11 de noviembre de 2026 en docs.n8n.io y Docker Hub.",
   "txtSkills": "<div class=\"trampa\" style=\"margin-top:0\"><span class=\"rot\">Opcional: las skills de n8n</span><p>El equipo de n8n publica <a href=\"https://github.com/n8n-io/skills\" target=\"_blank\" rel=\"noopener noreferrer\">skills para agentes de código</a> (Apache 2.0) que le enseñan al agente a usar este servidor: ciclo de vida, expresiones, nodos Code, depuración. En Claude Code: <code>/plugin marketplace add n8n-io/skills</code> y <code>/plugin install n8n-skills@n8n-io</code>. En Codex: <code>codex plugin marketplace add n8n-io/skills</code> y <code>codex plugin add n8n-skills@n8n-io</code>. Traen su propia conexión, <code>n8n-mcp</code>: si ya conectaste n8n-dev, apagá una de las dos para no tener las herramientas repetidas. El plugin para OpenCode está probado con la versión 1, y en la v2 los plugins viejos no corren: no lo damos por andando.</p></div>"
  }
 };
@@ -345,8 +465,8 @@ Object.entries(MCP.textos).forEach(([id, html]) => { const el = document.getElem
     return;
   }
   cont.innerHTML = '<span class="rot">Lo que trajiste</span>' +
-    (listaFrenos.length ? `<div class="linea"><b>Tus frenos de la clase 13</b><p>${listaFrenos.map(([k, v]) => `${escapar(k)} → <b>${NOMBRES[v] || v}</b>`).join('<br>')}</p><p style="font-size:0.84rem;color:var(--tenue);margin-top:4px">Hoy cada uno de esos frenos se vuelve una configuración concreta: un permiso de OAuth, una regla del agente o una instancia aparte.</p></div>` : '') +
-    (ps ? `<div class="linea"><b>Tu docker ps de la clase 15</b><p style="white-space:pre-wrap;font-family:var(--dato);font-size:0.8rem">${escapar(ps)}</p><p style="font-size:0.84rem;color:var(--tenue);margin-top:4px">Con ese Docker Desktop levantás hoy un n8n de pruebas, para que el agente trabaje ahí y no en el de verdad.</p></div>` : '');
+    (listaFrenos.length ? `<div class="linea"><b>Tus frenos de la clase 13</b><p>${listaFrenos.map(([k, v]) => `${escapar(k)} → <b>${NOMBRES[v] || v}</b>`).join('<br>')}</p><p style="font-size:0.84rem;color:var(--tenue);margin-top:4px">Hoy cada uno de esos frenos se vuelve algo concreto que vas a configurar: un permiso al conectar, una herramienta que le sacás al agente o una copia de n8n para que trabaje.</p></div>` : '') +
+    (ps ? `<div class="linea"><b>Tu docker ps de la clase 15</b><p style="white-space:pre-wrap;font-family:var(--dato);font-size:0.8rem">${escapar(ps)}</p><p style="font-size:0.84rem;color:var(--tenue);margin-top:4px">Con ese Docker Desktop levantás hoy un n8n de pruebas: la copia de la oficina donde va a trabajar el agente.</p></div>` : '');
 })();
 
 
@@ -366,28 +486,28 @@ Object.entries(MCP.textos).forEach(([id, html]) => { const el = document.getElem
   const ETAPAS = ['Pedir', 'Aprender', 'Construir', 'Probar', 'Corregir', 'Publicar', 'Vigilar'];
 
   const SI_PUBLICA = [
-    { e: 5, k: 'herramienta', q: 'n8n · publish_workflow', t: 'n8n crea la versión activa a partir del borrador. Desde ahora corre de verdad, con los correos de verdad.', mcp: 'publish_workflow', pub: 1 },
-    { e: 6, k: 'flujo', q: 'Una semana después', t: 'Un proveedor manda un número con un formato que no estaba en los casos, y el flujo falla en producción.' },
-    { e: 6, k: 'modelo', q: 'Agente · vuelta 9', t: 'Le pedís que mire. Busca las ejecuciones con error y compara la versión publicada con la anterior.', mcp: 'search_workflow_executions · get_workflow_versions_diff' },
-    { e: 6, k: 'herramienta', q: 'n8n · restore_workflow_version', t: 'Vuelve a poner la versión anterior como borrador, y queda anotado en el historial. Volver a publicarla pasa otra vez por tu permiso.', mcp: 'restore_workflow_version', ver: 1 },
-    { e: 6, k: 'fin', q: 'Lo que aprendiste', t: 'El ciclo no termina al publicar. El caso nuevo va a la lista de casos, y la próxima corrección se prueba también contra él.' }
+    { e: 5, k: 'herramienta', q: 'Publica', t: 'El flujo queda encendido: desde ahora corre solo, con los correos de verdad.', mcp: 'publish_workflow', pub: 1 },
+    { e: 6, k: 'flujo', q: 'Una semana después', t: 'Llega una factura con un formato que no estaba en los casos, y el flujo falla. Esta vez, con datos reales.' },
+    { e: 6, k: 'modelo', q: 'Le pedís que investigue', t: 'Busca las ejecuciones que fallaron y compara la versión nueva con la anterior.', mcp: 'search_workflow_executions · get_workflow_versions_diff' },
+    { e: 6, k: 'herramienta', q: 'Vuelve atrás', t: 'Pone la versión anterior como borrador. Para encenderla otra vez hace falta, de nuevo, publicar.', mcp: 'restore_workflow_version', ver: 1 },
+    { e: 6, k: 'fin', q: 'Lo que aprendiste', t: 'Publicar sin mirar salió caro. Y el caso nuevo va a la lista de casos, para que no vuelva a pasar.' }
   ];
   const NO_PUBLICA = [
-    { e: 5, k: 'freno', q: 'La regla del agente', t: 'publish_workflow está negada en la configuración del agente. El flujo queda en borrador, probado y con el informe.' },
-    { e: 5, k: 'modelo', q: 'Agente · vuelta 9', t: 'Te deja el resumen: qué construyó, qué casos pasan y qué falta. Publicar es tuyo: abrís el flujo en n8n, lo mirás y apretás Publish.' },
-    { e: 5, k: 'fin', q: 'Lo que aprendiste', t: 'El agente hizo todo el trabajo pesado y no pudo hacer lo único irreversible. Es la configuración que recomendamos para empezar.' }
+    { e: 5, k: 'freno', q: 'El freno', t: 'El agente no tiene la herramienta de publicar: se la sacaste vos. El flujo queda en borrador, probado.' },
+    { e: 5, k: 'modelo', q: 'Te avisa', t: 'Te deja un resumen: qué hizo y qué casos pasan. Vos abrís n8n, lo mirás y lo publicás.' },
+    { e: 5, k: 'fin', q: 'Lo que aprendiste', t: 'El agente hizo el trabajo pesado y no pudo hacer lo único que no tiene vuelta atrás. Así se empieza.' }
   ];
   const PASOS = [
-    { e: 0, k: 'humano', q: 'Vos · el pedido', t: 'Armá en n8n un flujo que normalice el número de factura. Está el pseudocódigo y seis casos: los casos no se tocan.' },
-    { e: 1, k: 'modelo', q: 'Agente · vuelta 1', t: 'No sabe qué nodos tiene tu n8n ni cómo se configuran en tu versión. Pregunta.', mcp: 'search_nodes · get_node_types' },
-    { e: 1, k: 'herramienta', q: 'n8n responde', t: 'Los nodos que existen en tu instancia, con sus parámetros reales. Es lo que en la clase 12 le tenías que copiar a mano.' },
-    { e: 2, k: 'modelo', q: 'Agente · vuelta 2', t: 'Escribe el flujo con el SDK de n8n y, antes de crearlo, lo valida.', mcp: 'validate_workflow' },
-    { e: 2, k: 'herramienta', q: 'n8n · validate_workflow', t: 'Error: al nodo Code le falta el modo. El agente lo corrige y vuelve a validar: ahora pasa.' },
-    { e: 2, k: 'herramienta', q: 'n8n · create_workflow_from_code', t: 'El flujo aparece en tu n8n, como borrador. Ojo: lo que crea el agente queda habilitado para MCP solo.', mcp: 'create_workflow_from_code', ver: 1 },
-    { e: 3, k: 'modelo', q: 'Agente · vuelta 4', t: 'Lo prueba sin tocar nada real: el disparador, los nodos con credenciales y los HTTP Request usan datos simulados.', mcp: 'prepare_workflow_pin_data · test_workflow' },
-    { e: 3, k: 'herramienta', q: 'n8n · get_workflow_execution', t: 'Lee el resultado: 5 de 6. Falla «A 0001 00012345», que viene con espacios.', mcp: 'get_workflow_execution' },
-    { e: 4, k: 'modelo', q: 'Agente · vuelta 6', t: 'Cambia sólo el nodo Code, sin tocar los casos, y vuelve a probar: 6 de 6.', mcp: 'update_workflow · test_workflow', ver: 1 },
-    { e: 5, k: 'humano', q: 'El agente quiere publicar', t: 'Pide usar publish_workflow. ¿Lo dejás?', si: SI_PUBLICA, no: NO_PUBLICA }
+    { e: 0, k: 'humano', q: 'Vos le pedís', t: 'Arreglá el flujo de los números de factura. Te paso cómo tiene que funcionar (el pseudocódigo) y seis casos de prueba. Los casos no se tocan.' },
+    { e: 1, k: 'modelo', q: 'El agente pregunta', t: 'Antes de escribir nada, le pregunta a n8n qué nodos hay y cómo se usan. No adivina.', mcp: 'search_nodes · get_node_types' },
+    { e: 1, k: 'herramienta', q: 'n8n contesta', t: 'La lista de nodos de tu n8n, con sus opciones. En la clase 12 eso se lo tenías que copiar vos a mano.' },
+    { e: 2, k: 'modelo', q: 'El agente escribe y pide revisión', t: 'Arma el flujo y, antes de guardarlo, le pide a n8n que lo revise.', mcp: 'validate_workflow' },
+    { e: 2, k: 'herramienta', q: 'n8n encuentra un error', t: 'Al nodo Code le falta un dato. El agente lo completa y n8n lo vuelve a revisar: ahora está bien.' },
+    { e: 2, k: 'herramienta', q: 'El flujo aparece en tu n8n', t: 'Guardado como borrador: existe, pero todavía no corre solo.', mcp: 'create_workflow_from_code', ver: 1 },
+    { e: 3, k: 'modelo', q: 'El agente lo prueba', t: 'Lo ejecuta con datos de mentira: no manda correos ni toca nada real.', mcp: 'prepare_workflow_pin_data · test_workflow' },
+    { e: 3, k: 'herramienta', q: 'Lee el resultado', t: '5 de 6 casos bien. Falla «A 0001 00012345», que viene con espacios.', mcp: 'get_workflow_execution' },
+    { e: 4, k: 'modelo', q: 'Lo corrige', t: 'Cambia sólo el nodo que arma el número, sin tocar los casos, y vuelve a probar: 6 de 6.', mcp: 'update_workflow · test_workflow', ver: 1 },
+    { e: 5, k: 'humano', q: 'Quiere publicar', t: 'Publicar es encenderlo de verdad: desde ese momento corre solo, con datos reales. ¿Lo dejás?', si: SI_PUBLICA, no: NO_PUBLICA }
   ];
   let cola = [], hechos = [], esperando = false;
   function contar() {
@@ -402,9 +522,9 @@ Object.entries(MCP.textos).forEach(([id, html]) => { const el = document.getElem
       <div class="paso-bucle ${p.k}">
         <span class="quien">${escapar(p.q)}</span>
         <p>${escapar(p.t)}</p>
-        ${p.mcp ? `<span class="herr-mcp">${escapar(p.mcp)}</span>` : ''}
+        ${p.mcp ? `<span class="herr-mcp">Herramienta de n8n: ${escapar(p.mcp)}</span>` : ''}
         ${p.k === 'humano' && p.si && esperando && n === hechos.length - 1 ? `
-          <div class="aprobar"><button type="button" class="si" data-d="si">Dejarlo publicar</button><button type="button" class="no" data-d="no">No, publico yo</button></div>` : ''}
+          <div class="aprobar"><button type="button" class="si" data-d="si">Dejarlo publicar</button><button type="button" class="no" data-d="no">No, lo publico yo después de mirarlo</button></div>` : ''}
       </div>`).join('');
     $l.scrollTop = $l.scrollHeight;
     contar();
@@ -463,19 +583,26 @@ Object.entries(MCP.textos).forEach(([id, html]) => { const el = document.getElem
 (function conexion() {
   const $tabs = document.getElementById('cnTabs');
   if (!$tabs) return;
-  const $prod = document.getElementById('cnProd');
-  const $out = document.getElementById('cnSalida');
-  let agente = Object.keys(MCP.conexion)[0];
-  function pintar() {
-    const prod = ($prod.value.trim().replace(/\/+$/, '') || 'https://TU-N8N-DE-VERDAD') + '/mcp-server/http';
-    const dev = 'http://localhost:5678/mcp-server/http';
-    $out.innerHTML = MCP.conexion[agente].pasos.map(p => p.codigo
-      ? `<pre class="codigo">${escapar(p.codigo.replace(/@@DEV@@/g, dev).replace(/@@PROD@@/g, prod))}</pre>`
-      : `<p style="margin-top:10px">${p.texto}</p>`).join('') + `<p class="nota-pie">${MCP.conexion[agente].nota}</p>`;
+  const huecos = document.querySelectorAll('[data-paso-agente]');
+  const dev = 'http://localhost:5678/mcp-server/http';
+  let agente = leerGuardado('clase16-agente');
+  if (!MCP.agentes[agente]) agente = '';
+  function bloque(p) {
+    if (p.codigo) {
+      const id = 'cod' + Math.random().toString(36).slice(2, 8);
+      return `<div class="prompt"><div class="cabeza"><b>${p.titulo || 'Pegar en la terminal'}</b><button type="button" class="boton hueco" data-copiar-dyn="${id}">Copiar</button></div><pre id="${id}">${escapar(p.codigo.replace(/@@DEV@@/g, dev))}</pre></div>`;
+    }
+    return `<p class="${p.clase || ''}">${p.texto}</p>`;
   }
-  $tabs.innerHTML = Object.entries(MCP.conexion).map(([k, c], i) => `<button type="button" data-k="${k}" aria-pressed="${i === 0}">${c.nombre}</button>`).join('');
-  $tabs.addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; agente = b.dataset.k; marcar($tabs, b); pintar(); });
-  $prod.addEventListener('input', pintar);
+  function pintar() {
+    huecos.forEach(h => {
+      if (!agente) { h.innerHTML = '<p class="vacio">Elegí tu agente en el paso 8 y acá aparece lo que tenés que hacer.</p>'; return; }
+      h.innerHTML = (MCP.agentes[agente][h.dataset.pasoAgente] || []).map(bloque).join('');
+    });
+    document.querySelectorAll('[data-copiar-dyn]').forEach(b => b.addEventListener('click', () => copiar(document.getElementById(b.dataset.copiarDyn).textContent, b)));
+  }
+  $tabs.innerHTML = Object.entries(MCP.agentes).map(([k, c]) => `<button type="button" data-k="${k}" aria-pressed="${k === agente}">${c.nombre}</button>`).join('');
+  $tabs.addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return; agente = b.dataset.k; guardar('clase16-agente', agente); marcar($tabs, b); pintar(); });
   pintar();
 })();
 
@@ -488,7 +615,7 @@ Object.entries(MCP.textos).forEach(([id, html]) => { const el = document.getElem
   const $c = document.getElementById('riesgos');
   if (!$c) return;
   const $total = document.getElementById('riesgosTotal');
-  const OPC = [['dev', 'Trabajar en la instancia de pruebas'], ['permiso', 'Un permiso más chico al conectar'], ['regla', 'Una regla en el agente'], ['datos', 'Datos de prueba, no reales']];
+  const OPC = [['dev', 'Trabajar en la copia (n8n de pruebas)'], ['permiso', 'Darle menos permiso al conectarlo'], ['regla', 'Sacarle una herramienta en el agente'], ['datos', 'Usar datos inventados']];
   const CASOS = MCP.riesgos;
   const resp = {};
   $c.innerHTML = CASOS.map((it, i) => `
@@ -523,7 +650,7 @@ Object.entries(MCP.textos).forEach(([id, html]) => { const el = document.getElem
 
 (function practica() {
   const marcas = (() => { try { return JSON.parse(leerGuardado('clase16-practica') || '{}'); } catch (e) { return {}; } })();
-  document.querySelectorAll('.chequeo input[type="checkbox"]').forEach(ch => {
+  document.querySelectorAll('.chequeo input[type="checkbox"], .hecho-g input[type="checkbox"]').forEach(ch => {
     ch.checked = !!marcas[ch.id];
     ch.addEventListener('change', () => { marcas[ch.id] = ch.checked; guardar('clase16-practica', JSON.stringify(marcas)); });
   });
