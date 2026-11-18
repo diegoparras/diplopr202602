@@ -47,7 +47,11 @@ public/
   taller-oauth.js      sus variables, plantillas, checklist y diagrama
   n8n-google-oauth.html  el mismo taller, suelto: un archivo, sin clave, sin
                        mención de la cursada. Para compartir afuera.
+  trabajo-final.html   la consigna del trabajo final (+ trabajo-final.js)
+  archivos/            el PDF del trabajo final y el Código.gs de la clase 17
   workflows/           los JSON importables a n8n
+herramientas/
+  trabajo-final-pdf.mjs  regenera el PDF del trabajo final desde su página
 vercel.json
 ```
 
@@ -102,18 +106,19 @@ con progresión de nube a instancia propia.
 4. Contexto e inteligencia (10 a 12) — nodo de agente, ingeniería de contexto,
    primer contacto con los orquestadores
 5. Orquestar y alojar (13 a 17) — MCP, RAG con n8n y Dify, Docker, máquinas
-   virtuales y servidores, orquestación desde afuera, multi-agente
+   virtuales y servidores, orquestación desde afuera, Apps Script con Google
+   Sheets
 6. Evaluar y mejorar (18 a 20) — métricas, refactor, proyecto integrador
 
 Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 16, más el taller de OAuth. El módulo 3 cambió la regla: desde la 7 el
+Estado: publicadas las clases 1 a 17, más el taller de OAuth y la consigna del trabajo final. El módulo 3 cambió la regla: desde la 7 el
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
-alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13, la 13 alimenta la 14 y la 15 (la primera pregunta va a la 14, la segunda a la 15) la 14 alimenta la 15, la 15 y la 13 alimentan la 16 (el `docker ps` y los frenos) y la 16 alimenta la 17. Con la 9 cierra el módulo 3 y quedan
+alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13, la 13 alimenta la 14 y la 15 (la primera pregunta va a la 14, la segunda a la 15) la 14 alimenta la 15, la 15 y la 13 alimentan la 16 (el `docker ps` y los frenos) la 16 alimenta la 17 (quién aprueba qué) y la 17 alimenta la 18 (los ocho casos y qué medirías). Con la 9 cierra el módulo 3 y quedan
 saldadas las dos deudas que arrastraba: la memoria entre ejecuciones y la
 planilla usada como base de datos en el caso de la 7. La planilla no desaparece
 del caso, cambia de papel: deja de ser la memoria del flujo y queda como la
@@ -238,6 +243,41 @@ minuto a minuto (18 a 21:30) que se le dio al coordinador en el chat. Workflow: 
 el probador de la 12 con un bug (5 de 6) que el agente tiene que corregir
 sin tocar los casos. La actividad alimenta la 17: cómo repartirías el
 trabajo entre dos agentes y quién aprueba qué.
+
+La 17 cambió de tema el 18/11 por pedido del coordinador: era «Sistemas
+multi-agente, memoria y gobernanza» y pasó a ser **Apps Script con Google
+Sheets**, introductoria (los alumnos no lo conocían), con integraciones y la
+API de OpenAI. **Es una excepción pedida a la regla agnóstica**: usa OpenAI
+con GPT-6 Luna (`gpt-6-luna`) porque el coordinador lo pidió; la página lo
+dice, presenta la IA de Google como alternativa y el código deja el modelo en
+una constante. Multi-agente no tiene lugar en el cronograma por ahora. La 16
+lleva nota de revisión fechada en la actividad y el cierre. El caso es el de
+Marcela: mensajes de proveedores en una planilla, que el script clasifica
+(categoría, urgencia, resumen, monto; el monto sin dato queda vacío, nunca 0),
+una persona aprueba con una casilla y n8n lee lo aprobado de una aplicación
+web (`doGet` con `TOKEN_N8N`; n8n llama a Google, así que anda con el n8n
+local de la 16). El script tiene un solo origen: los ocho mensajes de la
+página salen de `Código.gs` al ensamblarla; si se cambia uno, se regeneran
+los dos, igual que `public/archivos/clase17-Codigo.gs`. Usa
+`@OnlyCurrentDoc`, la clave en Propiedades del script (`OPENAI_API_KEY`), la
+Responses API con salida estructurada, `reasoning.effort: low`, `store:
+false`, busca el ítem `message` del `output` y anota el costo de cada fila.
+Piezas: diez palabras, Apps Script o n8n (con cinco situaciones), el caso en
+desorden y el pseudocódigo, una simulación de la planilla con el pedido y la
+respuesta (dice que es simulación), la calculadora de costo, trece pasos de
+práctica, los ocho casos para comparar (`clase17-casos`) y cinco riesgos.
+Workflow: `17-leer-las-aprobadas-de-la-planilla`, con el token como
+credencial Query Auth, no como parámetro.
+
+**El trabajo final** se adaptó el 18/11 del de la diplomatura de IA (comisión
+de los martes, repositorio `diploia202602`): mismos dos caminos, misma grilla
+(30/40/30) y doce ítems de cumplimiento mapeados a los seis módulos de esta
+diplomatura, con el proceso en pasos y en pseudocódigo como requisito.
+Informe y solución hasta el domingo 29/11 a las 23:59; presentación y defensa
+el miércoles 2/12 en la clase 20. La página `trabajo-final.html` es la única
+fuente: el PDF se regenera con `node herramientas/trabajo-final-pdf.mjs`, que
+toma lo que está entre las marcas `tf:` de la página. Se llega desde el
+cronograma (bloque «Trabajo final») y desde la 17.
 
 El taller `taller-oauth.html` es aparte: no es una clase, no lleva número y no
 entra en `clases.js`. Se llega desde el bloque «Talleres» del cronograma, y la
@@ -633,6 +673,40 @@ Docker Hub, code.claude.com, la documentación de Codex y opencode.ai.
   (n8n no publica el de OpenCode).
 - **Skills** `n8n-io/skills` (Apache 2.0) para Claude Code y Codex; el
   plugin de OpenCode está probado con la v1 y en la v2 no corre.
+
+## Apps Script y OpenAI, verificado el 18 de noviembre de 2026
+
+Contra developers.openai.com, developers.google.com/apps-script,
+support.google.com, docs.n8n.io y el código de la estable (`n8n` 2.48.5 →
+nodos 2.48.4; beta 2.49.1).
+
+- **GPT-6 Luna** (`gpt-6-luna`, 22/9/2026): «our most efficient model for
+  focused, high-volume tasks». USD 0,10 entrada, 0,01 en caché, 0,50 salida
+  por millón; Batch y Flex a la mitad. Contexto 1.050.000, salida 128.000.
+  Razona: `reasoning.effort` none a max, por defecto medium; `temperature`
+  sólo con effort none; los tokens de razonamiento se cobran como salida.
+  Hay un GPT-5.6 Luna más viejo y más caro: no confundir. Familia de hoy:
+  GPT-6.2 Astra (8/40), GPT-6.2 Sol (2/10), GPT-6.1 Terra (1/5).
+- **Responses API.** `POST /v1/responses` con `model`, `instructions`,
+  `input`; el texto está en el ítem `type: "message"` de `output`
+  (`output_text` es sólo de los SDK); `text.format` con `json_schema`
+  estricto (todos los campos `required`, `additionalProperties: false`,
+  opcionales como unión con null); `store` por defecto true, guarda 30 días.
+  La API no entrena con los datos salvo opt-in. La API se paga aparte de
+  ChatGPT (algunos Pro y Business traen crédito). El mínimo de crédito no
+  se pudo verificar.
+- **Apps Script.** Cuenta personal: 20.000 llamadas de UrlFetch por día,
+  90 min de disparadores, 6 min por ejecución, 30 s por función de celda
+  (Workspace: 100.000 y 6 h). Las funciones de celda sí pueden usar
+  UrlFetch y se recalculan cuando cambia su argumento: por eso la clase usa
+  un menú. Los disparadores simples no pueden usar servicios con
+  autorización. La aplicación web redirige a script.googleusercontent.com y
+  el HTTP Request de n8n sigue redirecciones por defecto desde la v4. Rhino
+  se retiró el 31/1/2026. Sheets tiene `=AI()` con plan elegible, y una
+  función propia llamada AI o GEMINI se reasigna a esa.
+- **No verificado:** quién ve las Propiedades del script (se enseña «quien
+  edita el script»), el texto de los botones de la pantalla de app sin
+  verificar.
 
 ## Despliegue
 
