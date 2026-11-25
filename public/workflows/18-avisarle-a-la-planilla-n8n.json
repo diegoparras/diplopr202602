@@ -1,0 +1,143 @@
+{
+  "name": "Clase 18 - Avisarle a la planilla",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Clase 18 - Avisarle a la planilla\n\nCada vez que corre, este flujo le avisa a la planilla de la clase 18 cómo le fue: el nombre del flujo, si terminó bien o con error, cuántos ítems procesó y cuánto tardó. La planilla lo anota en **Registro** y lo cuenta en el **Tablero**.\n\n```\nCUANDO lo ejecuto a mano:\n    armar el aviso: flujo, estado, ítems, segundos\n    mandárselo a la planilla\nFIN\n```\n\nPara probar: cambiá los valores de «Una corrida de ejemplo» (por ejemplo, estado = error) y ejecutalo varias veces.\n\nEn un flujo de verdad, los dos últimos nodos van **al final** de tu flujo, y los datos salen de lo que hizo: `{{ $('Tu nodo').all().length }}` ítems, por ejemplo.",
+        "height": 600,
+        "width": 460,
+        "color": 4
+      },
+      "id": "c1800000-0000-4000-8000-000000000001",
+      "name": "Consigna",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -580,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Puesta a punto (dos cosas)\n\n**1. La dirección.** En «Avisarle a la planilla», campo URL, pegá la dirección de tu aplicación web de la clase 18. Termina en `/exec`.\n\n**2. El token, como credencial.** Authentication → Generic Credential Type → Query Auth → Create New:\n- Name: `token`\n- Value: lo que guardaste en la propiedad `TOKEN_N8N` del script de la clase 18.\n\n**Los errores.** Para que también se anoten las corridas que fallan, armá un flujo de error: un flujo nuevo con **Error Trigger** y estos mismos dos nodos con estado = error, y elegilo en Settings del flujo → Error workflow.",
+        "height": 520,
+        "width": 440,
+        "color": 5
+      },
+      "id": "c1800000-0000-4000-8000-000000000002",
+      "name": "Puesta a punto",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        260
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c1800000-0000-4000-8000-000000000003",
+      "name": "Probar",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1800000-0000-4000-8000-000000000101",
+              "name": "flujo",
+              "value": "Facturas de Marcela",
+              "type": "string"
+            },
+            {
+              "id": "c1800000-0000-4000-8000-000000000102",
+              "name": "estado",
+              "value": "ok",
+              "type": "string"
+            },
+            {
+              "id": "c1800000-0000-4000-8000-000000000103",
+              "name": "items",
+              "value": 7,
+              "type": "number"
+            },
+            {
+              "id": "c1800000-0000-4000-8000-000000000104",
+              "name": "segundos",
+              "value": 4.2,
+              "type": "number"
+            },
+            {
+              "id": "c1800000-0000-4000-8000-000000000105",
+              "name": "detalle",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c1800000-0000-4000-8000-000000000004",
+      "name": "Una corrida de ejemplo",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://script.google.com/macros/s/PEGA-ACA-TU-ID/exec",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "c1800000-0000-4000-8000-000000000005",
+      "name": "Avisarle a la planilla",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Probar": {
+      "main": [
+        [
+          {
+            "node": "Una corrida de ejemplo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Una corrida de ejemplo": {
+      "main": [
+        [
+          {
+            "node": "Avisarle a la planilla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
