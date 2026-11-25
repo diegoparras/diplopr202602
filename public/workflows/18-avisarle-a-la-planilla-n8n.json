@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "content": "## Puesta a punto (dos cosas)\n\n**1. La dirección.** En «Avisarle a la planilla», campo URL, pegá la dirección de tu aplicación web de la clase 18. Termina en `/exec`.\n\n**2. El token, como credencial.** Authentication → Generic Credential Type → Query Auth → Create New:\n- Name: `token`\n- Value: lo que guardaste en la propiedad `TOKEN_N8N` del script de la clase 18.\n\n**Los errores.** Para que también se anoten las corridas que fallan, armá un flujo de error: un flujo nuevo con **Error Trigger** y estos mismos dos nodos con estado = error, y elegilo en Settings del flujo → Error workflow.",
+        "content": "## Puesta a punto (dos cosas)\n\n**1. La dirección.** En «Avisarle a la planilla», campo URL, pegá la dirección de tu aplicación web de la clase 18. Termina en `/exec`.\n\n**2. El token, como credencial.** Authentication → Generic Credential Type → Query Auth → Create New:\n- Name: `token`\n- Value: lo que guardaste en la propiedad `TOKEN_N8N` del script de la clase 18.\n\n**Los errores.** Para que también se anoten las corridas que fallan, armá un flujo de error: un flujo nuevo con **Error Trigger** y estos mismos dos nodos con estado = error, publicalo y elegilo en Settings del flujo → Error workflow. Ojo: el flujo de error sólo se dispara en ejecuciones de producción, no al probar a mano, y sus ejecuciones no cuentan para la cuota.",
         "height": 520,
         "width": 440,
         "color": 5

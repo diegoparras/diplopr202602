@@ -48,7 +48,7 @@ public/
   n8n-google-oauth.html  el mismo taller, suelto: un archivo, sin clave, sin
                        mención de la cursada. Para compartir afuera.
   trabajo-final.html   la consigna del trabajo final (+ trabajo-final.js)
-  archivos/            el PDF del trabajo final y el Código.gs de la clase 17
+  archivos/            el PDF del trabajo final y el Código.gs de las clases 17 y 18
   workflows/           los JSON importables a n8n
 herramientas/
   trabajo-final-pdf.mjs  regenera el PDF del trabajo final desde su página
@@ -114,11 +114,11 @@ Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 17, más el taller de OAuth y la consigna del trabajo final. El módulo 3 cambió la regla: desde la 7 el
+Estado: publicadas las clases 1 a 18, más el taller de OAuth y la consigna del trabajo final. El módulo 3 cambió la regla: desde la 7 el
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
-alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13, la 13 alimenta la 14 y la 15 (la primera pregunta va a la 14, la segunda a la 15) la 14 alimenta la 15, la 15 y la 13 alimentan la 16 (el `docker ps` y los frenos) la 16 alimenta la 17 (quién aprueba qué) y la 17 alimenta la 18 (los ocho casos y qué medirías). Con la 9 cierra el módulo 3 y quedan
+alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13, la 13 alimenta la 14 y la 15 (la primera pregunta va a la 14, la segunda a la 15) la 14 alimenta la 15, la 15 y la 13 alimentan la 16 (el `docker ps` y los frenos) la 16 alimenta la 17 (quién aprueba qué) la 17 alimenta la 18 (los ocho casos y qué medirías) y la 18 alimenta la 19 (un cambio medido y el día que se cae). Con la 9 cierra el módulo 3 y quedan
 saldadas las dos deudas que arrastraba: la memoria entre ejecuciones y la
 planilla usada como base de datos en el caso de la 7. La planilla no desaparece
 del caso, cambia de papel: deja de ser la memoria del flujo y queda como la
@@ -268,6 +268,33 @@ respuesta (dice que es simulación), la calculadora de costo, trece pasos de
 práctica, los ocho casos para comparar (`clase17-casos`) y cinco riesgos.
 Workflow: `17-leer-las-aprobadas-de-la-planilla`, con el token como
 credencial Query Auth, no como parámetro.
+
+La 18 se hizo el 25/11 «a criterio» por pedido del coordinador, con otra
+propuesta de Apps Script: **«Medir antes de opinar, con una planilla»**.
+Conserva el tema original del cronograma (evaluar, métricas) y lo hace en
+una planilla. La idea que la ordena: dos preguntas distintas, ¿acierta? (se
+mide con casos) y ¿corre? (se mide con un registro), y una tercera,
+¿conviene?, que sale de las dos más supuestos escritos. El script es un
+proyecto nuevo, independiente de la 17: veinte casos (los ocho de la 17 más
+doce) con categoría, urgencia y monto esperados; evaluación con aciertos por
+campo, matriz de confusión e historial con una «versión» de seis letras
+(MD5 de modelo + instrucciones); las reglas que se agregan van en
+`REGLAS_NUEVAS`, para que el alumno las reemplace sin tocar el resto;
+`doPost` con `LockService` que anota en Registro lo que manda n8n
+(`TOKEN_N8N` en la URL, como Query Auth); un Tablero con las dos
+mediciones y un gráfico; resumen por correo con `MailApp` y un disparador
+semanal de los lunes a las 9. La evaluación de la página es una simulación
+escrita a mano con dos versiones de las instrucciones: la 2 arregla los
+tres casos que falla la 1 (diferencia de pago, pago duplicado, monto en
+dólares) y rompe uno (la transferencia sin referencia). Esas tres reglas
+son las que el alumno pega en la práctica. Sigue con OpenAI y
+`gpt-6-luna`, la excepción de la 17. Piezas: traído de la 17, las tres
+preguntas con Insights y Evaluations presentados honestamente, ocho
+palabras, el pseudocódigo con tres disparadores, la evaluación simulada,
+la calculadora de ¿conviene?, doce pasos de práctica, cinco trampas de
+medir. Workflow: `18-avisarle-a-la-planilla`. Un solo origen: los veinte
+casos de la página salen de `Código.gs`, igual que
+`public/archivos/clase18-Codigo.gs`.
 
 **El trabajo final** se adaptó el 18/11 del de la diplomatura de IA (comisión
 de los martes, repositorio `diploia202602`): mismos dos caminos, misma grilla
@@ -707,6 +734,38 @@ nodos 2.48.4; beta 2.49.1).
 - **No verificado:** quién ve las Propiedades del script (se enseña «quien
   edita el script»), el texto de los botones de la pantalla de app sin
   verificar.
+
+## Medir con una planilla, verificado el 25 de noviembre de 2026
+
+Contra docs.n8n.io, developers.google.com/apps-script, la página de OpenAI
+y el código de la estable (`n8n` 2.49.6; beta 2.50.1; 3.x sigue sólo en
+Docker, la última 3.4.0 del 24/11).
+
+- **POST de n8n a una web app de Apps Script: anda.** El HTTP Request (v4 o
+  más) sigue las redirecciones por defecto; ante el 302 de Google pasa a
+  GET sin cuerpo (follow-redirects), así que el cuerpo llega a `doPost` y
+  vuelve el JSON. Probado con el código de n8n contra un servidor local; un
+  307 fallaría. En la 4.2 el encabezado `Authorization` viaja al otro
+  dominio (desde la 4.4 no): por eso el token va como Query Auth. La versión
+  por defecto del nodo es la 4.5.
+- **Insights.** Ejecuciones de producción (sin manuales ni sub-workflows),
+  fallos, tasa de fallos, tiempo promedio y tiempo ahorrado (fijo o con el
+  nodo Track Time Saved, `n8n-nodes-base.timeSaved`). Banner de 7 días en
+  todos los planes; tablero en Cloud Pro (7 y 14 días) y Enterprise, y en
+  Business y Enterprise propios. Evaluations, sin cambios desde el 7/10.
+  El flujo de error se publica, no corre al probar a mano y no cuenta para
+  la cuota.
+- **Apps Script.** `onWeekDay(...).atHour(9)` corre entre las 9 y las 10 en
+  la zona del proyecto (Configuración del proyecto → Zona horaria); 20
+  disparadores por script. `MailApp`: 100 destinatarios por día en cuenta
+  personal, 1.500 en Workspace; sólo envía. En un disparador se usa
+  `Session.getEffectiveUser()`. `doPost` no recibe encabezados: el token va
+  en la URL o en el cuerpo. En una web app, `getScriptLock()`, nunca
+  `getDocumentLock()`.
+- **OpenAI.** `gpt-6-luna` sin cambios (0,10 / 0,50). Flex no se ofrece en
+  los modelos nuevos: no prometerlo.
+- **No verificado:** que Google responda 302 y no 307 (es lo que se ve en la
+  práctica); que `e.parameter` traiga la query string en un POST.
 
 ## Despliegue
 
