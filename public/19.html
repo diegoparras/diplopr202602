@@ -904,18 +904,19 @@
   @media (max-width: 560px) { .ciclo5 { grid-template-columns: 1fr; } }
   .paso5 { padding: 16px; border-radius: 14px; background: var(--sup); border: 1px solid var(--linea); min-width: 0; }
   .paso5 .n { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--naranja); color: var(--fondo); font-family: var(--dato); font-weight: 700; font-size: 0.8rem; }
-  .paso5 b { display: block; margin-top: 8px; color: var(--texto); }
+  .paso5 > b { display: block; margin-top: 8px; color: var(--texto); }
+  .paso5 p b { color: var(--texto); }
   .paso5 p { font-size: 0.86rem; margin-top: 6px; }
-  .capas { margin-top: 24px; display: grid; gap: 0; max-width: 760px; }
-  .capa { padding: 16px 20px; border-radius: 14px; background: var(--sup); border: 1px solid var(--linea); box-shadow: var(--sombra); }
-  .capa b { display: block; font-family: var(--dato); font-size: 1rem; color: var(--texto); margin-top: 4px; }
-  .capa p { font-size: 0.9rem; margin-top: 4px; }
-  .capa .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--naranja); }
-  .cable { position: relative; margin-left: 40px; padding: 12px 0 12px 22px; border-left: 2px dashed var(--naranja); display: grid; gap: 2px; }
-  .cable span { font-family: var(--dato); font-size: 0.72rem; color: var(--naranja); font-weight: 700; }
-  .cable i { font-size: 0.84rem; color: var(--tenue); }
-  .cable i::before { content: "↓ "; color: var(--naranja); font-style: normal; }
-  .cable i.vuelta::before { content: "↑ "; }
+  .capas19 { margin-top: 24px; display: grid; gap: 0; max-width: 760px; }
+  .capa19 { padding: 16px 20px; border-radius: 14px; background: var(--sup); border: 1px solid var(--linea); box-shadow: var(--sombra); }
+  .capa19 b { display: block; font-family: var(--dato); font-size: 1rem; color: var(--texto); margin-top: 4px; }
+  .capa19 p { font-size: 0.9rem; margin-top: 4px; }
+  .capa19 .rot { font-family: var(--dato); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--naranja); }
+  .cable19 { position: relative; margin-left: 40px; padding: 12px 0 12px 22px; border-left: 2px dashed var(--naranja); display: grid; gap: 2px; }
+  .cable19 span { font-family: var(--dato); font-size: 0.72rem; color: var(--naranja); font-weight: 700; }
+  .cable19 i { font-size: 0.84rem; color: var(--tenue); }
+  .cable19 i::before { content: "↓ "; color: var(--naranja); font-style: normal; }
+  .cable19 i.vuelta::before { content: "↑ "; }
   .lab-grid { margin-top: 24px; display: grid; grid-template-columns: 1fr; gap: 16px; }
   .lab-marco { border: 1px solid var(--linea); border-radius: 16px; overflow: hidden; box-shadow: var(--sombra); background: var(--fondo); min-width: 0; }
   .lab-marco iframe { display: block; width: 100%; height: 860px; border: 0; }
@@ -936,7 +937,12 @@
   .tabla-errores td b { color: var(--texto); }
   .tabla-errores td.si { color: var(--acierto); font-weight: 600; }
   .tabla-errores td.no { color: var(--fallo); font-weight: 600; }
-  .tabla-errores code { font-size: 0.76rem; overflow-wrap: anywhere; }
+  .tabla-errores code { font-size: 0.76rem; white-space: nowrap; }
+  .calc-cuatro { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: none; }
+  @media (max-width: 900px) { .calc-cuatro { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .calc-cuatro { grid-template-columns: 1fr; } }
+  .calc-salida .cifra span b { display: inline; font-size: inherit; color: var(--texto); }
+  .palabra p strong { color: var(--texto); }
 </style>
 </head>
 <body>
@@ -1014,7 +1020,7 @@
       <div class="palabra"><b>Regresión</b><p>Un caso que andaba y, después de un cambio, deja de andar. El total puede subir y aun así haber regresiones.</p></div>
       <div class="palabra"><b>Costo por acierto</b><p>Lo que costó la evaluación dividido los casos que dieron bien. Sirve para comparar un modelo barato con uno caro.</p></div>
       <div class="palabra"><b>Reintento con espera</b><p>Si el servicio no contesta, se espera un segundo y se vuelve a probar; después dos, después cuatro. Reintentar sin esperar empeora las cosas.</p></div>
-      <div class="palabra"><b>Respaldo y pendiente</b><p>Si el modelo principal no responde, se prueba con otro: el <b>respaldo</b>. Si tampoco, el caso queda <b>pendiente</b> para más tarde, en vez de perderse.</p></div>
+      <div class="palabra"><b>Respaldo y pendiente</b><p>Si el modelo principal no responde, se prueba con otro: el <strong>respaldo</strong>. Si tampoco, el caso queda <strong>pendiente</strong> para más tarde, en vez de perderse.</p></div>
     </div>
   </div>
 </section>
@@ -1025,12 +1031,12 @@
     <span class="rotulo">Por dentro</span>
     <h2>Dos archivos y un cable</h2>
     <p class="intro">El laboratorio es un proyecto de Apps Script con dos archivos. Seguí el recorrido de un clic.</p>
-    <div class="capas">
-      <div class="capa"><span class="rot">Lo que ves</span><b>Panel.html</b><p>Botones, la grilla de los veinte casos, las pestañas. Es una página web: HTML, CSS y JavaScript.</p></div>
-      <div class="cable"><span>google.script.run</span><i>«evaluá los casos 6 a 10»</i><i class="vuelta">«acá van los cinco resultados»</i></div>
-      <div class="capa"><span class="rot">Lo que hace</span><b>Código.gs</b><p>Arma los pedidos, los manda a OpenAI de a cinco y en paralelo, reintenta si hace falta, compara con lo esperado y anota.</p></div>
-      <div class="cable"><span>Planilla y OpenAI</span><i>escribe en Evaluaciones y Resultados</i><i class="vuelta">recibe las respuestas del modelo</i></div>
-      <div class="capa"><span class="rot">Donde queda</span><b>La planilla</b><p>Tres pestañas: Casos, Evaluaciones (una fila por medición) y Resultados (una fila por caso medido). Se pueden mirar y llevar al trabajo final.</p></div>
+    <div class="capas19">
+      <div class="capa19"><span class="rot">Lo que ves</span><b>Panel.html</b><p>Botones, la grilla de los veinte casos, las pestañas. Es una página web: HTML, CSS y JavaScript.</p></div>
+      <div class="cable19"><span>google.script.run</span><i>«evaluá los casos 6 a 10»</i><i class="vuelta">«acá van los cinco resultados»</i></div>
+      <div class="capa19"><span class="rot">Lo que hace</span><b>Código.gs</b><p>Arma los pedidos, los manda a OpenAI de a cinco y en paralelo, reintenta si hace falta, compara con lo esperado y anota.</p></div>
+      <div class="cable19"><span>Planilla y OpenAI</span><i>escribe en Evaluaciones y Resultados</i><i class="vuelta">recibe las respuestas del modelo</i></div>
+      <div class="capa19"><span class="rot">Donde queda</span><b>La planilla</b><p>Tres pestañas: Casos, Evaluaciones (una fila por medición) y Resultados (una fila por caso medido). Se pueden mirar y llevar al trabajo final.</p></div>
     </div>
     <div class="trampa">
       <span class="rot">Por qué de a cinco</span>
@@ -1097,7 +1103,7 @@ LOS QUE SIGUEN SIN RESPUESTA: quedan pendientes, para reintentar más tarde</pre
     <span class="rotulo">Costos</span>
     <h2>¿El modelo barato o el caro? Depende de cuánto cuesta un error</h2>
     <p class="intro">Sol acierta un poco más y cuesta veinte veces más. ¿Conviene? Depende de qué pasa cuando el clasificador se equivoca: si alguien lo corrige en un minuto, o si se paga una factura dos veces. Mové los números.</p>
-    <div class="calc calc-tres">
+    <div class="calc calc-cuatro">
       <div class="campo"><label for="ccMensajes">Mensajes por mes</label><input id="ccMensajes" type="number" min="0" step="100" value="600"></div>
       <div class="campo"><label for="ccError">Lo que cuesta un error, en USD</label><input id="ccError" type="number" min="0" step="0.5" value="1"></div>
       <div class="campo"><label for="ccLuna">Aciertos de Luna (%)</label><input id="ccLuna" type="number" min="0" max="100" step="1" value="95"></div>
