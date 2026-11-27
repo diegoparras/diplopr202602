@@ -48,7 +48,8 @@ public/
   n8n-google-oauth.html  el mismo taller, suelto: un archivo, sin clave, sin
                        mención de la cursada. Para compartir afuera.
   trabajo-final.html   la consigna del trabajo final (+ trabajo-final.js)
-  archivos/            el PDF del trabajo final y el Código.gs de las clases 17 y 18
+  archivos/            el PDF del trabajo final, el Código.gs de las clases 17 a 19
+                       y el Panel.html de la 19
   workflows/           los JSON importables a n8n
 herramientas/
   trabajo-final-pdf.mjs  regenera el PDF del trabajo final desde su página
@@ -114,11 +115,11 @@ Los orquestadores (Claude Code, Codex, OpenCode) aparecen en la clase 12 como
 herramienta de construcción y vuelven en la 16 como capa que maneja n8n desde
 afuera vía MCP. Nunca desplazan a n8n del centro.
 
-Estado: publicadas las clases 1 a 18, más el taller de OAuth y la consigna del trabajo final. El módulo 3 cambió la regla: desde la 7 el
+Estado: publicadas las clases 1 a 19, más el taller de OAuth y la consigna del trabajo final. El módulo 3 cambió la regla: desde la 7 el
 caso lo trae cada participante, y la página de la 7 tiene un taller que convierte
 su proceso en algoritmo y le baja el esqueleto de n8n armado. Las actividades se
 encadenan por `localStorage`: la 6 alimenta la 7, la 7 alimenta la 8, la 8
-alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13, la 13 alimenta la 14 y la 15 (la primera pregunta va a la 14, la segunda a la 15) la 14 alimenta la 15, la 15 y la 13 alimentan la 16 (el `docker ps` y los frenos) la 16 alimenta la 17 (quién aprueba qué) la 17 alimenta la 18 (los ocho casos y qué medirías) y la 18 alimenta la 19 (un cambio medido y el día que se cae). Con la 9 cierra el módulo 3 y quedan
+alimenta la 9, la 9 alimenta la 10, la 10 alimenta la 11, la 11 alimenta la 12, la 12 alimenta la 13, la 13 alimenta la 14 y la 15 (la primera pregunta va a la 14, la segunda a la 15) la 14 alimenta la 15, la 15 y la 13 alimentan la 16 (el `docker ps` y los frenos) la 16 alimenta la 17 (quién aprueba qué) la 17 alimenta la 18 (los ocho casos y qué medirías) la 18 alimenta la 19 (un cambio medido y el día que se cae) y la 19 alimenta la 20 (el antes y después y qué hace la solución cuando algo se cae: las dos preguntas de la defensa). Con la 9 cierra el módulo 3 y quedan
 saldadas las dos deudas que arrastraba: la memoria entre ejecuciones y la
 planilla usada como base de datos en el caso de la 7. La planilla no desaparece
 del caso, cambia de papel: deja de ser la memoria del flujo y queda como la
@@ -295,6 +296,35 @@ la calculadora de ¿conviene?, doce pasos de práctica, cinco trampas de
 medir. Workflow: `18-avisarle-a-la-planilla`. Un solo origen: los veinte
 casos de la página salen de `Código.gs`, igual que
 `public/archivos/clase18-Codigo.gs`.
+
+La 19 (viernes 27/11) retoma la 18, que no se terminó de ver, «ampliada,
+con un front HTML» por pedido del coordinador, y absorbe el tema original
+de la 19 (refactor, costos, anti-fragilidad): **«El laboratorio: mejorar
+lo que funciona sin romperlo»**. Es un proyecto de Apps Script con dos
+archivos: `Código.gs` (las funciones que llama el panel, marcadas «LA LLAMA
+EL PANEL»; las privadas terminan en «_») y `Panel.html` (HtmlService, un
+cuadro no modal de 1100 × 720). Desde el panel: reglas nuevas guardadas en
+la propiedad `AJUSTES` (no en el código), modelo (`gpt-6-luna` o
+`gpt-6.2-sol`, esfuerzo low o medium porque Sol rechaza none), evaluación
+de a cinco casos con `fetchAll` (cada tanda, una ejecución corta: el panel
+muestra el avance), comparación caso por caso (se arregló, se rompió),
+bitácora con decisión y nota, gráfico de costo por acierto, y simulacro de
+caída (principal o todo) con reintentos exponenciales que respetan
+`Retry-After`, modelo de respaldo, casos pendientes y «Reintentar
+pendientes»; los errores de crédito no se reintentan. Los identificadores de
+evaluación llevan tres números al azar para que dos en el mismo segundo no
+se mezclen. **La página corre el panel de verdad**: `clase19.js` lleva el
+`Panel.html`, el `Código.gs` y un simulador de Google y de OpenAI como
+textos, y arma un iframe con los colores del sitio (sigue `cambio-tema`).
+Las respuestas simuladas: Luna sin reglas falla 8, 16 y 20; cada una de las
+tres reglas de la 18 arregla el suyo y la del duplicado le rompe a Luna el
+11; Sol sólo falla el 8. Si se cambia `Código.gs` o `Panel.html`, hay que
+cambiar también el texto que lleva `clase19.js` y los dos archivos de
+`public/archivos/`. Piezas: el ciclo de cinco pasos, ocho palabras, las
+capas (panel, google.script.run, código, planilla), el laboratorio en vivo
+con un recorrido de ocho pasos, la tabla de qué se reintenta y qué no, la
+calculadora de modelo barato o caro según cuánto cuesta un error, diez
+pasos de práctica y cinco trampas. Sin workflow de n8n.
 
 **El trabajo final** se adaptó el 18/11 del de la diplomatura de IA (comisión
 de los martes, repositorio `diploia202602`): mismos dos caminos, misma grilla
@@ -763,9 +793,37 @@ Docker, la última 3.4.0 del 24/11).
   en la URL o en el cuerpo. En una web app, `getScriptLock()`, nunca
   `getDocumentLock()`.
 - **OpenAI.** `gpt-6-luna` sin cambios (0,10 / 0,50). Flex no se ofrece en
-  los modelos nuevos: no prometerlo.
+  los modelos nuevos: no prometerlo. (Corregido el 27/11: Luna sí tiene
+  Flex, a mitad de precio; los que no lo tienen son GPT-6.2 Astra y Sol.)
 - **No verificado:** que Google responda 302 y no 307 (es lo que se ve en la
   práctica); que `e.parameter` traiga la query string en un POST.
+
+## El laboratorio, verificado el 27 de noviembre de 2026
+
+Contra developers.openai.com, developers.google.com/apps-script y el
+registro de npm (`n8n` 2.49.8; beta 2.50.3; ninguna 3.x en npm).
+
+- **GPT-6.2 Sol** (`gpt-6.2-sol`, 17/11): USD 2 entrada, 0,10 en caché,
+  2,50 escritura en caché, 10 salida. Rechaza `reasoning.effort: none`;
+  OpenAI recomienda `low` en su lugar. Salida estructurada, sí. Sin Flex.
+  En la 6.2, las `instructions` de primer nivel van después del `input` y
+  nunca se cobran con descuento de caché: para reusarlas, mensaje
+  `developer` al principio de `input`. No hay Luna más nueva que la 6.
+- **Caché de OpenAI.** Automática, desde 1.024 tokens de prefijo; escribir
+  cuesta 1,25 × la entrada (30 min). Las instrucciones del clasificador
+  tienen unos 450 tokens: no hay descuento, y la página lo dice.
+- **Errores.** Los de crédito o tope de gasto llegan como 429 con
+  `error.type: insufficient_quota` y códigos como `credit_balance_exhausted`
+  o `*_spend_limit_exceeded`: no se reintentan. El 429 de velocidad y el
+  503 (`server_is_overloaded`) sí, respetando `Retry-After`, con espera
+  exponencial al azar; los pedidos fallidos también cuentan para el límite.
+  502 y 504 no figuran en las guías.
+- **HtmlService.** Barra lateral siempre de 300 px; `google.script.run`
+  pasa sólo primitivos, objetos y arrays (no `Date`), no llama funciones
+  terminadas en «_» y admite 10 llamadas simultáneas; sólo modo IFRAME;
+  `Utilities.sleep` hasta 300.000 ms. No verificado: tamaño máximo de un
+  cuadro, que `fetchAll` corra en paralelo y respete el orden (es lo que se
+  ve en la práctica), el nombre del botón «+» en castellano.
 
 ## Despliegue
 

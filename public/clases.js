@@ -75,9 +75,9 @@ const CLASES = [
   { n: 18, fecha: '2026-11-25', dia: 'Miércoles', mod: 'M6', pagina: '18.html',
     titulo: 'Medir antes de opinar, con una planilla',
     bajada: 'Veinte casos para saber si el clasificador acierta, un registro para saber si el flujo corre y un resumen que llega solo los lunes.' },
-  { n: 19, fecha: '2026-11-27', dia: 'Viernes',   mod: 'M6', pagina: null,
-    titulo: 'Mejora continua: refactor, costos y anti-fragilidad',
-    bajada: 'Rehacer un flujo que funciona para que cueste menos y se caiga menos.' },
+  { n: 19, fecha: '2026-11-27', dia: 'Viernes',   mod: 'M6', pagina: '19.html',
+    titulo: 'El laboratorio: mejorar lo que funciona sin romperlo',
+    bajada: 'Un panel HTML adentro de la planilla para cambiar reglas, comparar modelos, medir cada cambio y aguantar el día que OpenAI no responde.' },
   { n: 20, fecha: '2026-12-02', dia: 'Miércoles', mod: 'M6', pagina: null,
     titulo: 'Proyecto integrador: presentación y defensa',
     bajada: 'Un proceso real de tu organización, pensado, construido, medido y defendido.' }

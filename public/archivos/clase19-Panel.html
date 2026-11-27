@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<style>
+  /* Los colores del panel. En la página de la clase se reemplazan por los del sitio. */
+  :root {
+    --fondo: #F6F4F0; --sup: #FFFFFF; --sup2: #F0EDE7; --texto: #1C1B19; --tenue: #66625B; --linea: #E2DED6;
+    --naranja: #DD5F0B; --brasa: #FBE9DC; --verde: #15803D; --verde-f: #E3F2E8; --rojo: #B4231A; --rojo-f: #F9E3E1;
+    --amarillo: #A16207; --amarillo-f: #FBF1D9; --azul: #1D4ED8; --azul-f: #E3EAFB;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fondo); color: var(--texto); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  button, select, input, textarea { font: inherit; color: inherit; }
+  .barra { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; background: var(--sup); border-bottom: 1px solid var(--linea); }
+  .barra h1 { margin: 0; font-size: 16px; }
+  .chip { font: 600 11px/1 ui-monospace, Menlo, Consolas, monospace; padding: 5px 9px; border-radius: 999px; border: 1px solid var(--linea); background: var(--sup2); }
+  .chip.nar { color: var(--naranja); border-color: var(--naranja); background: var(--brasa); }
+  .chip.roj { color: var(--rojo); border-color: var(--rojo); background: var(--rojo-f); }
+  .der { margin-left: auto; display: flex; gap: 8px; }
+  .cuerpo { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 14px; padding: 14px 16px; }
+  @media (max-width: 760px) { .cuerpo { grid-template-columns: 1fr; } }
+  .caja { background: var(--sup); border: 1px solid var(--linea); border-radius: 12px; padding: 14px; min-width: 0; }
+  .caja + .caja { margin-top: 12px; }
+  .rot { font: 700 10px/1.2 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--naranja); }
+  h2 { font-size: 15px; margin: 4px 0 10px; }
+  label.c { display: block; font-size: 12px; color: var(--tenue); margin: 10px 0 4px; }
+  select, input[type=text], textarea { width: 100%; border: 1px solid var(--linea); border-radius: 8px; padding: 7px 9px; background: var(--fondo); }
+  textarea { min-height: 120px; resize: vertical; font-size: 12.5px; }
+  .ayuda { font-size: 11.5px; color: var(--tenue); margin-top: 4px; }
+  .btn { border: 1px solid var(--linea); background: var(--sup); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+  .btn:hover:not(:disabled) { border-color: var(--naranja); }
+  .btn.lleno { background: var(--naranja); border-color: var(--naranja); color: var(--sup); font-weight: 600; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .fila { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  .seg { display: flex; border: 1px solid var(--linea); border-radius: 999px; overflow: hidden; }
+  .seg button { border: 0; background: transparent; padding: 6px 10px; cursor: pointer; font-size: 12.5px; }
+  .seg button[aria-pressed=true] { background: var(--naranja); color: var(--sup); }
+  .aviso { border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-top: 10px; }
+  .aviso.mal { background: var(--rojo-f); color: var(--rojo); }
+  .aviso.ojo { background: var(--amarillo-f); color: var(--amarillo); }
+  .aviso.bien { background: var(--verde-f); color: var(--verde); }
+  .progreso { height: 8px; background: var(--sup2); border-radius: 999px; overflow: hidden; margin-top: 12px; }
+  .progreso i { display: block; height: 100%; width: 0; background: var(--naranja); transition: width .3s ease; }
+  .grilla { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin-top: 12px; }
+  .cel { aspect-ratio: 1; border-radius: 6px; background: var(--sup2); border: 1px solid var(--linea); display: grid; place-items: center; font: 600 11px ui-monospace, Menlo, monospace; color: var(--tenue); }
+  .cel.bien { background: var(--verde-f); border-color: var(--verde); color: var(--verde); }
+  .cel.mal { background: var(--rojo-f); border-color: var(--rojo); color: var(--rojo); }
+  .cel.pend { background: var(--amarillo-f); border-color: var(--amarillo); color: var(--amarillo); }
+  .cel.resp { box-shadow: inset 0 0 0 2px var(--azul); }
+  .cel.ahora { border-color: var(--naranja); border-style: dashed; }
+  .leyenda { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11.5px; color: var(--tenue); margin-top: 8px; }
+  .leyenda span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; border: 1px solid var(--linea); }
+  .leyenda .b::before { background: var(--verde-f); border-color: var(--verde); } .leyenda .m::before { background: var(--rojo-f); border-color: var(--rojo); }
+  .leyenda .p::before { background: var(--amarillo-f); border-color: var(--amarillo); } .leyenda .r::before { box-shadow: inset 0 0 0 2px var(--azul); }
+  .pestanas { display: flex; gap: 4px; border-bottom: 1px solid var(--linea); margin: -4px -4px 12px; padding: 0 4px; flex-wrap: wrap; }
+  .pestanas button { border: 0; background: transparent; padding: 8px 12px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--tenue); }
+  .pestanas button[aria-selected=true] { color: var(--texto); border-bottom-color: var(--naranja); font-weight: 600; }
+  .cifras { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+  .cifra { border: 1px solid var(--linea); border-radius: 10px; padding: 10px; }
+  .cifra b { display: block; font-size: 20px; }
+  .cifra span { font-size: 11.5px; color: var(--tenue); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+  th { font: 600 10.5px ui-monospace, Menlo, monospace; text-transform: uppercase; letter-spacing: .05em; color: var(--tenue); }
+  td.msg { color: var(--tenue); max-width: 260px; }
+  .tabla { max-height: 430px; overflow: auto; }
+  .etq { font: 600 10.5px ui-monospace, Menlo, monospace; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+  .etq.bien { background: var(--verde-f); color: var(--verde); } .etq.mal { background: var(--rojo-f); color: var(--rojo); }
+  .etq.pend { background: var(--amarillo-f); color: var(--amarillo); } .etq.neu { background: var(--sup2); color: var(--tenue); }
+  .barras { display: grid; gap: 8px; margin-top: 6px; }
+  .barra-f { display: grid; grid-template-columns: 120px minmax(0, 1fr) 110px; gap: 8px; align-items: center; font-size: 12px; }
+  .barra-f .riel { height: 14px; background: var(--sup2); border-radius: 4px; overflow: hidden; }
+  .barra-f .riel i { display: block; height: 100%; background: var(--verde); }
+  .barra-f .riel.costo i { background: var(--naranja); }
+  .vacio { color: var(--tenue); font-size: 13px; padding: 10px 0; }
+  .bit { border: 1px solid var(--linea); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+  .bit .cab { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .bit .cab b { font-family: ui-monospace, Menlo, monospace; }
+  .bit .reg { font-size: 12px; color: var(--tenue); margin-top: 4px; }
+  @media (prefers-reduced-motion: reduce) { .progreso i { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="barra">
+  <h1>Laboratorio del clasificador</h1>
+  <span class="chip nar" id="chVersion">versión …</span>
+  <span class="chip" id="chModelo">…</span>
+  <span class="chip roj" id="chSimulacro" hidden>simulacro</span>
+  <div class="der"><button class="btn" id="btActualizar" type="button">Actualizar</button></div>
+</div>
+
+<div class="cuerpo">
+  <!-- ── Izquierda: ajustes y evaluar ── -->
+  <div>
+    <div class="caja" id="cajaPreparar" hidden>
+      <span class="rot">Primera vez</span>
+      <h2>Faltan las hojas</h2>
+      <p style="margin:0;font-size:13px">El laboratorio guarda todo en tres pestañas de esta planilla: Casos, Evaluaciones y Resultados.</p>
+      <div class="fila"><button class="btn lleno" id="btPreparar" type="button">Preparar las hojas</button></div>
+    </div>
+
+    <div class="caja">
+      <span class="rot">1 · Qué vas a probar</span>
+      <h2>Ajustes</h2>
+      <label class="c" for="reglas">Reglas nuevas, una por renglón</label>
+      <textarea id="reglas" placeholder="Si el importe no está en pesos (por ejemplo, en dólares), el monto es null."></textarea>
+      <div class="ayuda">Se agregan al final de las instrucciones de la clase 17. Cambiá una cosa por vez: si cambiás tres, no vas a saber cuál sirvió.</div>
+      <label class="c" for="modelo">Modelo</label>
+      <select id="modelo"></select>
+      <label class="c">Esfuerzo de razonamiento</label>
+      <div class="seg" id="esfuerzo"><button type="button" data-v="low">low</button><button type="button" data-v="medium">medium</button></div>
+      <label class="c" for="respaldo">Modelo de respaldo, si el principal no responde</label>
+      <select id="respaldo"></select>
+      <div class="fila"><button class="btn" id="btGuardar" type="button">Guardar ajustes</button><span class="ayuda" id="txtGuardado"></span></div>
+    </div>
+
+    <div class="caja">
+      <span class="rot">2 · Medir</span>
+      <h2>Evaluar los veinte casos</h2>
+      <div class="fila" style="margin-top:0"><button class="btn lleno" id="btEvaluar" type="button">Evaluar</button><button class="btn" id="btPendientes" type="button" hidden>Reintentar pendientes</button></div>
+      <div class="progreso"><i id="barraProg"></i></div>
+      <div class="grilla" id="grilla"></div>
+      <div class="leyenda"><span class="b">bien</span><span class="m">mal</span><span class="p">pendiente</span><span class="r">contestó el respaldo</span></div>
+      <div id="avisoEval"></div>
+    </div>
+
+    <div class="caja">
+      <span class="rot">3 · Ensayar</span>
+      <h2>El día que OpenAI no responde</h2>
+      <div class="seg" id="simulacro"><button type="button" data-v="ninguno">Normal</button><button type="button" data-v="principal">Se cae el principal</button><button type="button" data-v="todo">Se cae todo</button></div>
+      <div class="ayuda" style="margin-top:8px">En simulacro no se llama a OpenAI: se contesta como si el servicio no respondiera, para ver qué hace el laboratorio. Volvé a «Normal» al terminar.</div>
+    </div>
+  </div>
+
+  <!-- ── Derecha: lo que pasó ── -->
+  <div class="caja">
+    <div class="pestanas" role="tablist">
+      <button type="button" role="tab" data-p="resultados" aria-selected="true">Resultados</button>
+      <button type="button" role="tab" data-p="comparar" aria-selected="false">Comparar</button>
+      <button type="button" role="tab" data-p="bitacora" aria-selected="false">Bitácora</button>
+      <button type="button" role="tab" data-p="grafico" aria-selected="false">Gráfico</button>
+    </div>
+
+    <div data-panel="resultados">
+      <div class="cifras" id="cifras"></div>
+      <div class="tabla" style="margin-top:12px"><table id="tablaRes"></table></div>
+    </div>
+
+    <div data-panel="comparar" hidden>
+      <div class="fila" style="margin-top:0">
+        <label class="c" style="margin:0">Antes</label><select id="cmpA" style="width:auto"></select>
+        <label class="c" style="margin:0">Después</label><select id="cmpB" style="width:auto"></select>
+        <button class="btn lleno" id="btComparar" type="button">Comparar</button>
+      </div>
+      <div class="cifras" id="cmpCifras" style="margin-top:12px"></div>
+      <div class="fila" id="cmpFiltro" style="margin-top:10px"></div>
+      <div class="tabla" style="margin-top:8px"><table id="cmpTabla"></table></div>
+    </div>
+
+    <div data-panel="bitacora" hidden>
+      <p class="ayuda" style="margin:0 0 10px">Cada evaluación, con lo que se decidió y por qué. Una mejora que nadie anotó no se puede defender.</p>
+      <div id="bitacora"></div>
+    </div>
+
+    <div data-panel="grafico" hidden>
+      <span class="rot">Todo bien, por evaluación</span>
+      <div class="barras" id="grafAciertos"></div>
+      <span class="rot" style="display:block;margin-top:16px">Costo de los veinte casos</span>
+      <div class="barras" id="grafCosto"></div>
+      <span class="rot" style="display:block;margin-top:16px">Costo por acierto</span>
+      <div class="barras" id="grafPorAcierto"></div>
+      <p class="ayuda">El costo por acierto es el costo dividido los casos que dieron todo bien. Un modelo más caro conviene si los aciertos que suma valen más que lo que cuesta.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Hablar con Código.gs ──
+   google.script.run llama a una función del servidor y avisa cuando termina.
+   Lo envolvemos en una promesa para poder escribir «await servidor(...)». */
+function servidor(nombre) {
+  const args = Array.prototype.slice.call(arguments, 1);
+  return new Promise((ok, mal) => {
+    const r = google.script.run.withSuccessHandler(ok).withFailureHandler(mal);
+    r[nombre].apply(r, args);
+  });
+}
+
+const $ = id => document.getElementById(id);
+const esc = t => String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const pct = x => x === '' || x == null ? '—' : Math.round(Number(x) * 100) + ' %';
+const usd = (x, d) => 'USD ' + Number(x || 0).toFixed(d == null ? 4 : d);
+let E = null;              // el estado que manda el servidor
+let corrida = [];          // los resultados de la evaluación en curso o la última
+let ultimaId = null;
+
+function aviso(donde, clase, texto) { $(donde).innerHTML = texto ? `<div class="aviso ${clase}">${texto}</div>` : ''; }
+function fallo(e) { aviso('avisoEval', 'mal', esc(e && e.message ? e.message : e)); habilitar(true); }
+
+async function cargar() {
+  try { E = await servidor('estado'); pintarTodo(); } catch (e) { fallo(e); }
+}
+
+function pintarTodo() {
+  $('cajaPreparar').hidden = E.listo;
+  $('chVersion').textContent = 'versión ' + E.version;
+  const m = E.modelos.find(x => x.id === E.ajustes.modelo);
+  $('chModelo').textContent = (m ? m.nombre : E.ajustes.modelo) + ' · ' + E.ajustes.esfuerzo;
+  $('chSimulacro').hidden = E.ajustes.simulacro === 'ninguno';
+  $('chSimulacro').textContent = E.ajustes.simulacro === 'todo' ? 'simulacro: se cae todo' : 'simulacro: se cae el principal';
+  $('reglas').value = E.ajustes.reglas.join('\n');
+  $('modelo').innerHTML = E.modelos.map(x => `<option value="${x.id}">${esc(x.nombre)} · USD ${x.entrada} / ${x.salida} por millón</option>`).join('');
+  $('modelo').value = E.ajustes.modelo;
+  $('respaldo').innerHTML = '<option value="">Sin respaldo</option>' + E.modelos.map(x => `<option value="${x.id}">${esc(x.nombre)}</option>`).join('');
+  $('respaldo').value = E.ajustes.respaldo;
+  marcarSeg('esfuerzo', E.ajustes.esfuerzo);
+  marcarSeg('simulacro', E.ajustes.simulacro);
+  if (!E.clave && E.ajustes.simulacro === 'ninguno') aviso('avisoEval', 'ojo', 'Falta la clave de OpenAI en las Propiedades del script (OPENAI_API_KEY). Sin clave sólo anda el simulacro.');
+  pintarGrilla();
+  pintarResultados();
+  pintarBitacora();
+  pintarGrafico();
+  pintarSelectores();
+  habilitar(true);
+}
+
+function marcarSeg(id, v) { document.querySelectorAll('#' + id + ' button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v))); }
+function valorSeg(id) { const b = document.querySelector('#' + id + ' button[aria-pressed=true]'); return b ? b.dataset.v : ''; }
+['esfuerzo', 'simulacro'].forEach(id => $(id).addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  marcarSeg(id, b.dataset.v);
+  if (id === 'simulacro') guardar();
+}));
+
+async function guardar() {
+  try {
+    const r = await servidor('guardarAjustes', {
+      reglas: $('reglas').value.split('\n'), modelo: $('modelo').value, esfuerzo: valorSeg('esfuerzo'),
+      respaldo: $('respaldo').value, simulacro: valorSeg('simulacro')
+    });
+    E.ajustes = r.ajustes; E.version = r.version;
+    pintarTodo();
+    $('txtGuardado').textContent = 'Guardado. Versión ' + r.version + '.';
+  } catch (e) { fallo(e); }
+}
+$('btGuardar').addEventListener('click', guardar);
+
+$('btPreparar').addEventListener('click', async () => {
+  $('btPreparar').disabled = true;
+  try { E = await servidor('prepararHojas'); pintarTodo(); } catch (e) { fallo(e); }
+});
+$('btActualizar').addEventListener('click', cargar);
+
+function habilitar(si) { ['btEvaluar', 'btGuardar', 'btPendientes', 'btComparar'].forEach(id => { $(id).disabled = !si; }); }
+
+/* ── Evaluar: una evaluación nueva, los casos de a cinco, y cerrar ── */
+$('btEvaluar').addEventListener('click', async () => {
+  if (!E.listo) { aviso('avisoEval', 'ojo', 'Primero, «Preparar las hojas».'); return; }
+  habilitar(false);
+  aviso('avisoEval', '', '');
+  corrida = [];
+  try {
+    const ev = await servidor('nuevaEvaluacion');
+    ultimaId = ev.id;
+    for (let desde = 0; desde < ev.total; desde += ev.tanda) {
+      pintarGrilla(desde, ev.tanda);
+      const tanda = await servidor('evaluarTanda', ev.id, desde);
+      corrida = corrida.concat(tanda);
+      $('barraProg').style.width = Math.round(corrida.length / ev.total * 100) + '%';
+      pintarGrilla();
+      pintarResultados();
+    }
+    const resumen = await servidor('cerrarEvaluacion', ev.id);
+    E.evaluaciones = E.evaluaciones.filter(x => x.id !== resumen.id).concat([resumen]);
+    terminar(resumen);
+  } catch (e) { fallo(e); }
+});
+
+$('btPendientes').addEventListener('click', async () => {
+  if (!ultimaId) return;
+  habilitar(false);
+  try {
+    const r = await servidor('reintentarPendientes', ultimaId);
+    E = await servidor('estado');
+    corrida = r.filas;
+    pintarTodo();
+    terminar(r.resumen);
+  } catch (e) { fallo(e); }
+});
+
+function terminar(r) {
+  pintarBitacora(); pintarGrafico(); pintarSelectores();
+  const partes = [`Listo: todo bien en ${pct(r.todo)} de los casos, por ${usd(r.costo)}.`];
+  if (r.respaldo) partes.push(`${r.respaldo} los contestó el modelo de respaldo.`);
+  if (r.pendientes) partes.push(`${r.pendientes} quedaron pendientes: cuando el servicio vuelva, «Reintentar pendientes».`);
+  aviso('avisoEval', r.pendientes ? 'ojo' : 'bien', partes.join(' '));
+  $('btPendientes').hidden = !r.pendientes;
+  habilitar(true);
+}
+
+function claseCaso(r) {
+  if (!r) return '';
+  if (r.estado === 'pendiente' || String(r.estado).indexOf('error') === 0) return 'pend';
+  return (r.okCategoria && r.okUrgencia && r.okMonto ? 'bien' : 'mal') + (String(r.estado).indexOf('respaldo') >= 0 ? ' resp' : '');
+}
+function pintarGrilla(ahora, cuantos) {
+  const n = E ? E.casos.length : 20;
+  $('grilla').innerHTML = Array.from({ length: n }, (_, i) => {
+    const r = corrida.find(x => x.caso === i + 1);
+    const enCurso = ahora != null && i >= ahora && i < ahora + cuantos;
+    return `<div class="cel ${claseCaso(r)}${enCurso ? ' ahora' : ''}" title="Caso ${i + 1}">${i + 1}</div>`;
+  }).join('');
+}
+
+function pintarResultados() {
+  const n = corrida.length;
+  const c = k => corrida.filter(r => r[k]).length;
+  const todo = corrida.filter(r => r.okCategoria && r.okUrgencia && r.okMonto).length;
+  const costo = corrida.reduce((s, r) => s + (Number(r.costo) || 0), 0);
+  $('cifras').innerHTML = n ? [['Categoría bien', c('okCategoria')], ['Urgencia bien', c('okUrgencia')], ['Monto bien', c('okMonto')], ['Todo bien', todo]]
+    .map(([t, x]) => `<div class="cifra"><b>${x} de ${n}</b><span>${t}</span></div>`).join('') +
+    `<div class="cifra"><b>${usd(costo)}</b><span>Costo de esta corrida</span></div>` : '<p class="vacio">Todavía no corriste una evaluación en esta ventana. Tocá «Evaluar».</p>';
+  $('tablaRes').innerHTML = n ? '<thead><tr><th>#</th><th>Mensaje</th><th>Esperado</th><th>Obtenido</th><th>Intentos</th></tr></thead><tbody>' +
+    corrida.map(r => {
+      const caso = E.casos[r.caso - 1];
+      const esp = [caso.categoria, caso.urgencia, caso.monto === null ? 'sin monto' : caso.monto].join(' · ');
+      const obt = r.estado === 'pendiente' ? '<span class="etq pend">pendiente</span>' : String(r.estado).indexOf('error') === 0 ? `<span class="etq pend">${esc(r.estado)}</span>`
+        : `<span class="etq ${claseCaso(r).split(' ')[0]}">${esc([r.categoria, r.urgencia, r.monto === null ? 'sin monto' : r.monto].join(' · '))}</span>`;
+      return `<tr><td>${r.caso}</td><td class="msg">${esc(caso.mensaje)}</td><td>${esc(esp)}</td><td>${obt}</td><td>${r.intentos}${String(r.estado).indexOf('respaldo') >= 0 ? ' · respaldo' : ''}</td></tr>`;
+    }).join('') + '</tbody>' : '';
+}
+
+/* ── Comparar dos evaluaciones ── */
+function nombreEv(e) { return `${e.version} · ${e.modelo.replace('gpt-', '')} · ${e.fecha}`; }
+function pintarSelectores() {
+  const evs = E.evaluaciones.filter(e => e.decision !== 'en curso');
+  const ops = evs.map((e, i) => `<option value="${e.id}">#${i + 1} · ${esc(nombreEv(e))}</option>`).join('');
+  $('cmpA').innerHTML = ops; $('cmpB').innerHTML = ops;
+  if (evs.length >= 2) { $('cmpA').value = evs[evs.length - 2].id; $('cmpB').value = evs[evs.length - 1].id; }
+}
+let comparacion = [], filtro = 'cambios';
+$('btComparar').addEventListener('click', async () => {
+  if (!$('cmpA').value || !$('cmpB').value) return;
+  try { comparacion = await servidor('comparar', $('cmpA').value, $('cmpB').value); pintarComparacion(); } catch (e) { fallo(e); }
+});
+function pintarComparacion() {
+  const cuenta = s => comparacion.filter(c => c.estado === s).length;
+  $('cmpCifras').innerHTML = [['se arregló', 'bien'], ['se rompió', 'mal'], ['siguen mal', 'pend'], ['siguen bien', 'neu']]
+    .map(([s, k]) => `<div class="cifra"><b>${cuenta(s)}</b><span><span class="etq ${k}">${s}</span></span></div>`).join('');
+  const filtros = [['cambios', 'Lo que cambió'], ['siguen mal', 'Lo que sigue mal'], ['todos', 'Todos']];
+  $('cmpFiltro').innerHTML = '<div class="seg">' + filtros.map(([v, t]) => `<button type="button" data-v="${v}" aria-pressed="${v === filtro}">${t}</button>`).join('') + '</div>';
+  const ver = comparacion.filter(c => filtro === 'todos' || (filtro === 'cambios' ? (c.estado === 'se arregló' || c.estado === 'se rompió') : c.estado === filtro));
+  const k = { 'se arregló': 'bien', 'se rompió': 'mal', 'siguen mal': 'pend', 'siguen bien': 'neu', 'sin dato': 'neu' };
+  $('cmpTabla').innerHTML = ver.length ? '<thead><tr><th>#</th><th>Mensaje</th><th>Esperado</th><th>Antes</th><th>Después</th><th></th></tr></thead><tbody>' +
+    ver.map(c => `<tr><td>${c.caso}</td><td class="msg">${esc(c.mensaje)}</td><td>${esc(c.esperado)}</td><td>${esc(c.a)}</td><td>${esc(c.b)}</td><td><span class="etq ${k[c.estado]}">${c.estado}</span></td></tr>`).join('') + '</tbody>'
+    : '<tbody><tr><td class="vacio">Nada para mostrar con este filtro.</td></tr></tbody>';
+}
+$('cmpFiltro').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; filtro = b.dataset.v; pintarComparacion(); });
+
+/* ── Bitácora ── */
+function pintarBitacora() {
+  const evs = E.evaluaciones.slice().reverse();
+  $('bitacora').innerHTML = evs.length ? evs.map(e => `
+    <div class="bit" data-id="${e.id}">
+      <div class="cab"><b>#${E.evaluaciones.indexOf(e) + 1} · ${esc(e.version)}</b><span class="chip">${esc(e.modelo)} · ${esc(e.esfuerzo)}</span><span class="ayuda">${esc(e.fecha)}</span>
+        <span style="margin-left:auto">todo bien <b>${pct(e.todo)}</b> · ${usd(e.costo)}${e.respaldo ? ' · respaldo ' + e.respaldo : ''}${e.pendientes ? ' · <span class="etq pend">' + e.pendientes + ' pendientes</span>' : ''}</span></div>
+      <div class="reg">${e.reglas ? 'Reglas: ' + esc(e.reglas) : 'Sin reglas agregadas: las instrucciones de la clase 17.'}</div>
+      <div class="fila">
+        <select class="dec" style="width:auto">${['', 'Me quedo con esta', 'La descarto', 'Hay que probar más'].map(d => `<option ${d === e.decision ? 'selected' : ''} value="${d}">${d || 'Decisión…'}</option>`).join('')}</select>
+        <input type="text" class="nota" placeholder="Por qué" value="${esc(e.nota)}" style="flex:1;min-width:160px">
+        <button class="btn guardarBit" type="button">Anotar</button>
+      </div>
+    </div>`).join('') : '<p class="vacio">Todavía no hay evaluaciones.</p>';
+}
+$('bitacora').addEventListener('click', async e => {
+  const b = e.target.closest('.guardarBit'); if (!b) return;
+  const caja = b.closest('.bit');
+  b.disabled = true;
+  try {
+    E.evaluaciones = await servidor('anotarDecision', caja.dataset.id, caja.querySelector('.dec').value, caja.querySelector('.nota').value);
+    pintarBitacora(); pintarSelectores();
+  } catch (err) { fallo(err); }
+});
+
+/* ── Gráfico ── */
+function pintarGrafico() {
+  const evs = E.evaluaciones.filter(e => e.todo !== '' && e.todo != null);
+  if (!evs.length) { ['grafAciertos', 'grafCosto', 'grafPorAcierto'].forEach(id => { $(id).innerHTML = '<p class="vacio">Sin evaluaciones todavía.</p>'; }); return; }
+  const max = Math.max.apply(null, evs.map(e => Number(e.costo) || 0)) || 1;
+  const porAcierto = evs.map(e => { const a = Math.round(Number(e.todo) * Number(e.casos)); return a ? Number(e.costo) / a : null; });
+  const maxPA = Math.max.apply(null, porAcierto.filter(x => x !== null).concat([0])) || 1;
+  const fila = (e, ancho, txt, clase) => `<div class="barra-f"><span>${esc(e.version)} · ${esc(e.modelo.replace('gpt-', ''))}</span><div class="riel ${clase || ''}"><i style="width:${Math.max(ancho, 1)}%"></i></div><span>${txt}</span></div>`;
+  $('grafAciertos').innerHTML = evs.map(e => fila(e, Number(e.todo) * 100, pct(e.todo))).join('');
+  $('grafCosto').innerHTML = evs.map(e => fila(e, (Number(e.costo) || 0) / max * 100, usd(e.costo), 'costo')).join('');
+  $('grafPorAcierto').innerHTML = evs.map((e, i) => fila(e, porAcierto[i] === null ? 0 : porAcierto[i] / maxPA * 100, porAcierto[i] === null ? '—' : usd(porAcierto[i], 5), 'costo')).join('');
+}
+
+/* ── Pestañas ── */
+document.querySelector('.pestanas').addEventListener('click', e => {
+  const b = e.target.closest('button[data-p]'); if (!b) return;
+  document.querySelectorAll('.pestanas button').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+  document.querySelectorAll('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== b.dataset.p; });
+});
+
+cargar();
+</script>
+</body>
+</html>
